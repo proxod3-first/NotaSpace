@@ -1,26 +1,20 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { Routes, Route, Link } from "react-router-dom";
+import Home from "./pages/Home";
+import Notes from "./pages/Notes";
+import { NotesProvider } from "./context/NotesContext";
 
-function App() {
+export default function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <NotesProvider>
+      <nav className="p-4 border-b flex gap-4">
+        <Link to="/">Home</Link>
+        <Link to="/notess">Notes</Link>
+      </nav>
+
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/notess" element={<Notes />} />
+      </Routes>
+    </NotesProvider>
   );
 }
-
-export default App;
