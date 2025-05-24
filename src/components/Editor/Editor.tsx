@@ -15,6 +15,9 @@ import ArrowTooltip from "../Shared/ArrowTooltip";
 import { baseIconButton, flexCenter } from "../../styles/mixins";
 import { UIContext } from "../../context/UIContext";
 
+import { createTag, updateTag, fetchTags } from "../../services/tagsApi";
+import { addTagToNote, removeTagFromNote } from "../../services/notesApi";
+import { Tag } from "../../types";
 import MarkdownIt from "markdown-it";
 import MdEditor from "react-markdown-editor-lite";
 import "react-markdown-editor-lite/lib/index.css";
@@ -34,6 +37,14 @@ interface EditorProps {
   ) => void;
 }
 
+interface UpdateNoteData {
+  name: string;
+  text: string;
+  color: string;
+  order: number;
+  tags: string[];
+}
+
 const mdParser = new MarkdownIt();
 const AUTOSAVE_INTERVAL = 5;
 
@@ -44,6 +55,11 @@ const Editor = ({ note }: EditorProps) => {
   const [content, setContent] = useState(note.text || "");
   const [syncStatus, setSyncStatus] = useState("All changes saved");
   const [isFirstRun, setIsFirstRun] = useState(true);
+
+  const [tags, setTags] = useState<string[]>([]); // Массив только ID тегов
+  const [tagObjects, setTagObjects] = useState<Tag[]>([]); // Массив объектов тегов для отображения
+  const [newTag, setNewTag] = useState<string>(""); // Новое название тега
+  const [editTagId, setEditTagId] = useState<string | null>(null); // ID тега для редактирования
 
   // Full screen
   const [fullScreen, setFullScreen] = useState(false);
@@ -71,11 +87,25 @@ const Editor = ({ note }: EditorProps) => {
     setContent(note.text || "");
   }, [note.name, note.text]);
 
+  useEffect(() => {
+    const loadTags = async () => {
+      // Загружаем все теги с сервера
+      const fetchedTags = await fetchTags();
+      setTagObjects(fetchedTags);
+
+      // Если у нас уже есть теги для текущей заметки, то загружаем только их
+      const loadedTagObjects = fetchedTags.filter((tag) =>
+        tags.includes(tag.id)
+      );
+      setTagObjects(loadedTagObjects);
+    };
+    loadTags();
+  }, [tags]);
+
   // Автосохранение по таймеру
   useEffect(() => {
     let timer: NodeJS.Timeout;
 
-    // Пропускаем первый запуск
     if (isFirstRun) {
       setIsFirstRun(false);
       return;
@@ -85,23 +115,25 @@ const Editor = ({ note }: EditorProps) => {
 
     timer = setTimeout(async () => {
       try {
-        await updateNote(note.id, {
-          ...note,
+        const updatedNote: UpdateNoteData = {
           name: title,
           text: content,
-        });
+          color: note.color,
+          order: note.order,
+          tags,
+        };
 
-        // Если все прошло успешно
+        await updateNote(note.id, updatedNote);
+
         setSyncStatus("All changes saved");
       } catch (error) {
-        // Если ошибка, показываем ошибку
         setSyncStatus("Error saving note");
         setError("Ошибка при сохранении заметки.");
       }
     }, AUTOSAVE_INTERVAL);
 
     return () => clearTimeout(timer);
-  }, [title, content, note.id, note.color, note.order, isFirstRun]);
+  }, [title, content, tags, note.id, note.color, note.order, isFirstRun]);
 
   const handleCloseMenu = () => setAnchorEl(null);
   const handleClickMenu = (e: React.MouseEvent<HTMLElement>) =>
@@ -128,6 +160,57 @@ const Editor = ({ note }: EditorProps) => {
   ) => {
     moveNote(noteId, targetNotebookId, onSuccess, onError);
   };
+
+  const handleAddTag = async () => {
+    if (!newTag.trim()) return;
+
+    // Создаем новый тег
+    const tagData = { name: newTag.trim(), color: "#ff6347" }; // Цвет по умолчанию
+
+    const newTagObj = await createTag(tagData);
+
+    console.log(note.id, JSON.parse({ id: JSON.stringify(newTagObj) }.id));
+    // Добавляем ID тега в список
+    const value = JSON.parse({ id: JSON.stringify(newTagObj) }.id);
+    setTags((prevTags) => [...prevTags, value]);
+    // Привязываем тег к заметке
+    await addTagToNote(note.id, value);
+
+    // Обновляем список тегов
+    setNewTag(""); // Сбрасываем поле ввода
+  };
+
+  const handleDeleteTag = async (tagId: string) => {
+    // Удаляем тег из заметки
+    console.log(note.id, tagId);
+    await removeTagFromNote(note.id, tagId);
+    
+
+    // Удаляем ID тега из списка
+    setTags((prevTags) => prevTags.filter((tag) => tag !== tagId));
+  };
+
+  const handleEditTag = async () => {
+    if (!newTag.trim() || !editTagId) return;
+
+    // Обновляем тег
+    const updatedTag = await updateTag(editTagId, {
+      name: newTag.trim(),
+      color: "#ff6347",
+    });
+
+    // Обновляем теги в списке
+    setTagObjects((prevTags) =>
+      prevTags.map((tag) => (tag.id === editTagId ? updatedTag : tag))
+    );
+
+    // Обновляем тег в заметке
+    await addTagToNote(note.id, updatedTag.id);
+
+    setNewTag(""); // Сбрасываем поле ввода
+    setEditTagId(null); // Сбрасываем режим редактирования
+  };
+  console.log("tagObjects", tagObjects); // Проверяем, что передается в tagObjects
 
   return (
     <Container $isNoteListOpen={isNoteListOpen} $fullScreen={fullScreen}>
@@ -216,7 +299,54 @@ const Editor = ({ note }: EditorProps) => {
         placeholder="Начните печатать"
       />
 
-      <Footer>{syncStatus}</Footer>
+      <Footer>
+        {/* Статус синхронизации */}
+        <SyncStatus>{syncStatus}</SyncStatus>
+        {/* Отображаем текущие теги */}
+        <TagContainer>
+          {tagObjects.length > 0 ? (
+            tagObjects.map((tag) => (
+              <TagStyle key={tag.id}>
+                <span>{tag.name}</span>
+                {/* Кнопка для удаления */}
+                <TagButton onClick={() => handleDeleteTag(tag.id)}>
+                  Delete
+                </TagButton>
+                {/* Кнопка для редактирования */}
+                <TagButton
+                  onClick={() => {
+                    setEditTagId(tag.id);
+                    setNewTag(tag.name); // Устанавливаем имя тега в поле для редактирования
+                  }}
+                >
+                  Edit
+                </TagButton>
+              </TagStyle>
+            ))
+          ) : (
+            <span>No found tags</span> // Сообщение, если тегов нет
+          )}
+        </TagContainer>
+        {/* Добавление нового тега */}
+        <AddTagWrapper>
+          <input
+            type="text"
+            placeholder="New tag"
+            value={newTag}
+            onChange={(e) => setNewTag(e.currentTarget.value)}
+            style={{
+              padding: "5px",
+              borderRadius: "5px",
+              border: "1px solid #ccc",
+              marginRight: "10px",
+            }}
+          />
+          <Button onClick={handleAddTag}>Add Tag</Button>
+
+          {/* Кнопка редактирования тега */}
+          {editTagId ? <Button onClick={handleEditTag}>Edit Tag</Button> : null}
+        </AddTagWrapper>
+      </Footer>
     </Container>
   );
 };
@@ -359,9 +489,60 @@ const StyledMdEditor = styled(MdEditor)`
 `;
 
 const Footer = styled.div`
-  padding: 12px 15px;
-  height: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 20px;
+  background-color: #f7f7f7;
+  border-top: 1px solid #ddd;
+`;
+
+const TagContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+`;
+
+const TagStyle = styled.div`
+  background-color: #efefef;
+  border-radius: 20px;
+  padding: 5px 15px;
   font-size: 14px;
-  color: #334;
-  text-align: right;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const TagButton = styled.button`
+  background-color: transparent;
+  border: none;
+  color: #ff5555;
+  cursor: pointer;
+  font-size: 12px;
+  margin-left: 10px;
+`;
+
+const AddTagWrapper = styled.div`
+  margin-bottom: 15px;
+`;
+
+const SyncStatus = styled.div`
+  margin-bottom: 15px;
+  font-size: 14px;
+  color: #555;
+`;
+
+const Button = styled.button`
+  padding: 5px 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+
+  &:hover {
+    background-color: #0056b3;
+  }
 `;

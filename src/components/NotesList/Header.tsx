@@ -58,6 +58,7 @@ const Header = ({
       media: "",
       order: 0,
       notebook_id: "",
+      tags: []
     };
 
     try {
@@ -274,6 +275,3 @@ const StyledMenu = styled(Menu)`
 const InvisibleDiv = styled.div`
   display: none;
 `;
-function onSuccess() {
-  throw new Error("Function not implemented.");
-}

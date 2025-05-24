@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import styled from "styled-components";
 import Header from "./Header";
 import NoteListItem from "./NoteListItem";
 import NoNotesMessage from "./NoNotesMessage";
-import { Note } from "../../types/index";
-import { Container, List as MuiList } from "@mui/material";
+import { Note, Tag } from "../../types/index";
+import { Button, Container, List as MuiList } from "@mui/material";
+import { useTags } from "../../hooks/hooks";
+import { getTag } from "../../services/tagsApi";
 
 export interface NoteListProps {
   notes: Note[];
@@ -13,6 +15,13 @@ export interface NoteListProps {
   onDeleteNote?: (id: string) => void | Promise<void>;
 }
 
+
+interface TagButtonProps {
+  selected: boolean;
+  style?: React.CSSProperties;
+}
+
+
 const NoteList: React.FC<NoteListProps> = ({
   notes,
   activeNoteId,
@@ -20,6 +29,48 @@ const NoteList: React.FC<NoteListProps> = ({
 }) => {
   const [error, setError] = useState<string | null>(null);
   const [allNotes, setAllNotes] = useState<Note[]>(notes);
+  const [tags, setTags] = useState<
+    { id: string; name: string; color: string }[][]
+  >([]);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null); // Состояние для выбранного тега
+
+  const fetchTags = async () => {
+    const tagsForNotes = await Promise.all(
+      notes.map(async (note) => {
+        // Проверяем, что у заметки есть теги, и если есть, загружаем их
+        if (note.tags) {
+          const noteTags = await Promise.all(
+            note.tags.map((tagId) => getTag(tagId)) // Получаем тег по ID
+          );
+          return noteTags.filter(Boolean); // Фильтруем null и undefined
+        }
+        return []; // Если тегов нет, возвращаем пустой массив
+      })
+    );
+    setTags(tagsForNotes); // Сохраняем в состоянии
+  };
+
+  useEffect(() => {
+    fetchTags(); // Загружаем теги при изменении заметок
+  }, [notes]);
+
+  const handleTagSelect = (tagId: React.SetStateAction<string | null>) => {
+    setSelectedTag(tagId); // Устанавливаем выбранный тег
+  };
+
+    const handleTagClick = (tagId: string | null) => {
+    setSelectedTag((prevTag) => (prevTag === tagId ? null : tagId));
+  };
+  
+  const filteredNotes = useMemo(() => {
+    if (selectedTag) {
+      return notes.filter(
+        (note) => note.tags && note.tags.includes(selectedTag)
+      );
+    } else {
+      return notes;
+    }
+  }, [selectedTag, notes]);
 
   return (
     <Container>
@@ -27,19 +78,46 @@ const NoteList: React.FC<NoteListProps> = ({
         activeNoteId={activeNoteId}
         notes={notes}
         setNotes={setAllNotes}
-        setError={setError}
         onSelectNote={onSelectNote} // Передаем функцию на выбор заметки
+        setError={setError}
       />
+
       {error && <ErrorMessage>{error}</ErrorMessage>}
+      {/* Отображаем список тегов */}
+      <div>
+        <TagListContainer>
+          {tags.length > 0 ? (
+            tags.map((tagArray, index) => (
+              <div key={index}>
+                {tagArray.map((tag) => (
+                  <TagButton
+                    key={tag.id}
+                    selected={selectedTag?.toString === index.toString} // Проверяем, выбран ли тег
+
+                    onClick={() => handleTagClick(tag.id)} // При клике фильтруем по тегу
+                    style={{ backgroundColor: tag.color }} // Цвет фона можно менять в зависимости от тега
+                  >
+                    {tag.name}
+                  </TagButton>
+                ))}
+              </div>
+            ))
+          ) : (
+            <p> {selectedTag === null && <NoTagsMessage>Нет выбранных тегов</NoTagsMessage>}</p>
+          )}
+        </TagListContainer>
+      </div>
+
       {allNotes.length ? (
         <List>
           <MuiList>
-            {allNotes.map((note) => (
+            {filteredNotes.map((note, index) => (
               <NoteListItem
                 key={note.id}
                 note={note}
                 $active={activeNoteId === note.id}
                 onClick={() => onSelectNote(note.id)} // Выбираем заметку
+                tags={tags[index] || []} // Получаем теги для текущей заметки по индексу
               />
             ))}
           </MuiList>
@@ -62,6 +140,7 @@ const List = styled(MuiList)`
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  overflow-x: hidden;
   padding-right: 10px;
 
   &::-webkit-scrollbar {
@@ -95,4 +174,44 @@ const List = styled(MuiList)`
     bottom: 0;
     width: 100%;
   }
+`;
+
+const TagListContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  padding: 10px 0;
+`;
+
+const TagButton = styled.button<TagButtonProps>`
+  background-color: ${(props) =>
+    props.selected ? '#d1d1d1' : props.style?.backgroundColor || '#f4f4f4'};
+  border: 1px solid #ddd;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.23s ease;
+
+  &:hover {
+    background-color: ${(props) =>
+      props.selected ? '#b5b5b5' : '#e0e0e0'};
+    transform: scale(1.05);
+  }
+
+  &:active {
+    background-color: ${(props) =>
+      props.selected ? '#a0a0a0' : '#ccc'};
+    transform: scale(0.98);
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 0, 255, 0.3);
+  }
+`;
+
+const NoTagsMessage = styled.p`
+  color: #888;
+  font-style: italic;
+  margin: 10px 0;
 `;

@@ -7,7 +7,7 @@ const BASE_URL = "http://localhost:8085/api/v1";
 export async function getTag(id: string): Promise<Tag> {
   const res = await fetch(`${BASE_URL}/tags/${id}`);
   const json = await res.json();
-  return json.data;
+  return json?.data || null;
 }
 
 // Получить все тэги

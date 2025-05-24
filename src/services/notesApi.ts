@@ -70,7 +70,7 @@ export async function createNote(
 // Изменить заметку (без поля media, is_deleted, tags)
 export async function updateNote(
   id: string,
-  note: Pick<Note, "name" | "text" | "color" | "order">
+  note: Pick<Note, "name" | "text" | "color" | "order" | "tags">
 ): Promise<Note> {
   const res = await fetch(`${BASE_URL}/notes/${id}`, {
     method: "PUT",
@@ -115,6 +115,7 @@ export async function removeTagFromNote(
   noteId: string,
   tagId: string
 ): Promise<Note> {
+  console.log("PATCH: ", noteId, tagId);
   const res = await fetch(`${BASE_URL}/notes/tag/${noteId}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },

@@ -5,6 +5,7 @@ import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import { MainProvider } from "./context/NoteContext";
+import { TagProvider } from "./context/TagContext";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -14,7 +15,9 @@ root.render(
   <React.StrictMode>
     <BrowserRouter>
       <MainProvider>
+        <TagProvider>
         <App />
+        </TagProvider>
       </MainProvider>
     </BrowserRouter>
   </React.StrictMode>

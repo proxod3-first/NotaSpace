@@ -13,9 +13,10 @@ interface ComponentProps {
   note: Note;
   $active: boolean;
   onClick: (noteId: string) => void;
+  tags: { id: string; name: string; color: string }[];
 }
 
-const NoteListItem = ({ note, $active, onClick }: ComponentProps) => {
+const NoteListItem = ({ note, $active, onClick, tags }: ComponentProps) => {
   const { toggleNoteList } = useContext(UIContext);
 
   const handleClick = () => {
@@ -27,6 +28,13 @@ const NoteListItem = ({ note, $active, onClick }: ComponentProps) => {
     <Container onClick={handleClick} $active={$active}>
       <Title>{note.name ? note.name : "Untitled"}</Title>
       <Content>{formatText(note.text)}</Content>
+      <Tags>
+        {tags.map((tag) => (
+          <Tag key={tag.id} color={tag.color}>
+            {tag.name}
+          </Tag>
+        ))}
+      </Tags>
       <AutoUpdatingTimeAgo date={new Date(Date.now() - 60000)} />
     </Container>
   );
@@ -75,8 +83,12 @@ const Container = styled.div<ContainerProps>`
     transition: background-color 0.3s ease;
   }
 
+  &:first-child {
+    margin-top: -14px;
+  }
+
   &:last-child {
-    margin-bottom: 0;
+    margin-bottom: -14px;
   }
 `;
 
@@ -101,6 +113,21 @@ const Content = styled.div`
 
   text-overflow: clip;
   -webkit-text-overflow: clip;
+`;
+
+const Tags = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+`;
+
+const Tag = styled.div<{ color: string }>`
+  background-color: ${({ color }) => color};
+  color: white;
+  padding: 4px 8px;
+  border-radius: 16px;
+  font-size: 12px;
 `;
 
 const Timestamp = styled.div`

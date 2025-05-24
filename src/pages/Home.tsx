@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useMainContext } from "../context/NoteContext";
 
 import { fetchNotes, createNote, deleteNote } from "../services/notesApi";
@@ -25,6 +25,11 @@ export default function Home() {
 
   const [isSidebarOpen, toggleSidebar] = useToggleItem(false);
   const [isNoteListOpen, toggleNoteList] = useToggleItem(true);
+  const [selectedTag, setSelectedTag] = useState<string>("");
+  
+  const handleTagSelect = (tag: string) => {
+    setSelectedTag(tag); // Сохраняем выбранный тег
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -63,7 +68,7 @@ export default function Home() {
           notes={notes}
           activeNoteId={activeNote?.id || ""}
           onSelectNote={handleSelectNote}
-          onDeleteNote={handleDelete}
+          onDeleteNote={handleDelete} 
         />
         {activeNote ? (
           <Editor

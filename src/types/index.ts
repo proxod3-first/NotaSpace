@@ -7,7 +7,7 @@ export interface Note {
   order: number;
   is_deleted: boolean;
   notebook_id: string;
-  tags?: string[];
+  tags: string[];
 }
 
 export interface Notebook {
