@@ -1,20 +1,16 @@
-import { Routes, Route, Link } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
-import Notes from "./pages/Notes";
-import { NotesProvider } from "./context/NotesContext";
+import { MainProvider } from "./context/MainContext";
+import GlobalStyle from "./styles/global";
 
 export default function App() {
   return (
-    <NotesProvider>
-      <nav className="p-4 border-b flex gap-4">
-        <Link to="/">Home</Link>
-        <Link to="/notess">Notes</Link>
-      </nav>
-
+    <MainProvider>
+      <GlobalStyle />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/notess" element={<Notes />} />
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
-    </NotesProvider>
+    </MainProvider>
   );
 }

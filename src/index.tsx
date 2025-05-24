@@ -4,7 +4,7 @@ import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
-import { NotesProvider } from "./context/NotesContext";
+import { MainProvider } from "./context/MainContext";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -13,9 +13,9 @@ const root = ReactDOM.createRoot(
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-      <NotesProvider>
+      <MainProvider>
         <App />
-      </NotesProvider>
+      </MainProvider>
     </BrowserRouter>
   </React.StrictMode>
 );
