@@ -47,15 +47,36 @@ const formatText = (text: string) => {
 
 const Container = styled.div<ContainerProps>`
   font-size: 15px;
-  padding: 12px;
+  padding: 16px 20px;
+  margin-bottom: 7px;
   height: auto;
-  border-bottom: 1px solid var(--border-color);
-  background-color: ${({ $active }) => $active && "#d3d1d1"};
+  border-radius: 8px;
+  background-color: ${({ $active }) => ($active ? '#f0f0f0' : '#ffffff')};
+  border: 1px solid ${({ $active }) => ($active ? '#bbb' : '#ddd')};
   position: relative;
-
+  box-shadow: ${({ $active }) => ($active ? '0 4px 8px rgba(0, 0, 0, 0.1)' : '0 2px 6px rgba(0, 0, 0, 0.1)')};
+  transition: all 0.2s ease-in-out;
+  
   &:hover {
     cursor: pointer;
-    background-color: ${({ $active }) => !$active && "#ececec"};
+    background-color: ${({ $active }) => (!$active ? '#fafafa' : '#d3d1d1')};
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  &:before {
+    content: '';
+    position: absolute;
+    top: 23px;
+    left: 10px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: ${({ $active }) => ($active ? '#2ecc71' : '#e74c3c')};
+    transition: background-color 0.3s ease;
+  }
+
+  &:last-child {
+    margin-bottom: 0;
   }
 `;
 
@@ -83,6 +104,6 @@ const Content = styled.div`
 `;
 
 const Timestamp = styled.div`
-  color: #828384;
+  color:rgb(98, 98, 98);
   font-size: 12px;
 `;

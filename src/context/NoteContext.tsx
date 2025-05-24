@@ -28,7 +28,7 @@ type MainContextType = {
     onError: (msg: string) => void
   ) => void;
 };
-const MainContext = createContext<MainContextType | undefined>(undefined);
+const NoteContext = createContext<MainContextType | undefined>(undefined);
 
 export function MainProvider({ children }: { children: React.ReactNode }) {
   const [notes, setNotes] = useState<Note[]>([]);
@@ -76,7 +76,7 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <MainContext.Provider
+    <NoteContext.Provider
       value={{
         notes,
         setNotes,
@@ -95,12 +95,12 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
       }}
     >
       {children}
-    </MainContext.Provider>
+    </NoteContext.Provider>
   );
 }
 
 export function useMainContext() {
-  const context = useContext(MainContext);
+  const context = useContext(NoteContext);
   if (!context) {
     throw new Error("useMainContext must be used within a MainProvider");
   }

@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useMainContext } from "../context/MainContext";
+import { useMainContext } from "../context/NoteContext";
 
 import { fetchNotes, createNote, deleteNote } from "../services/notesApi";
 

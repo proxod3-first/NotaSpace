@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
-import { MainProvider } from "./context/MainContext";
+import { MainProvider } from "./context/NoteContext";
 import GlobalStyle from "./styles/global";
 
 export default function App() {

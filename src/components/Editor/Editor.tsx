@@ -19,7 +19,7 @@ import MarkdownIt from "markdown-it";
 import MdEditor from "react-markdown-editor-lite";
 import "react-markdown-editor-lite/lib/index.css";
 import { Note } from "../../types";
-import { useMainContext } from "../../context/MainContext";
+import { useMainContext } from "../../context/NoteContext";
 import { updateNote } from "../../services/notesApi";
 
 interface EditorProps {
