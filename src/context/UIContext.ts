@@ -7,4 +7,9 @@ type UIContextProps = {
   toggleNoteList: () => void;
 };
 
-export const UIContext = createContext<Partial<UIContextProps>>({});
+export const UIContext = createContext<UIContextProps>({
+  isSidebarOpen: false,
+  toggleSidebar: () => {},  // Пустая функция по умолчанию
+  isNoteListOpen: false,
+  toggleNoteList: () => {},  // Пустая функция по умолчанию
+});

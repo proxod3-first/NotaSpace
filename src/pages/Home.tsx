@@ -26,7 +26,8 @@ export default function Home() {
   const [isSidebarOpen, toggleSidebar] = useToggleItem(false);
   const [isNoteListOpen, toggleNoteList] = useToggleItem(true);
   const [selectedTag, setSelectedTag] = useState<string>("");
-  
+  const [tags, setTags] = useState<string[]>([]); // Состояние тегов
+
   const handleTagSelect = (tag: string) => {
     setSelectedTag(tag); // Сохраняем выбранный тег
   };
@@ -57,6 +58,9 @@ export default function Home() {
 
   if (loading) return <PreLoader />;
   if (error) return <div className="p-4 text-red-500">{error}</div>;
+  
+  
+
 
   return (
     <UIContext.Provider

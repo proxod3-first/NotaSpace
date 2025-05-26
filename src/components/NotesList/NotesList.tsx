@@ -3,24 +3,23 @@ import styled from "styled-components";
 import Header from "./Header";
 import NoteListItem from "./NoteListItem";
 import NoNotesMessage from "./NoNotesMessage";
-import { Note, Tag } from "../../types/index";
-import { Button, Container, List as MuiList } from "@mui/material";
-import { useTags } from "../../hooks/hooks";
+import { Note } from "../../types/index";
+import { Container, List as MuiList } from "@mui/material";
 import { getTag } from "../../services/tagsApi";
+import { useGetActiveNotebook } from "../../hooks/hooks";
 
 export interface NoteListProps {
   notes: Note[];
-  activeNoteId: string;
+  activeNoteId: string | null;
   onSelectNote: (id: string) => void;
+  OnRenameNote?: (id: string) => void;
   onDeleteNote?: (id: string) => void | Promise<void>;
 }
-
 
 interface TagButtonProps {
   selected: boolean;
   style?: React.CSSProperties;
 }
-
 
 const NoteList: React.FC<NoteListProps> = ({
   notes,
@@ -36,7 +35,7 @@ const NoteList: React.FC<NoteListProps> = ({
 
   const fetchTags = async () => {
     const tagsForNotes = await Promise.all(
-      notes.map(async (note) => {
+      allNotes.map(async (note) => {
         // Проверяем, что у заметки есть теги, и если есть, загружаем их
         if (note.tags) {
           const noteTags = await Promise.all(
@@ -52,31 +51,31 @@ const NoteList: React.FC<NoteListProps> = ({
 
   useEffect(() => {
     fetchTags(); // Загружаем теги при изменении заметок
-  }, [notes]);
+  }, [allNotes]);
 
-  const handleTagSelect = (tagId: React.SetStateAction<string | null>) => {
-    setSelectedTag(tagId); // Устанавливаем выбранный тег
-  };
-
-    const handleTagClick = (tagId: string | null) => {
+  const handleTagClick = (tagId: string | null) => {
     setSelectedTag((prevTag) => (prevTag === tagId ? null : tagId));
   };
-  
+
   const filteredNotes = useMemo(() => {
     if (selectedTag) {
-      return notes.filter(
+      return allNotes.filter(
         (note) => note.tags && note.tags.includes(selectedTag)
       );
     } else {
-      return notes;
+      return allNotes;
     }
-  }, [selectedTag, notes]);
+  }, [selectedTag, allNotes]);
+
+  useEffect(() => {
+    setAllNotes(allNotes);
+  }, [allNotes]);
 
   return (
     <Container>
       <Header
         activeNoteId={activeNoteId}
-        notes={notes}
+        notes={allNotes}
         setNotes={setAllNotes}
         onSelectNote={onSelectNote} // Передаем функцию на выбор заметки
         setError={setError}
@@ -93,7 +92,6 @@ const NoteList: React.FC<NoteListProps> = ({
                   <TagButton
                     key={tag.id}
                     selected={selectedTag?.toString === index.toString} // Проверяем, выбран ли тег
-
                     onClick={() => handleTagClick(tag.id)} // При клике фильтруем по тегу
                     style={{ backgroundColor: tag.color }} // Цвет фона можно менять в зависимости от тега
                   >
@@ -103,7 +101,12 @@ const NoteList: React.FC<NoteListProps> = ({
               </div>
             ))
           ) : (
-            <p> {selectedTag === null && <NoTagsMessage>Нет выбранных тегов</NoTagsMessage>}</p>
+            <p>
+              {" "}
+              {selectedTag === null && (
+                <NoTagsMessage>Нет выбранных тегов</NoTagsMessage>
+              )}
+            </p>
           )}
         </TagListContainer>
       </div>
@@ -125,6 +128,23 @@ const NoteList: React.FC<NoteListProps> = ({
       ) : (
         <NoNotesMessage />
       )}
+      <div>
+        {allNotes.map((note) => (
+          <div
+            key={note.id}
+            style={{
+              backgroundColor:
+                note.id === activeNoteId ? "#f0f0f0" : "transparent",
+              padding: "10px",
+              margin: "5px",
+              cursor: "pointer",
+            }}
+            onClick={() => onSelectNote(note.id)}
+          >
+            {note.name}
+          </div>
+        ))}
+      </div>
     </Container>
   );
 };
@@ -184,7 +204,7 @@ const TagListContainer = styled.div`
 
 const TagButton = styled.button<TagButtonProps>`
   background-color: ${(props) =>
-    props.selected ? '#d1d1d1' : props.style?.backgroundColor || '#f4f4f4'};
+    props.selected ? "#d1d1d1" : props.style?.backgroundColor || "#f4f4f4"};
   border: 1px solid #ddd;
   padding: 8px 16px;
   border-radius: 8px;
@@ -193,14 +213,12 @@ const TagButton = styled.button<TagButtonProps>`
   transition: all 0.23s ease;
 
   &:hover {
-    background-color: ${(props) =>
-      props.selected ? '#b5b5b5' : '#e0e0e0'};
+    background-color: ${(props) => (props.selected ? "#b5b5b5" : "#e0e0e0")};
     transform: scale(1.05);
   }
 
   &:active {
-    background-color: ${(props) =>
-      props.selected ? '#a0a0a0' : '#ccc'};
+    background-color: ${(props) => (props.selected ? "#a0a0a0" : "#ccc")};
     transform: scale(0.98);
   }
 

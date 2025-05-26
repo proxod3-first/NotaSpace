@@ -6,6 +6,7 @@ import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import { MainProvider } from "./context/NoteContext";
 import { TagProvider } from "./context/TagContext";
+import { NotebookProvider } from "./context/NotebookContext";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
@@ -16,7 +17,9 @@ root.render(
     <BrowserRouter>
       <MainProvider>
         <TagProvider>
-        <App />
+          <NotebookProvider>
+            <App />
+          </NotebookProvider>
         </TagProvider>
       </MainProvider>
     </BrowserRouter>

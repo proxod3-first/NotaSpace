@@ -49,20 +49,20 @@ export const TagProvider: React.FC<TagProviderProps> = ({ children }) => {
     }
   };
 
+  const updateTag = async (id: string, name: string, color: string) => {
+    // Здесь используем правильную функцию updateTagApi, чтобы избежать рекурсии
+    const updatedTag = await updateTagApi(id, { name, color });
 
-const updateTag = async (id: string, name: string, color: string) => {
-  // Здесь используем правильную функцию updateTagApi, чтобы избежать рекурсии
-  const updatedTag = await updateTagApi(id, { name, color });
+    if (updatedTag) {
+      // Обновляем состояние с новым тегом
+      setTags(
+        (prevTags) => prevTags.map((tag) => (tag.id === id ? updatedTag : tag)) // Обновляем только тот тег, который был изменен
+      );
+    } else {
+      console.error("Error updating tag");
+    }
+  };
   
-  if (updatedTag) {
-    // Обновляем состояние с новым тегом
-    setTags((prevTags) =>
-      prevTags.map((tag) => (tag.id === id ? updatedTag : tag)) // Обновляем только тот тег, который был изменен
-    );
-  } else {
-    console.error("Error updating tag");
-  }
-};
   const removeTag = async (id: string) => {
     await deleteTag(id);
     setTags((prevTags) => prevTags.filter((tag) => tag.id !== id));

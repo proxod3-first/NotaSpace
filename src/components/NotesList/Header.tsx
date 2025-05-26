@@ -19,8 +19,10 @@ import {
   createNote,
   deleteNote,
   fetchNotes,
+  moveNoteToTrash,
   updateNote,
 } from "../../services/notesApi";
+import DeletedNotesOption from "../Sidebar/DeletedNotesOption";
 
 interface HeaderProps {
   notes: Note[];
@@ -37,6 +39,7 @@ const Header = ({
   setError,
   onSelectNote,
 }: HeaderProps) => {
+  
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const isMenuOpen = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -45,6 +48,7 @@ const Header = ({
 
   const [isRenameNoteDialogOpen, setIsRenameNoteDialogOpen] = useState(false);
   const [isDeleteNoteDialogOpen, setIsDeleteNoteDialogOpen] = useState(false);
+  const [isDeletedNotesOpen, setIsDeletedNotesOpen] = useState(false); // Состояние для отображения DeletedNotesOption
 
   const handleCloseMenu = () => {
     setAnchorEl(null);
@@ -58,7 +62,7 @@ const Header = ({
       media: "",
       order: 0,
       notebook_id: "",
-      tags: []
+      tags: [],
     };
 
     try {
@@ -71,7 +75,7 @@ const Header = ({
 
       // Получаем ID только что созданной заметки (если заметки отсортированы, это должен быть последний элемент)
       const newNoteId = updatedNotes[updatedNotes.length - 1]?.id;
-
+      console.log(newNoteId);
       // Если заметка создана успешно, выбираем её для редактора
       if (newNoteId) {
         onSelectNote(newNoteId); // Обновляем активную заметку
@@ -140,6 +144,26 @@ const Header = ({
     }
   };
 
+  const handleViewDeletedNotes = () => {
+    setIsDeletedNotesOpen(true);
+    handleCloseMenu();
+  };
+
+  const handleNoteToTrash = async (
+    id: string,
+    onSuccess: () => void,
+    onError: (error: string) => void
+  ) => {
+    try {
+      await moveNoteToTrash(id); // Удаляем заметку
+      const updatedNotes = await fetchNotes(); // Получаем обновленный список заметок
+      setNotes(updatedNotes);
+      onSuccess(); // Если удалено успешно, вызываем onSuccess
+    } catch (error) {
+      onError("Не удалось удалить заметку. Попробуйте снова."); // В случае ошибки вызываем onError
+    }
+  };
+
   const { toggleSidebar } = useContext(UIContext);
 
   const activeNote = notes.find((note) => note.id === activeNoteId) || null;
@@ -185,6 +209,10 @@ const Header = ({
               <DeleteForeverIcon />
               Delete note
             </MenuItem>
+            <MenuItem onClick={handleViewDeletedNotes} disableRipple>
+              <DeleteForeverIcon />
+              View deleted notes
+            </MenuItem>
           </div>
         )}
       </StyledMenu>
@@ -202,6 +230,13 @@ const Header = ({
               open={isDeleteNoteDialogOpen}
               setOpen={setIsDeleteNoteDialogOpen}
               deleteNoteDial={handleDeleteNote}
+              onSuccess={() => setIsDeleteNoteDialogOpen(false)}
+            />
+            <DeleteNoteDialog
+              note={activeNote!} // передаем активную заметку
+              open={isDeleteNoteDialogOpen}
+              setOpen={setIsDeleteNoteDialogOpen}
+              deleteNoteDial={handleNoteToTrash}
               onSuccess={() => setIsDeleteNoteDialogOpen(false)}
             />
           </>

@@ -49,7 +49,7 @@ const mdParser = new MarkdownIt();
 const AUTOSAVE_INTERVAL = 5;
 
 const Editor = ({ note }: EditorProps) => {
-  const { deleteNoteApi, moveNote, notebooks, setError } = useMainContext();
+  const { notes, setNotes, activeNote, setActiveNote, deleteNoteApi, moveNote, notebooks, setError } = useMainContext();
 
   const [title, setTitle] = useState(note.name);
   const [content, setContent] = useState(note.text || "");
@@ -140,12 +140,23 @@ const Editor = ({ note }: EditorProps) => {
     setAnchorEl(e.currentTarget);
 
   const handleEditorChange = ({ text }: { text: string }) => {
-    setContent(text);
+    // Здесь создаем новый объект, не изменяя старый
+    if (activeNote) {
+      setActiveNote({
+        ...activeNote,
+        text, // Обновляем только текст
+      });
+    }
   };
+
+    useEffect(() => {
+        setNotes(notes);
+    }, [notes]);
 
   const handleDeleteNote = async () => {
     try {
       await deleteNoteApi(note.id);
+
     } catch {
       setError("Ошибка удаления заметки");
     }

@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import styled from "styled-components";
 import { Note } from "../../types";
 import { truncatedText } from "../../styles/mixins";
@@ -23,6 +23,20 @@ const NoteListItem = ({ note, $active, onClick, tags }: ComponentProps) => {
     if (toggleNoteList) toggleNoteList();
     onClick(note.id);
   };
+  
+    useEffect(() => {
+    // This effect runs whenever `tags` or `$active` prop changes
+    console.log("Tags or active state has changed:", tags, $active);
+
+    // Example: You could perform additional logic, like updating analytics, or saving data
+    // For example, if note's active status changes, we can perform some action:
+    if ($active) {
+      console.log(`Note with id ${note.id} is active`);
+    }
+
+  }, [tags, $active]);
+
+
 
   return (
     <Container onClick={handleClick} $active={$active}>

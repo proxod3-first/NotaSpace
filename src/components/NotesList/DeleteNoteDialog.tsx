@@ -66,7 +66,7 @@ const DeleteButton = styled.button`
   color: white;
   background-color: var(--danger);
   border: 1px solid var(--danger);
-
+  padding: 10px;
   &:hover {
     background-color: #b33529;
   }
