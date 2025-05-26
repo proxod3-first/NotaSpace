@@ -18,7 +18,13 @@ const NotebookOption = ({ notebook, $active, onClick }: ComponentProps) => {
   const { toggleSidebar } = useContext(UIContext);
 
   return (
-    <Link to={`/`} onClick={() => { toggleSidebar(); if (onClick) onClick(); } }>
+    <Link
+      to={`/`}
+      onClick={() => {
+        toggleSidebar();
+        if (onClick) onClick();
+      }}
+    >
       <Container $active={$active}>
         <TextWrapper>{notebook.name}</TextWrapper>
       </Container>

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-import { Search} from '@mui/icons-material'; // Импортируем иконки из MUI
+import { Search } from "@mui/icons-material"; // Импортируем иконки из MUI
 
 const SearchWrapper = styled.div`
   display: flex;
@@ -11,7 +11,7 @@ const SearchWrapper = styled.div`
   width: 100%;
   box-sizing: border-box;
   margin: 12px 0;
-  cursor: text;  /* Добавлен курсор ввода текста */
+  cursor: text; /* Добавлен курсор ввода текста */
 
   &:focus-within {
     background-color: var(--sidebar-background-active);
@@ -33,7 +33,7 @@ const SearchInput = styled.input`
   color: var(--sidebar-text-normal);
   font-size: 15px;
   margin-left: 10px;
-  caret-color:rgb(165, 188, 222);
+  caret-color: rgb(165, 188, 222);
   cursor: text;
 
   &::placeholder {
@@ -41,7 +41,11 @@ const SearchInput = styled.input`
   }
 `;
 
-export default function SearchField({ onChange }: { onChange: (val: string) => void }) {
+export default function SearchField({
+  onChange,
+}: {
+  onChange: (val: string) => void;
+}) {
   const [value, setValue] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

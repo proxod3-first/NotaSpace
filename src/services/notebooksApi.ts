@@ -2,7 +2,6 @@ import { Notebook } from "../types";
 
 const BASE_URL = "http://localhost:8085/api/v1";
 
-
 // Получить книгу по ID
 export async function getNotebook(id: string): Promise<Notebook> {
   const res = await fetch(`${BASE_URL}/notebooks/${id}`);

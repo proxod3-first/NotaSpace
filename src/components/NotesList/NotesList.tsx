@@ -7,6 +7,7 @@ import { Note } from "../../types/index";
 import { Container, List as MuiList } from "@mui/material";
 import { getTag } from "../../services/tagsApi";
 import { useGetActiveNotebook } from "../../hooks/hooks";
+import { useNotebooks } from "../../context/NotebookContext";
 
 export interface NoteListProps {
   notes: Note[];
@@ -26,12 +27,13 @@ const NoteList: React.FC<NoteListProps> = ({
   activeNoteId,
   onSelectNote,
 }) => {
-  const [error, setError] = useState<string | null>(null);
+  const { activeNotebook } = useNotebooks(); // Получаем активный блокнот
   const [allNotes, setAllNotes] = useState<Note[]>(notes);
   const [tags, setTags] = useState<
     { id: string; name: string; color: string }[][]
   >([]);
   const [selectedTag, setSelectedTag] = useState<string | null>(null); // Состояние для выбранного тега
+  const [error, setError] = useState<string | null>(null);
 
   const fetchTags = async () => {
     const tagsForNotes = await Promise.all(
@@ -57,7 +59,7 @@ const NoteList: React.FC<NoteListProps> = ({
     setSelectedTag((prevTag) => (prevTag === tagId ? null : tagId));
   };
 
-  const filteredNotes = useMemo(() => {
+  const filteredNotesTags = useMemo(() => {
     if (selectedTag) {
       return allNotes.filter(
         (note) => note.tags && note.tags.includes(selectedTag)
@@ -66,6 +68,13 @@ const NoteList: React.FC<NoteListProps> = ({
       return allNotes;
     }
   }, [selectedTag, allNotes]);
+
+  const filteredNotesInNotebook = useMemo(() => {
+    if (activeNotebook) {
+      return notes.filter((note) => note.notebook_id === activeNotebook.id);
+    }
+    return notes; // Если книга не выбрана, показываем все заметки
+  }, [activeNotebook, notes]);
 
   useEffect(() => {
     setAllNotes(allNotes);
@@ -114,7 +123,7 @@ const NoteList: React.FC<NoteListProps> = ({
       {allNotes.length ? (
         <List>
           <MuiList>
-            {filteredNotes.map((note, index) => (
+            {filteredNotesTags.map((note, index) => (
               <NoteListItem
                 key={note.id}
                 note={note}
@@ -129,21 +138,24 @@ const NoteList: React.FC<NoteListProps> = ({
         <NoNotesMessage />
       )}
       <div>
-        {allNotes.map((note) => (
-          <div
-            key={note.id}
-            style={{
-              backgroundColor:
-                note.id === activeNoteId ? "#f0f0f0" : "transparent",
-              padding: "10px",
-              margin: "5px",
-              cursor: "pointer",
-            }}
-            onClick={() => onSelectNote(note.id)}
-          >
-            {note.name}
-          </div>
-        ))}
+        {Array.isArray(filteredNotesInNotebook) &&
+        filteredNotesInNotebook.length > 0 ? (
+          <List>
+            <MuiList>
+              {filteredNotesInNotebook.map((note) => (
+                <NoteListItem
+                  key={note.id}
+                  note={note}
+                  $active={activeNoteId === note.id}
+                  onClick={() => onSelectNote(note.id)}
+                  tags={[]}
+                />
+              ))}
+            </MuiList>
+          </List>
+        ) : (
+          <NoNotesMessage />
+        )}
       </div>
     </Container>
   );

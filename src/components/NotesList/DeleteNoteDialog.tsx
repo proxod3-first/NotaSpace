@@ -22,7 +22,13 @@ interface DeleteNoteDialogProps {
   onSuccess: () => void;
 }
 
-const DeleteNoteDialog = ({ note, open, setOpen, deleteNoteDial, onSuccess }: DeleteNoteDialogProps) => {
+const DeleteNoteDialog = ({
+  note,
+  open,
+  setOpen,
+  deleteNoteDial,
+  onSuccess,
+}: DeleteNoteDialogProps) => {
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleClose = () => {
@@ -31,10 +37,14 @@ const DeleteNoteDialog = ({ note, open, setOpen, deleteNoteDial, onSuccess }: De
   };
 
   const handleDelete = async () => {
-    deleteNoteDial(note.id, () => {
-      onSuccess(); // Если удалено успешно, вызываем onSuccess
-      handleClose(); // Закрываем диалог после успешного удаления
-    }, setErrorMessage); // В случае ошибки вызываем setErrorMessage
+    deleteNoteDial(
+      note.id,
+      () => {
+        onSuccess(); // Если удалено успешно, вызываем onSuccess
+        handleClose(); // Закрываем диалог после успешного удаления
+      },
+      setErrorMessage
+    ); // В случае ошибки вызываем setErrorMessage
   };
 
   return (
@@ -42,7 +52,8 @@ const DeleteNoteDialog = ({ note, open, setOpen, deleteNoteDial, onSuccess }: De
       <DialogTitle>Удалить заметку</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          Вы уверены, что хотите удалить эту заметку? Это действие нельзя отменить.
+          Вы уверены, что хотите удалить эту заметку? Это действие нельзя
+          отменить.
         </DialogContentText>
         {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
       </DialogContent>

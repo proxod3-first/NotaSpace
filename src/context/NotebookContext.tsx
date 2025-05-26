@@ -136,8 +136,8 @@ export const NotebookProvider: React.FC<NotebookProviderProps> = ({
         updateNotebookInList,
         removeNotebook,
         getNotebookById,
-        setActiveNotebook,
         activeNotebook: activeNotebookState,
+        setActiveNotebook,
         notesInNotebook,
       }}
     >

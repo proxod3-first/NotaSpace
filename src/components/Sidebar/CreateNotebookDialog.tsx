@@ -67,10 +67,7 @@ const CreateNotebookDialog = ({ open, setOpen }: Props) => {
             <OutlinedButton type="button" onClick={handleClose}>
               Cancel
             </OutlinedButton>
-            <ContainedButton
-              type="submit"
-              disabled={inputValue === ""}
-            >
+            <ContainedButton type="submit" disabled={inputValue === ""}>
               Create
             </ContainedButton>
           </DialogActions>

@@ -14,7 +14,12 @@ interface DialogProps {
   note: Note;
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  renameNote: (id: string, newName: string, onSuccess: () => void, onError: (error: string) => void) => void;
+  renameNote: (
+    id: string,
+    newName: string,
+    onSuccess: () => void,
+    onError: (error: string) => void
+  ) => void;
 }
 
 const RenameNoteDialog = ({ note, open, setOpen, renameNote }: DialogProps) => {

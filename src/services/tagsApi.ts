@@ -2,7 +2,6 @@ import { Tag } from "../types";
 
 const BASE_URL = "http://localhost:8085/api/v1";
 
-
 // Получить тэг по ID
 export async function getTag(id: string): Promise<Tag> {
   const res = await fetch(`${BASE_URL}/tags/${id}`);
@@ -18,14 +17,27 @@ export async function fetchTags(): Promise<Tag[]> {
 }
 
 // Создать тэг
-export async function createTag(tag: Omit<Tag, "id">): Promise<Tag> {
-  const res = await fetch(`${BASE_URL}/tags`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(tag),
-  });
-  const json = await res.json();
-  return json.data;
+export async function createTag(tag: Omit<Tag, "id">): Promise<string | null> {
+  try {
+    const res = await fetch(`${BASE_URL}/tags`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(tag),
+    });
+
+    const json = await res.json();
+
+    // Возвращаем только id, как указано в API
+    if (json.data) {
+      return json.data; // Возвращаем id
+    } else {
+      console.error("Failed to create tag: No data received");
+      return null;
+    }
+  } catch (error) {
+    console.error("Error creating tag:", error);
+    return null;
+  }
 }
 
 // Изменить тэг

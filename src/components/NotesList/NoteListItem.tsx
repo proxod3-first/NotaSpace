@@ -23,8 +23,8 @@ const NoteListItem = ({ note, $active, onClick, tags }: ComponentProps) => {
     if (toggleNoteList) toggleNoteList();
     onClick(note.id);
   };
-  
-    useEffect(() => {
+
+  useEffect(() => {
     // This effect runs whenever `tags` or `$active` prop changes
     console.log("Tags or active state has changed:", tags, $active);
 
@@ -33,10 +33,7 @@ const NoteListItem = ({ note, $active, onClick, tags }: ComponentProps) => {
     if ($active) {
       console.log(`Note with id ${note.id} is active`);
     }
-
   }, [tags, $active]);
-
-
 
   return (
     <Container onClick={handleClick} $active={$active}>
@@ -73,27 +70,28 @@ const Container = styled.div<ContainerProps>`
   margin-bottom: 7px;
   height: auto;
   border-radius: 8px;
-  background-color: ${({ $active }) => ($active ? '#f0f0f0' : '#ffffff')};
-  border: 1px solid ${({ $active }) => ($active ? '#bbb' : '#ddd')};
+  background-color: ${({ $active }) => ($active ? "#f0f0f0" : "#ffffff")};
+  border: 1px solid ${({ $active }) => ($active ? "#bbb" : "#ddd")};
   position: relative;
-  box-shadow: ${({ $active }) => ($active ? '0 4px 8px rgba(0, 0, 0, 0.1)' : '0 2px 6px rgba(0, 0, 0, 0.1)')};
+  box-shadow: ${({ $active }) =>
+    $active ? "0 4px 8px rgba(0, 0, 0, 0.1)" : "0 2px 6px rgba(0, 0, 0, 0.1)"};
   transition: all 0.2s ease-in-out;
-  
+
   &:hover {
     cursor: pointer;
-    background-color: ${({ $active }) => (!$active ? '#fafafa' : '#d3d1d1')};
+    background-color: ${({ $active }) => (!$active ? "#fafafa" : "#d3d1d1")};
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
   }
 
   &:before {
-    content: '';
+    content: "";
     position: absolute;
     top: 23px;
     left: 10px;
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background-color: ${({ $active }) => ($active ? '#2ecc71' : '#e74c3c')};
+    background-color: ${({ $active }) => ($active ? "#2ecc71" : "#e74c3c")};
     transition: background-color 0.3s ease;
   }
 
@@ -145,6 +143,6 @@ const Tag = styled.div<{ color: string }>`
 `;
 
 const Timestamp = styled.div`
-  color:rgb(98, 98, 98);
+  color: rgb(98, 98, 98);
   font-size: 12px;
 `;

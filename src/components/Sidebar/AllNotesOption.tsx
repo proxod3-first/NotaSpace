@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Note } from '@mui/icons-material';
+import { Note } from "@mui/icons-material";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { flexCenter } from "../../styles/mixins";

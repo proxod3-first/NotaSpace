@@ -5,7 +5,7 @@ import { useTags } from "../../context/TagContext"; // Используем ху
 import { useNavigate } from "react-router-dom";
 
 const TagManager = () => {
-  const { tags, addTag, updateTag, removeTag } = useTags(); // Получаем данные из контекста
+  const { tags, addTag, updateTag, removeTag, loading } = useTags(); // Получаем данные из контекста
   const [name, setName] = useState("");
   const [color, setColor] = useState("#007bff");
 
@@ -23,8 +23,9 @@ const TagManager = () => {
 
   const handleSubmit = () => {
     if (!name.trim()) return;
-
     if (editingId) {
+      console.log("NAME:", tags);
+      console.log("NAME:", editingId);
       updateTag(editingId, name, color); // Используем функцию из контекста для обновления тега
       setEditingId(null);
       setName("");
@@ -43,8 +44,9 @@ const TagManager = () => {
   };
 
   useEffect(() => {
-    // Если нужно, можно загрузить теги в компонент через useEffect, но сейчас это уже делается через контекст
-  }, [tags]);
+    // Это будет срабатывать при изменении списка тегов
+    console.log("Tags updated:", tags);
+  }, [tags]); // Следим за изменениями в tags
 
   return (
     <Wrapper>
@@ -67,7 +69,7 @@ const TagManager = () => {
           {editingId ? "Update" : "Add"}
         </button>
       </Form>
-
+      {/* Если данные загружаются, показываем индикатор загрузки */}
       <TagList>
         {Array.isArray(tags) && tags.length > 0 ? (
           tags.map((tag) => (
@@ -224,6 +226,12 @@ const IconGroup = styled.div`
     font-size: 16px; /* Уменьшаем размер иконок на мобильных */
     gap: 8px;
   }
+`;
+
+const LoadingMessage = styled.div`
+  text-align: center;
+  font-size: 18px;
+  color: #888;
 `;
 
 export default TagManager;

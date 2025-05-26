@@ -23,6 +23,7 @@ import {
   updateNote,
 } from "../../services/notesApi";
 import DeletedNotesOption from "../Sidebar/DeletedNotesOption";
+import { useNotebooks } from "../../context/NotebookContext";
 
 interface HeaderProps {
   notes: Note[];
@@ -39,12 +40,13 @@ const Header = ({
   setError,
   onSelectNote,
 }: HeaderProps) => {
-  
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const isMenuOpen = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
+
+  const { activeNotebook, setActiveNotebook } = useNotebooks();
 
   const [isRenameNoteDialogOpen, setIsRenameNoteDialogOpen] = useState(false);
   const [isDeleteNoteDialogOpen, setIsDeleteNoteDialogOpen] = useState(false);
@@ -55,8 +57,9 @@ const Header = ({
   };
 
   const handleCreateNoteClick = async () => {
+    const newNotes = notes.filter((note) => note.name.startsWith("New Note"));
     const newNoteData: Omit<Note, "id" | "is_deleted"> = {
-      name: "New Note",
+      name: `New Note ${newNotes.length + 1}`, // Используем интерполяцию для добавления номера
       text: "",
       color: "",
       media: "",
@@ -175,7 +178,7 @@ const Header = ({
           <OpenInFullIcon />
         </HamburgerButton>
         {/* <Heading>{activeNote ? activeNote.name : "Notes"}</Heading> */}
-        <Heading>{"All Notes"}</Heading>
+        <Heading>{activeNotebook ? activeNotebook.name : "All Notes"}</Heading>
       </HeaderLeft>
       <ButtonGroup>
         <ArrowTooltip title="Add new note" placement="bottom">

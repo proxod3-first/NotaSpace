@@ -34,7 +34,7 @@ const BaseSidebar = () => {
     useNotebooks(); // Используем контекст
   const [openDialog, setOpenDialog] = useState(false);
   const [notebooksOpen, setNotebooksOpen] = useState(false);
-  const [tagsOpen, setTagsOpen] = useState(true);
+  const [tagsOpen, setTagsOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Логика для отображения активной книги
@@ -229,7 +229,7 @@ const ClickableSection = styled.div`
 
 const TagManagerContainer = styled.div`
   padding: 0 10px 8px 15px; /* Отступы, чтобы тегам было удобно */
-  max-height: 170px; /* Ограничение по высоте */
+  max-height: 300px; /* Ограничение по высоте */
   max-width: 300px;
   overflow-y: auto; /* Прокрутка, если много тегов */
 `;

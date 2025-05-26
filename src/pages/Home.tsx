@@ -24,7 +24,7 @@ export default function Home() {
   } = useMainContext();
 
   const [isSidebarOpen, toggleSidebar] = useToggleItem(false);
-  const [isNoteListOpen, toggleNoteList] = useToggleItem(true);
+  const [isNoteListOpen, toggleNoteList] = useToggleItem(false);
   const [selectedTag, setSelectedTag] = useState<string>("");
   const [tags, setTags] = useState<string[]>([]); // Состояние тегов
 
@@ -58,13 +58,15 @@ export default function Home() {
 
   if (loading) return <PreLoader />;
   if (error) return <div className="p-4 text-red-500">{error}</div>;
-  
-  
-
 
   return (
     <UIContext.Provider
-      value={{ isSidebarOpen, toggleSidebar, isNoteListOpen, toggleNoteList }}
+      value={{
+        isSidebarOpen,
+        toggleSidebar,
+        isNoteListOpen,
+        toggleNoteList,
+      }}
     >
       <Container>
         <Sidebar />
@@ -72,7 +74,7 @@ export default function Home() {
           notes={notes}
           activeNoteId={activeNote?.id || ""}
           onSelectNote={handleSelectNote}
-          onDeleteNote={handleDelete} 
+          onDeleteNote={handleDelete}
         />
         {activeNote ? (
           <Editor

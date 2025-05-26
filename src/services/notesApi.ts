@@ -2,7 +2,6 @@ import { Note } from "../types/index";
 
 const BASE_URL = "http://localhost:8085/api/v1";
 
-
 // Получить заметку по id
 export async function getNote(id: string): Promise<Note> {
   const res = await fetch(`${BASE_URL}/notes/${id}`);
@@ -108,7 +107,6 @@ export async function addTagToNote(
   const json = await res.json();
   return json.data;
 }
-
 
 // Убрать тег у заметки
 export async function removeTagFromNote(

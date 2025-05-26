@@ -49,7 +49,16 @@ const mdParser = new MarkdownIt();
 const AUTOSAVE_INTERVAL = 5;
 
 const Editor = ({ note }: EditorProps) => {
-  const { notes, setNotes, activeNote, setActiveNote, deleteNoteApi, moveNote, notebooks, setError } = useMainContext();
+  const {
+    notes,
+    setNotes,
+    activeNote,
+    setActiveNote,
+    deleteNoteApi,
+    moveNote,
+    notebooks,
+    setError,
+  } = useMainContext();
 
   const [title, setTitle] = useState(note.name);
   const [content, setContent] = useState(note.text || "");
@@ -149,14 +158,13 @@ const Editor = ({ note }: EditorProps) => {
     }
   };
 
-    useEffect(() => {
-        setNotes(notes);
-    }, [notes]);
+  useEffect(() => {
+    setNotes(notes);
+  }, [notes]);
 
   const handleDeleteNote = async () => {
     try {
       await deleteNoteApi(note.id);
-
     } catch {
       setError("Ошибка удаления заметки");
     }
@@ -195,7 +203,6 @@ const Editor = ({ note }: EditorProps) => {
     // Удаляем тег из заметки
     console.log(note.id, tagId);
     await removeTagFromNote(note.id, tagId);
-    
 
     // Удаляем ID тега из списка
     setTags((prevTags) => prevTags.filter((tag) => tag !== tagId));
@@ -315,7 +322,7 @@ const Editor = ({ note }: EditorProps) => {
         <SyncStatus>{syncStatus}</SyncStatus>
         {/* Отображаем текущие теги */}
         <TagContainer>
-          {tagObjects.length > 0 ? (
+          {Array.isArray(tagObjects) && tagObjects.length > 0 ? (
             tagObjects.map((tag) => (
               <TagStyle key={tag.id}>
                 <span>{tag.name}</span>

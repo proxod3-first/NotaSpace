@@ -18,7 +18,10 @@ interface DeletedNotesOptionProps {
   onSelectNote: (newNoteId: string) => void;
 }
 
-const DeletedNotesOption: React.FC<DeletedNotesOptionProps> = ({ activeNoteId, onSelectNote }) => {
+const DeletedNotesOption: React.FC<DeletedNotesOptionProps> = ({
+  activeNoteId,
+  onSelectNote,
+}) => {
   const [deletedNotes, setDeletedNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 

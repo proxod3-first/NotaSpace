@@ -48,18 +48,20 @@ const MoveNoteDialog = ({
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    onMove(note.id, note.notebook_id!, targetNotebookId, handleClose, setErrorMessage);
+    onMove(
+      note.id,
+      note.notebook_id!,
+      targetNotebookId,
+      handleClose,
+      setErrorMessage
+    );
   };
 
   return (
     <Dialog open={open} onClose={handleClose}>
       <DialogTitle>Move note</DialogTitle>
       <DialogContent>
-        <Select
-          id="notebook"
-          value={targetNotebookId}
-          onChange={handleChange}
-        >
+        <Select id="notebook" value={targetNotebookId} onChange={handleChange}>
           <option value={defaultValue} disabled>
             Choose a location...
           </option>
