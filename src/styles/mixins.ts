@@ -45,7 +45,7 @@ export const scrollable = css`
   }
 
   &::-webkit-scrollbar {
-    width: 8px;
+    width: 4px;
     height: 8px;
   }
 

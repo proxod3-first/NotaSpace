@@ -108,7 +108,7 @@ export async function addTagToNote(
   return json.data;
 }
 
-// Убрать тег у заметки
+// Удалить тег у заметки
 export async function removeTagFromNote(
   noteId: string,
   tagId: string

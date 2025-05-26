@@ -17,10 +17,12 @@ export default function Home() {
     setNotes,
     activeNote,
     setActiveNote,
+    setActiveNoteState,
     loading,
     setLoading,
     error,
     setError,
+    deleteNoteApi,
   } = useMainContext();
 
   const [isSidebarOpen, toggleSidebar] = useToggleItem(false);
@@ -47,7 +49,26 @@ export default function Home() {
 
   // Удаление заметки
   const handleDelete = async (id: string) => {
-    await deleteNote(id);
+    setLoading(true);
+
+    try {
+      // Call the deleteNoteApi from context
+      await deleteNoteApi(id);
+
+      // Optionally, reset active note if the deleted note was the active one
+      if (activeNote?.id === id) {
+        setActiveNote(null); // Clear the active note
+        setActiveNoteState(null); // Make sure it's not active
+      }
+    } catch (error) {
+      setError(
+        "Не удалось удалить заметку: " +
+          (error instanceof Error ? error.message : "Неизвестная ошибка")
+      );
+    } finally {
+      // Stop loading state after operation completes
+      setLoading(false);
+    }
   };
 
   // Обработчик выбора заметки из списка

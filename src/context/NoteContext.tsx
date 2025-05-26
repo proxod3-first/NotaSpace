@@ -11,6 +11,7 @@ type MainContextType = {
 
   activeNote: Note | null;
   setActiveNote: (note: Note | null) => void;
+  setActiveNoteState: (id: string | null) => void;
 
   activeNotebook: Notebook | null;
   setActiveNotebook: (notebook: Notebook | null) => void;
@@ -21,6 +22,7 @@ type MainContextType = {
   setError: React.Dispatch<React.SetStateAction<string | null>>;
 
   deleteNoteApi: (id: string) => Promise<void>;
+
   moveNote: (
     noteId: string,
     targetNotebookId: string,
@@ -75,6 +77,11 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const setActiveNoteState = (id: string | null) => {
+    const note = notes.find((note) => note.id === id);
+    setActiveNote(note || null); // Если книга найдена, устанавливаем её, иначе null
+  };
+
   return (
     <NoteContext.Provider
       value={{
@@ -84,6 +91,7 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
         setNotebooks,
         activeNote,
         setActiveNote,
+        setActiveNoteState,
         activeNotebook,
         setActiveNotebook,
         loading,

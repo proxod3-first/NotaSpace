@@ -8,6 +8,7 @@ import { Container, List as MuiList } from "@mui/material";
 import { getTag } from "../../services/tagsApi";
 import { useGetActiveNotebook } from "../../hooks/hooks";
 import { useNotebooks } from "../../context/NotebookContext";
+import { useMainContext } from "../../context/NoteContext";
 
 export interface NoteListProps {
   notes: Note[];
@@ -23,21 +24,26 @@ interface TagButtonProps {
 }
 
 const NoteList: React.FC<NoteListProps> = ({
-  notes,
   activeNoteId,
   onSelectNote,
+  onDeleteNote,
 }) => {
+  const { notes, setNotes } = useMainContext();
+
   const { activeNotebook } = useNotebooks(); // Получаем активный блокнот
-  const [allNotes, setAllNotes] = useState<Note[]>(notes);
   const [tags, setTags] = useState<
     { id: string; name: string; color: string }[][]
   >([]);
   const [selectedTag, setSelectedTag] = useState<string | null>(null); // Состояние для выбранного тега
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    setNotes(notes);
+  }, [notes]);
+
   const fetchTags = async () => {
     const tagsForNotes = await Promise.all(
-      allNotes.map(async (note) => {
+      notes.map(async (note) => {
         // Проверяем, что у заметки есть теги, и если есть, загружаем их
         if (note.tags) {
           const noteTags = await Promise.all(
@@ -53,7 +59,7 @@ const NoteList: React.FC<NoteListProps> = ({
 
   useEffect(() => {
     fetchTags(); // Загружаем теги при изменении заметок
-  }, [allNotes]);
+  }, [notes]);
 
   const handleTagClick = (tagId: string | null) => {
     setSelectedTag((prevTag) => (prevTag === tagId ? null : tagId));
@@ -61,40 +67,35 @@ const NoteList: React.FC<NoteListProps> = ({
 
   const filteredNotesTags = useMemo(() => {
     if (selectedTag) {
-      return allNotes.filter(
+      return notes.filter(
         (note) => note.tags && note.tags.includes(selectedTag)
       );
     } else {
-      return allNotes;
+      return notes;
     }
-  }, [selectedTag, allNotes]);
+  }, [selectedTag, notes]);
 
   const filteredNotesInNotebook = useMemo(() => {
+    console.log("ACTIVE NOTEBOOK NOTES LIST:", activeNoteId);
     if (activeNotebook) {
       return notes.filter((note) => note.notebook_id === activeNotebook.id);
     }
     return notes; // Если книга не выбрана, показываем все заметки
-  }, [activeNotebook, notes]);
+  }, [activeNotebook]);
 
-  useEffect(() => {
-    setAllNotes(allNotes);
-  }, [allNotes]);
+  useEffect(() => {}, [notes]);
 
   return (
     <Container>
-      <Header
-        activeNoteId={activeNoteId}
-        notes={allNotes}
-        setNotes={setAllNotes}
-        onSelectNote={onSelectNote} // Передаем функцию на выбор заметки
-        setError={setError}
-      />
+      <Header />
 
       {error && <ErrorMessage>{error}</ErrorMessage>}
       {/* Отображаем список тегов */}
       <div>
+        {error && <ErrorMessage>{error}</ErrorMessage>}
+
         <TagListContainer>
-          {tags.length > 0 ? (
+          {Array.isArray(tags) && tags.length > 0 ? (
             tags.map((tagArray, index) => (
               <div key={index}>
                 {tagArray.map((tag) => (
@@ -120,7 +121,7 @@ const NoteList: React.FC<NoteListProps> = ({
         </TagListContainer>
       </div>
 
-      {allNotes.length ? (
+      {notes.length ? (
         <List>
           <MuiList>
             {filteredNotesTags.map((note, index) => (
@@ -176,7 +177,7 @@ const List = styled(MuiList)`
   padding-right: 10px;
 
   &::-webkit-scrollbar {
-    width: 8px;
+    width: 4px;
   }
 
   &::-webkit-scrollbar-thumb {

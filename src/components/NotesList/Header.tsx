@@ -22,24 +22,26 @@ import {
   moveNoteToTrash,
   updateNote,
 } from "../../services/notesApi";
-import DeletedNotesOption from "../Sidebar/DeletedNotesOption";
+/* The `import DeletedNotesOption from "../Sidebar/DeletedNotesOption";` statement is importing the
+`DeletedNotesOption` component from the file located at `"../Sidebar/DeletedNotesOption"`. This
+allows the `Header` component to use the `DeletedNotesOption` component within its own
+implementation. */
+// import DeletedNotesOption from "../Sidebar/DeletedNotesOption";
 import { useNotebooks } from "../../context/NotebookContext";
+import { useMainContext } from "../../context/NoteContext";
 
-interface HeaderProps {
-  notes: Note[];
-  activeNoteId: string | null;
-  setNotes: (notes: Note[]) => void;
-  setError: (message: string) => void;
-  onSelectNote: (newNoteId: string) => void;
-}
 
-const Header = ({
-  notes,
-  activeNoteId,
-  setNotes,
-  setError,
-  onSelectNote,
-}: HeaderProps) => {
+
+const Header = () => {
+
+  const {
+    notes,
+    setNotes,
+    activeNote,
+    setActiveNote,
+    setActiveNoteState,
+    setError,
+  } = useMainContext();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const isMenuOpen = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -50,7 +52,7 @@ const Header = ({
 
   const [isRenameNoteDialogOpen, setIsRenameNoteDialogOpen] = useState(false);
   const [isDeleteNoteDialogOpen, setIsDeleteNoteDialogOpen] = useState(false);
-  const [isDeletedNotesOpen, setIsDeletedNotesOpen] = useState(false); // Состояние для отображения DeletedNotesOption
+  const [isTrashDialogOpen, setIsTrashDialogOpen] = useState(false);
 
   const handleCloseMenu = () => {
     setAnchorEl(null);
@@ -58,8 +60,8 @@ const Header = ({
 
   const handleCreateNoteClick = async () => {
     const newNotes = notes.filter((note) => note.name.startsWith("New Note"));
-    const newNoteData: Omit<Note, "id" | "is_deleted"> = {
-      name: `New Note ${newNotes.length + 1}`, // Используем интерполяцию для добавления номера
+    const newNoteData = {
+      name: `New Note ${newNotes.length + 1}`,
       text: "",
       color: "",
       media: "",
@@ -69,19 +71,14 @@ const Header = ({
     };
 
     try {
-      // Создаем новую заметку
       await createNote(newNoteData);
-
-      // Получаем обновленные заметки
       const updatedNotes = await fetchNotes();
-      setNotes(updatedNotes); // Обновляем список заметок
+      setNotes(updatedNotes);
 
-      // Получаем ID только что созданной заметки (если заметки отсортированы, это должен быть последний элемент)
-      const newNoteId = updatedNotes[updatedNotes.length - 1]?.id;
-      console.log(newNoteId);
-      // Если заметка создана успешно, выбираем её для редактора
-      if (newNoteId) {
-        onSelectNote(newNoteId); // Обновляем активную заметку
+      if (activeNote) {
+        setActiveNoteState(activeNote.id);
+      } else {
+        setActiveNoteState(null);
       }
     } catch (error) {
       setError(
@@ -103,27 +100,20 @@ const Header = ({
     onError: (error: string) => void
   ) => {
     try {
-      // Находим текущую заметку по id
       const noteToUpdate = notes.find((note) => note.id === id);
-
       if (!noteToUpdate) {
         onError("Заметка не найдена");
         return;
       }
 
-      const updatedNote = {
-        ...noteToUpdate,
-        name: newName,
-      };
+      const updatedNote = { ...noteToUpdate, name: newName };
+      await updateNote(id, updatedNote);
+      const updatedNotes = await fetchNotes();
+      setNotes(updatedNotes);
 
-      await updateNote(id, updatedNote); // Переименовываем заметку с новым объектом
-
-      const updatedNotes = await fetchNotes(); // Получаем обновленный список заметок
-      setNotes(updatedNotes); // Обновляем список заметок
-
-      onSuccess(); // Если успешно, вызываем onSuccess
+      onSuccess();
     } catch (error) {
-      onError("Не удалось переименовать заметку. Попробуйте снова."); // В случае ошибки, вызываем onError
+      onError("Не удалось переименовать заметку. Попробуйте снова.");
     }
   };
 
@@ -131,45 +121,44 @@ const Header = ({
     handleCloseMenu();
     setIsDeleteNoteDialogOpen(true);
   };
+  
 
-  const handleDeleteNote = async (
+  /////////////////////////
+  const {
+    deleteNoteApi,
+  } = useMainContext();
+
+  const handleDeleteNote = async () => {
+    try {
+      await deleteNoteApi(activeNote?.id || "");
+      const updatedNotes = await fetchNotes(); // Получаем обновленный список заметок
+      setNotes(updatedNotes);
+    } catch {
+      setError("Ошибка удаления заметки");
+    }
+  };
+
+  const handleMoveNoteToTrash = async (
     id: string,
     onSuccess: () => void,
     onError: (error: string) => void
   ) => {
     try {
-      await deleteNote(id); // Удаляем заметку
-      const updatedNotes = await fetchNotes(); // Получаем обновленный список заметок
+      await moveNoteToTrash(id);
+      const updatedNotes = await fetchNotes();
       setNotes(updatedNotes);
-      onSuccess(); // Если удалено успешно, вызываем onSuccess
+
+      onSuccess();
     } catch (error) {
-      onError("Не удалось удалить заметку. Попробуйте снова."); // В случае ошибки вызываем onError
+      onError("Не удалось переместить заметку в корзину. Попробуйте снова.");
     }
   };
 
   const handleViewDeletedNotes = () => {
-    setIsDeletedNotesOpen(true);
+    setIsTrashDialogOpen(true);
     handleCloseMenu();
   };
-
-  const handleNoteToTrash = async (
-    id: string,
-    onSuccess: () => void,
-    onError: (error: string) => void
-  ) => {
-    try {
-      await moveNoteToTrash(id); // Удаляем заметку
-      const updatedNotes = await fetchNotes(); // Получаем обновленный список заметок
-      setNotes(updatedNotes);
-      onSuccess(); // Если удалено успешно, вызываем onSuccess
-    } catch (error) {
-      onError("Не удалось удалить заметку. Попробуйте снова."); // В случае ошибки вызываем onError
-    }
-  };
-
   const { toggleSidebar } = useContext(UIContext);
-
-  const activeNote = notes.find((note) => note.id === activeNoteId) || null;
 
   return (
     <Container>
@@ -186,7 +175,7 @@ const Header = ({
             <EditIcon />
           </IconButton>
         </ArrowTooltip>
-        {activeNoteId && (
+        {activeNote?.id && (
           <ArrowTooltip title="More actions" placement="bottom">
             <IconButton onClick={handleClick}>
               <MoreHorizIcon />
@@ -219,32 +208,32 @@ const Header = ({
           </div>
         )}
       </StyledMenu>
-      <InvisibleDiv>
-        {activeNote && (
-          <>
-            <RenameNoteDialog
-              note={activeNote!} // передаем активную заметку
-              open={isRenameNoteDialogOpen}
-              setOpen={setIsRenameNoteDialogOpen}
-              renameNote={handleRenameNote} // передаем функцию для переименования
-            />
-            <DeleteNoteDialog
-              note={activeNote!} // передаем активную заметку
-              open={isDeleteNoteDialogOpen}
-              setOpen={setIsDeleteNoteDialogOpen}
-              deleteNoteDial={handleDeleteNote}
-              onSuccess={() => setIsDeleteNoteDialogOpen(false)}
-            />
-            <DeleteNoteDialog
-              note={activeNote!} // передаем активную заметку
-              open={isDeleteNoteDialogOpen}
-              setOpen={setIsDeleteNoteDialogOpen}
-              deleteNoteDial={handleNoteToTrash}
-              onSuccess={() => setIsDeleteNoteDialogOpen(false)}
-            />
-          </>
-        )}
-      </InvisibleDiv>
+      {activeNote && (
+        <>
+          <RenameNoteDialog
+            note={activeNote!}
+            open={isRenameNoteDialogOpen}
+            setOpen={setIsRenameNoteDialogOpen}
+            renameNote={handleRenameNote}
+          />
+
+          <DeleteNoteDialog
+            note={activeNote}
+            open={isDeleteNoteDialogOpen}
+            setOpen={setIsDeleteNoteDialogOpen}
+            deleteNoteDial={handleDeleteNote} onSuccess={function (): void {
+              throw new Error("Function not implemented.");
+            } }          />
+          <DeleteNoteDialog
+            note={activeNote!}
+            open={isTrashDialogOpen}
+            setOpen={setIsTrashDialogOpen}
+            deleteNoteDial={handleMoveNoteToTrash} 
+            onSuccess={function (): void {
+              throw new Error("Function not implemented.");
+            } }          />
+        </>
+      )}
     </Container>
   );
 };

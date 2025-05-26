@@ -117,7 +117,7 @@ const Content = styled.div`
   min-height: 18px;
 
   display: -webkit-box;
-  -webkit-line-clamp: 3; /* Ограничение до 3 строк */
+  -webkit-line-clamp: 4; /* Ограничение до 4 строк */
   -webkit-box-orient: vertical;
   overflow: hidden;
   white-space: normal;

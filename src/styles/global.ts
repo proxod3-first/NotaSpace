@@ -28,6 +28,8 @@ export default createGlobalStyle`
     --danger: #cc4539;
   }
 
+  
+
   body {
     font-family: var(--font);
   }
