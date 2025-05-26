@@ -52,7 +52,7 @@ export async function fetchNotesByTags(tagIds: string[]): Promise<Note[]> {
 
 // Создать новую заметку
 export async function createNote(
-  note: Omit<Note, "id" | "is_deleted">
+  note: Omit<Note, "id" | "is_deleted" | "is_archived">
 ): Promise<Note> {
   const res = await fetch(`${BASE_URL}/notes`, {
     method: "POST",
@@ -60,6 +60,7 @@ export async function createNote(
     body: JSON.stringify({
       ...note,
       is_deleted: false, // по-умолчанию false
+      is_archived: false, // по-умолчанию false
     }),
   });
   const json = await res.json();

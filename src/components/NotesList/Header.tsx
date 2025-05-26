@@ -61,7 +61,6 @@ const Header = () => {
       text: "",
       color: "",
       order: 0,
-      is_archived: false,
       notebook_id: "",
       tags: [],
     };
