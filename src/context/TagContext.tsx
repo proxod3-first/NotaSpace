@@ -98,7 +98,7 @@ export const TagProvider: React.FC<TagProviderProps> = ({ children }) => {
     <TagContext.Provider
       value={{ tags, addTag, updateTag, removeTag, getTagById, loading }}
     >
-      {children}ы
+      {children}
     </TagContext.Provider>
   );
 };

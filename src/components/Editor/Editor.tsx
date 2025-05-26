@@ -102,11 +102,13 @@ const Editor = ({ note }: EditorProps) => {
       const fetchedTags = await fetchTags();
       setTagObjects(fetchedTags);
 
-      // Если у нас уже есть теги для текущей заметки, то загружаем только их
-      const loadedTagObjects = fetchedTags.filter((tag) =>
-        tags.includes(tag.id)
-      );
-      setTagObjects(loadedTagObjects);
+      if (Array.isArray(fetchedTags)) {
+        // Если у нас уже есть теги для текущей заметки, то загружаем только их
+        const loadedTagObjects = fetchedTags.filter(
+          (tag) => tags.length > 0 && tags.includes(tag.id)
+        );
+        setTagObjects(loadedTagObjects);
+      }
     };
     loadTags();
   }, [tags]);

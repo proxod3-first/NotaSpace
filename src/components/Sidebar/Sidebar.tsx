@@ -18,6 +18,7 @@ import { useNotebooks } from "../../context/NotebookContext"; // Использ�
 import { baseIconButton, flexCenter, scrollable } from "../../styles/mixins";
 import NotebookOption from "./NotebookOption";
 import ErrorMessage from "../Shared/ErrorMessage";
+import AllNotesOption from "./AllNotesOption";
 
 interface RotateIconProps {
   open: boolean;
@@ -44,6 +45,35 @@ const BaseSidebar = () => {
     <Container>
       <List>
         <SearchField onChange={(text) => console.log("Search:", text)} />
+
+        <Heading>
+          <HeadingLeft>
+            <ClickableSection onClick={() => console.log("All Notes clicked")}>
+              <Book />
+              <TextWrapper>All Notes</TextWrapper>
+            </ClickableSection>
+          </HeadingLeft>
+        </Heading>
+
+        {/* {notebooksOpen ? (
+          Array.isArray(notebooks) && notebooks.length > 0 ? (
+            notebooks.map((notebook, index) => (
+              <NotebookOption
+                key={notebook.id || index} // Fallback to index if notebook.id is not available
+                notebook={notebook}
+                $active={notebook_id === notebook.id}
+                onClick={() => {
+                  setActiveNotebook(notebook.id); // Устанавливаем активную книгу
+                }}
+              />
+            ))
+          ) : (
+            <div>No notebooks found</div> // Сообщение, если нет книг
+          )
+        ) : (
+          <div></div> // Сообщение, если notebooksOpen равно false
+        )} */}
+
         <Heading>
           <HeadingLeft>
             <ClickableSection onClick={() => setNotebooksOpen((prev) => !prev)}>
@@ -111,14 +141,14 @@ const BaseSidebar = () => {
       </List>
 
       <Footer>
-        <span>{activeNotebook?.name}</span>
+        <span>{activeNotebook?.name || "All Notes"}</span>
+        <ArrowTooltip title="ThemeToggle" placement="right">
+          <ThemeToggle />
+        </ArrowTooltip>
         <ArrowTooltip title="Logout" placement="right">
           <IconButton onClick={() => console.log("Logout clicked")}>
             <ExitToApp />
           </IconButton>
-        </ArrowTooltip>
-        <ArrowTooltip title="ThemeToggle" placement="right">
-          <ThemeToggle />
         </ArrowTooltip>
       </Footer>
 

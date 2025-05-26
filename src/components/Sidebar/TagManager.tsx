@@ -43,6 +43,13 @@ const TagManager = () => {
     setColor(tag.color);
   };
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Ограничиваем количество символов
+    if (e.target.value.length <= 10) {
+      setName(e.target.value);
+    }
+  };
+
   useEffect(() => {
     // Это будет срабатывать при изменении списка тегов
     console.log("Tags updated:", tags);
@@ -57,7 +64,7 @@ const TagManager = () => {
           type="text"
           placeholder="Tag name"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={handleChange}
         />
         <input
           type="color"
@@ -77,18 +84,30 @@ const TagManager = () => {
               <ColorDot style={{ backgroundColor: tag.color }} />
               <span>{tag.name}</span>
               <IconGroup>
-                <Edit onClick={() => handleEdit(tag)} />
-                <DeleteOutline
-                  onClick={() => {
-                    console.log("Deleting tag:", tag);
-                    removeTag(tag.id); // Используем функцию удаления из контекста
-                  }}
-                />
+                {editingId !== tag.id && (
+                  <Edit onClick={() => handleEdit(tag)} />
+                )}
+                {editingId !== tag.id && (
+                  <DeleteOutline
+                    onClick={() => {
+                      console.log("Deleting tag:", tag);
+                      removeTag(tag.id); // Используем функцию удаления из контекста
+                    }}
+                  />
+                )}
               </IconGroup>
             </TagItem>
           ))
         ) : (
-          <Heading>No tags found</Heading>
+          <Form
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            No tags found
+          </Form>
         )}
       </TagList>
     </Wrapper>
