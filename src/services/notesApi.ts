@@ -66,7 +66,7 @@ export async function createNote(
   return json.data;
 }
 
-// Изменить заметку (без поля media, is_deleted, tags)
+// Изменить заметку (без поля is_deleted, is_archived, tags)
 export async function updateNote(
   id: string,
   note: Pick<Note, "name" | "text" | "color" | "order" | "tags">

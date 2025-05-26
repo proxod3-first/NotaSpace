@@ -7,6 +7,7 @@ import {
   ExpandMore,
   Book,
   ExitToApp,
+  DeleteForever,
 } from "@mui/icons-material"; // Используем иконки MUI
 import CreateNotebookDialog from "./CreateNotebookDialog";
 import { UIContext } from "../../context/UIContext";
@@ -19,20 +20,35 @@ import { baseIconButton, flexCenter, scrollable } from "../../styles/mixins";
 import NotebookOption from "./NotebookOption";
 import ErrorMessage from "../Shared/ErrorMessage";
 import AllNotesOption from "./AllNotesOption";
+import { useMainContext } from "../../context/NoteContext";
+import { deleteNote } from "../../services/notesApi";
+import { Note } from "../../types";
 
 interface RotateIconProps {
   open: boolean;
 }
 
-const RotateIcon = styled(ExpandMore)<RotateIconProps>`
-  transition: transform 0.2s;
-  transform: ${(props) => (props.open ? "rotate(0deg)" : "rotate(-90deg)")};
-`;
-
 const BaseSidebar = () => {
   const { isSidebarOpen, toggleSidebar } = useContext(UIContext);
   const { notebooks, setActiveNotebook, activeNotebook, addNotebook } =
     useNotebooks(); // Используем контекст
+
+  const { archivedNotes} =
+    useMainContext(); // Подключаем архивированные заметки
+
+  const [archivedOpen, setArchivedOpen] = useState(false);
+    const { deletedNotes, restoreNote, permanentlyDeleteNote } = useMainContext();
+  const [deletedOpen, setDeletedOpen] = React.useState(false);
+
+  const handlePermanentlyDelete = async (noteId: string) => {
+    try {
+      await permanentlyDeleteNote(noteId); // Запрос в API для окончательного удаления
+      alert("Note deleted permanently");
+    } catch (error) {
+      console.error("Failed to delete permanently", error);
+      alert("Error deleting note permanently");
+    }
+  };
   const [openDialog, setOpenDialog] = useState(false);
   const [notebooksOpen, setNotebooksOpen] = useState(false);
   const [tagsOpen, setTagsOpen] = useState(false);
@@ -111,17 +127,59 @@ const BaseSidebar = () => {
           <div></div> // Сообщение, если notebooksOpen равно false
         )}
 
+       {/* Раздел для Archiving */}
         <Heading>
           <HeadingLeft>
-            <ClickableSection onClick={() => console.log("Trash clicked")}>
+            <ClickableSection onClick={() => setArchivedOpen((prev) => !prev)}>
               <Book />
-              <TextWrapper>Trash</TextWrapper>
+              <TextWrapper>Archived Notes</TextWrapper>
+              <RotateIcon open={archivedOpen} />
             </ClickableSection>
           </HeadingLeft>
-          <IconButton onClick={() => setOpenDialog(true)}>
-            <AddCircleOutline />
-          </IconButton>
         </Heading>
+
+        {archivedOpen && (
+          <div>
+            {archivedNotes.length > 0 ? (
+              archivedNotes.map((note: Note) => (
+                <div key={note.id}>
+                  <span>{note.name}</span>
+                  <button onClick={() => restoreNote(note.id)}>Restore</button>
+                  <button onClick={() => permanentlyDeleteNote(note.id)}>Delete Permanently</button>
+                </div>
+              ))
+            ) : (
+              <p>No archived notes</p>
+            )}
+          </div>
+        )}
+
+        {/* Раздел для Deleted */}
+        <Heading>
+          <HeadingLeft>
+            <ClickableSection onClick={() => setDeletedOpen((prev) => !prev)}>
+              <Book />
+              <TextWrapper>Deleted Notes</TextWrapper>
+              <RotateIcon open={deletedOpen} />
+            </ClickableSection>
+          </HeadingLeft>
+        </Heading>
+
+        {deletedOpen && (
+          <div>
+            {deletedNotes.length > 0 ? (
+              deletedNotes.map((note: Note) => (
+                <div key={note.id}>
+                  <span>{note.name}</span>
+                  <button onClick={() => restoreNote(note.id)}>Restore</button>
+                  <button onClick={() => permanentlyDeleteNote(note.id)}>Delete Permanently</button>
+                </div>
+              ))
+            ) : (
+              <p>No deleted notes</p>
+            )}
+          </div>
+        )}
 
         <Heading>
           <HeadingLeft>
@@ -218,6 +276,11 @@ const Heading = styled.div`
     ${flexCenter}
     font-size: 20px;
   }
+`;
+
+const RotateIcon = styled(ExpandMore)<RotateIconProps>`
+  transition: transform 0.2s;
+  transform: ${(props) => (props.open ? "rotate(0deg)" : "rotate(-90deg)")};
 `;
 
 const HeadingLeft = styled.div`

@@ -3,9 +3,9 @@ export interface Note {
   name: string;
   text: string;
   color: string;
-  media: string;
   order: number;
   is_deleted: boolean;
+  is_archived: boolean;
   notebook_id: string;
   tags: string[];
 }

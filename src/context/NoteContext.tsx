@@ -29,6 +29,15 @@ type MainContextType = {
     onSuccess: () => void,
     onError: (msg: string) => void
   ) => void;
+
+  // Архивация
+  archiveNote: (noteId: string) => void;
+  restoreNote: (noteId: string) => void;
+  permanentlyDeleteNote: (noteId: string) => void;
+
+  // Получаем архивированные и удаленные заметки
+  archivedNotes: Note[];
+  deletedNotes: Note[];
 };
 const NoteContext = createContext<MainContextType | undefined>(undefined);
 
@@ -82,6 +91,37 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
     setActiveNote(note || null); // Если книга найдена, устанавливаем её, иначе null
   };
 
+  // Архивируем заметку
+  const archiveNote = (noteId: string) => {
+    setNotes((prev) => {
+      const updatedNotes = prev.map((note) =>
+        note.id === noteId ? { ...note, is_archived: true } : note
+      );
+      return updatedNotes;
+    });
+  };
+
+  // Восстанавливаем заметку из архива
+  const restoreNote = (noteId: string) => {
+    setNotes((prev) => {
+      const updatedNotes = prev.map((note) =>
+        note.id === noteId
+          ? { ...note, is_archived: false, is_deleted: false }
+          : note
+      );
+      return updatedNotes;
+    });
+  };
+
+  // Окончательное удаление заметки
+  const permanentlyDeleteNote = (noteId: string) => {
+    setNotes((prev) => prev.filter((note) => note.id !== noteId));
+  };
+
+  // Фильтруем архивированные и удаленные заметки
+  const archivedNotes = notes.filter((note) => note.is_archived);
+  const deletedNotes = notes.filter((note) => note.is_deleted);
+  
   return (
     <NoteContext.Provider
       value={{
@@ -98,6 +138,11 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
         setLoading,
         error,
         setError,
+        archiveNote,
+        restoreNote,
+        permanentlyDeleteNote,
+        archivedNotes,
+        deletedNotes,
         deleteNoteApi,
         moveNote,
       }}

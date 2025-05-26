@@ -60,8 +60,8 @@ const Header = () => {
       name: `New Note ${newNotes.length + 1}`,
       text: "",
       color: "",
-      media: "",
       order: 0,
+      is_archived: false,
       notebook_id: "",
       tags: [],
     };
