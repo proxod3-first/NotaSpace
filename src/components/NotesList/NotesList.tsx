@@ -28,8 +28,8 @@ const NoteList: React.FC<NoteListProps> = ({
   onSelectNote,
   onDeleteNote,
 }) => {
-  const { notes, setNotes } = useMainContext();
 
+  const { notes, setNotes } = useMainContext();
   const { activeNotebook } = useNotebooks(); // Получаем активный блокнот
   const [tags, setTags] = useState<
     { id: string; name: string; color: string }[][]
@@ -177,7 +177,7 @@ const List = styled(MuiList)`
   padding-right: 10px;
 
   &::-webkit-scrollbar {
-    width: 4px;
+    width: 8px;
   }
 
   &::-webkit-scrollbar-thumb {

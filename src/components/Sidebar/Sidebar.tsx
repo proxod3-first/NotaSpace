@@ -193,6 +193,7 @@ export default Sidebar;
 const Container = styled.div`
   background-color: var(--sidebar-background);
   user-select: none;
+  z-index: -1;
 `;
 
 const List = styled.div`

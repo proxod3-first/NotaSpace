@@ -15,6 +15,7 @@ import ArrowTooltip from "../Shared/ArrowTooltip";
 import { baseIconButton, flexCenter, scrollable } from "../../styles/mixins";
 import { UIContext } from "../../context/UIContext";
 
+
 import { createTag, updateTag, fetchTags } from "../../services/tagsApi";
 import {
   addTagToNote,
@@ -56,10 +57,11 @@ const Editor = ({ note }: EditorProps) => {
     setError,
   } = useMainContext();
 
+  
   const [title, setTitle] = useState(note.name);
   const [content, setContent] = useState(note.text);
-  const [syncStatus, setSyncStatus] = useState("All changes saved");
-  const [isFirstRun, setIsFirstRun] = useState(false);
+  const [syncStatus, setSyncStatus] = useState("");
+  const [isFirstRun, setIsFirstRun] = useState(true);
 
   const [tags, setTags] = useState<string[]>([]); // Массив только ID тегов
   const [tagObjects, setTagObjects] = useState<Tag[]>([]); // Массив объектов тегов для отображения
@@ -70,7 +72,6 @@ const Editor = ({ note }: EditorProps) => {
     _name: title,
     text: content,
     tags: tags,
-    // color: noteColor,
   });
 
   // Full screen
@@ -254,7 +255,7 @@ const Editor = ({ note }: EditorProps) => {
   };
 
   const handleAddTag = async () => {
-    if (!newTag.trim()) return; // Если новый тег пустой, выходим
+    if (!newTag.trim() || newTag.length > 10) return; // Если новый тег пустой, выходим
 
     // Создаем новый тег
     const tagData = { name: newTag.trim(), color: "#ff6347" }; // Цвет по умолчанию
@@ -452,7 +453,7 @@ const Editor = ({ note }: EditorProps) => {
               console.log("tagId:", tagId, "foundTag:", tag); // Логируем информацию о теге
 
               return tag ? (
-                <TagStyle key={tag.id}>
+                <TagStyle key={tag.id} style={{ backgroundColor: tag.color }}>
                   <span>{tag.name}</span>
                   {/* Кнопка для удаления */}
                   <TagButton onClick={() => handleDeleteTagFromNote(tag.id)}>
@@ -488,6 +489,7 @@ const Editor = ({ note }: EditorProps) => {
               border: "1px solid #ccc",
               marginRight: "10px",
             }}
+            maxLength={10}
           />
           <ButtonAddTag onClick={handleAddTag}>Add Tag</ButtonAddTag>
 
@@ -643,8 +645,8 @@ const Footer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: 20px;
-  background-color: #f7f7f7;
+  padding-left: 20px;
+  background-color: #c6e3de;
   border-top: 1px solid #ddd;
 `;
 
@@ -652,7 +654,7 @@ const TagContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 10px;
+  margin-top: 3px;
 `;
 
 const TagStyle = styled.div`
@@ -668,10 +670,11 @@ const TagStyle = styled.div`
 const TagButton = styled.button`
   background-color: transparent;
   border: none;
-  color: #ff5555;
+  color:rgb(25, 25, 25);
   cursor: pointer;
   font-size: 12px;
   margin-left: 10px;
+  margin-top: 2px;
 `;
 
 const AddTagWrapper = styled.div`
@@ -679,7 +682,7 @@ const AddTagWrapper = styled.div`
 `;
 
 const SyncStatus = styled.div`
-  margin-bottom: 15px;
+  margin-bottom: 0px;
   font-size: 14px;
   color: #555;
 `;

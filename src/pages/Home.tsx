@@ -130,7 +130,7 @@ const Container = styled.div`
 `;
 
 const EmptyState = styled.div`
-  padding: 20px;
+  padding: 0px;
   font-size: 18px;
   color: #777;
 `;

@@ -8,6 +8,7 @@ import OpenInFullIcon from "@mui/icons-material/OpenInFull";
 import CloseFullscreenIcon from "@mui/icons-material/CloseFullscreen";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
+import DensityMediumIcon from '@mui/icons-material/DensityMedium';
 import styled from "styled-components";
 import { baseIconButton, flexCenter, truncatedText } from "../../styles/mixins";
 import RenameNoteDialog from "./RenameNoteDialog";
@@ -22,11 +23,6 @@ import {
   moveNoteToTrash,
   updateNote,
 } from "../../services/notesApi";
-/* The `import DeletedNotesOption from "../Sidebar/DeletedNotesOption";` statement is importing the
-`DeletedNotesOption` component from the file located at `"../Sidebar/DeletedNotesOption"`. This
-allows the `Header` component to use the `DeletedNotesOption` component within its own
-implementation. */
-// import DeletedNotesOption from "../Sidebar/DeletedNotesOption";
 import { useNotebooks } from "../../context/NotebookContext";
 import { useMainContext } from "../../context/NoteContext";
 
@@ -164,7 +160,7 @@ const Header = () => {
     <Container>
       <HeaderLeft>
         <HamburgerButton onClick={toggleSidebar}>
-          <OpenInFullIcon />
+          <DensityMediumIcon/>
         </HamburgerButton>
         {/* <Heading>{activeNote ? activeNote.name : "Notes"}</Heading> */}
         <Heading>{activeNotebook ? activeNotebook.name : "All Notes"}</Heading>

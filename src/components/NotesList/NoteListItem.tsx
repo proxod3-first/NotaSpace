@@ -66,7 +66,8 @@ const formatText = (text: string) => {
 
 const Container = styled.div<ContainerProps>`
   font-size: 15px;
-  padding: 16px 20px;
+  padding: 16px 25px;
+  margin-right: 10px;
   margin-bottom: 7px;
   height: auto;
   border-radius: 8px;
@@ -79,7 +80,7 @@ const Container = styled.div<ContainerProps>`
 
   &:hover {
     cursor: pointer;
-    background-color: ${({ $active }) => (!$active ? "#fafafa" : "#d3d1d1")};
+    background-color: ${({ $active }) => (!$active ? "#fafafa" : "#e0e8ff")};
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
   }
 
