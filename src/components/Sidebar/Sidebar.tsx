@@ -1,6 +1,11 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import Drawer from "@mui/material/Drawer";
 import styled from "styled-components";
+import SellIcon from "@mui/icons-material/Sell";
+import ArchiveIcon from '@mui/icons-material/Archive';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
+import NotesIcon from '@mui/icons-material/Notes';
 import {
   Search,
   AddCircleOutline,
@@ -23,6 +28,7 @@ import AllNotesOption from "./AllNotesOption";
 import { useMainContext } from "../../context/NoteContext";
 import { deleteNote } from "../../services/notesApi";
 import { Note } from "../../types";
+import { fetchNotebooks } from "../../services/notebooksApi";
 
 interface RotateIconProps {
   open: boolean;
@@ -30,8 +36,13 @@ interface RotateIconProps {
 
 const BaseSidebar = () => {
   const { isSidebarOpen, toggleSidebar } = useContext(UIContext);
-  const { notebooks, setActiveNotebook, activeNotebook, addNotebook } =
-    useNotebooks(); // Используем контекст
+  const {
+    notebooks,
+    setNotebooks,
+    setActiveNotebook,
+    activeNotebook,
+    addNotebook,
+  } = useNotebooks(); // Используем контекст
 
   const { archivedNotes } = useMainContext(); // Подключаем архивированные заметки
 
@@ -53,6 +64,10 @@ const BaseSidebar = () => {
   const [tagsOpen, setTagsOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    console.log("Active notebook changed:", activeNotebook);
+  }, [activeNotebook]);
+
   // Логика для отображения активной книги
   const notebook_id = activeNotebook?.id;
 
@@ -60,18 +75,16 @@ const BaseSidebar = () => {
     <Container>
       <List>
         <SearchField onChange={(text) => console.log("Search:", text)} />
-
         <Heading>
           <HeadingLeft>
             <ClickableSection onClick={() => console.log("All Notes clicked")}>
-              <Book />
+              <NotesIcon/>
               <TextWrapper>
                 <AllNotesOption $active={true} />
               </TextWrapper>
             </ClickableSection>
           </HeadingLeft>
         </Heading>
-
         <Heading>
           <HeadingLeft>
             <ClickableSection onClick={() => setNotebooksOpen((prev) => !prev)}>
@@ -83,45 +96,38 @@ const BaseSidebar = () => {
 
           <ArrowTooltip title="Create notebook" placement="right">
             <IconButton onClick={() => setOpenDialog(true)}>
-              <AddCircleOutline />
+               <AddCircleIcon/>
             </IconButton>
           </ArrowTooltip>
         </Heading>
-
         {error && <ErrorMessage>{error}</ErrorMessage>}
-
-        {notebooksOpen ? (
-          Array.isArray(notebooks) && notebooks.length > 0 ? (
-            notebooks.map((notebook, index) => (
-              <NotebookOption
-                key={notebook.id || index} // Fallback to index if notebook.id is not available
-                notebook={notebook}
-                $active={notebook_id === notebook.id}
-                onClick={() => {
-                  setActiveNotebook(notebook.id); // Устанавливаем активную книгу
-                }}
-              />
-            ))
-          ) : (
-            <div>No notebooks found</div> // Сообщение, если нет книг
-          )
-        ) : (
-          <div></div> // Сообщение, если notebooksOpen равно false
-        )}
-
+        <NotebooksContainer $isOpen={notebooksOpen}>
+          {notebooksOpen &&
+            (Array.isArray(notebooks) && notebooks.length > 0 ? (
+              notebooks.map((notebook, index) => (
+                <NotebookOption
+                  key={notebook.id || index}
+                  notebook={notebook}
+                  $active={notebook_id === notebook?.id}
+                  onClick={() => setActiveNotebook(notebook.id)}
+                />
+              ))
+            ) : (
+              <EmptyMessage>Нет блокнотов</EmptyMessage>
+            ))}
+        </NotebooksContainer>
         {/* Раздел для Archiving */}
         <Heading>
           <HeadingLeft>
             <ClickableSection onClick={() => setArchivedOpen((prev) => !prev)}>
-              <Book />
+              <ArchiveIcon/>
               <TextWrapper>Archive</TextWrapper>
               <RotateIcon open={archivedOpen} />
             </ClickableSection>
           </HeadingLeft>
         </Heading>
 
-
-        // TODO: Должно отображаться в NoteList
+        {/* // TODO: Должно отображаться в NoteList */}
         {/* {archivedOpen && (
           <div>
             {archivedNotes.length > 0 ? (
@@ -139,18 +145,16 @@ const BaseSidebar = () => {
             )}
           </div>
         )} */}
-
         {/* Раздел для Deleted */}
         <Heading>
           <HeadingLeft>
             <ClickableSection onClick={() => setDeletedOpen((prev) => !prev)}>
-              <Book />
+              <DeleteIcon/>
               <TextWrapper>Recently Deleted</TextWrapper>
               <RotateIcon open={deletedOpen} />
             </ClickableSection>
           </HeadingLeft>
         </Heading>
-
         {/* {deletedOpen && (
           <div>
             {deletedNotes.length > 0 ? (
@@ -168,17 +172,17 @@ const BaseSidebar = () => {
             )}
           </div> */}
         {/* )} */}
-
         <Heading>
           <HeadingLeft>
             <ClickableSection onClick={() => setTagsOpen((prev) => !prev)}>
-              <Book />
-              <TextWrapper>Tags</TextWrapper>
+              <SellIcon/>
+              <TextWrapper>
+                Tags
+              </TextWrapper>
               <RotateIcon open={tagsOpen} />
             </ClickableSection>
           </HeadingLeft>
         </Heading>
-
         {tagsOpen && (
           <TagManagerContainer>
             <TagManager />
@@ -238,8 +242,8 @@ export default Sidebar;
 
 const Container = styled.div`
   background-color: var(--sidebar-background);
+  position: relative;
   user-select: none;
-  z-index: -1;
 `;
 
 const List = styled.div`
@@ -307,6 +311,20 @@ const ClickableSection = styled.div`
   svg {
     font-size: 20px;
   }
+`;
+
+const NotebooksContainer = styled.div<{ $isOpen: boolean }>`
+  max-height: ${({ $isOpen }) => ($isOpen ? "300px" : "0")};
+  overflow-y: auto;
+  transition: max-height 0.3s ease;
+  padding: ${({ $isOpen }) => ($isOpen ? "10px" : "0")};
+`;
+
+const EmptyMessage = styled.div`
+  text-align: center;
+  color: #999;
+  padding: 10px;
+  font-size: 14px;
 `;
 
 const TagManagerContainer = styled.div`

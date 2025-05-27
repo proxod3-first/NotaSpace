@@ -17,7 +17,7 @@ interface Props {
 }
 
 const CreateNotebookDialog = ({ open, setOpen }: Props) => {
-  const { addNotebook } = useNotebooks(); // Получаем функцию addNotebook из контекста
+  const { addNotebook, setNotebooks } = useNotebooks(); // Получаем функцию addNotebook из контекста
 
   const [errorMessage, setErrorMessage] = useState("");
   const [inputValue, setInputValue] = useState("");
@@ -38,9 +38,9 @@ const CreateNotebookDialog = ({ open, setOpen }: Props) => {
     }
 
     try {
+      console.log(inputValue);
       // Используем addNotebook из контекста
-      await addNotebook(inputValue, inputValue); // Передаем имя и описание как inputValue
-      setErrorMessage(""); // Очистить сообщение об ошибке при успешном добавлении
+      await addNotebook(inputValue, inputValue); // Передаем имя и описание как inputValue      
       handleClose(); // Закрыть форму после успешного добавления
     } catch (error) {
       // Обработка ошибки при добавлении книги

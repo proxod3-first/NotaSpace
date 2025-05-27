@@ -3,6 +3,7 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Fade from "@mui/material/Fade";
 import styled, { css } from "styled-components";
+import CloseIcon from "@mui/icons-material/Close";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import OpenInFullIcon from "@mui/icons-material/OpenInFull";
@@ -10,11 +11,15 @@ import CloseFullscreenIcon from "@mui/icons-material/CloseFullscreen";
 import DriveFileMoveIcon from "@mui/icons-material/DriveFileMove";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import DeleteNoteDialog from "./DeleteNoteDialog";
+import DriveFileRenameOutlineIcon from "@mui/icons-material/DriveFileRenameOutline";
+import MoreVertIcon from "@mui/icons-material/MoreVert";
 import MoveNoteDialog from "./MoveNoteDialog";
+import FullscreenIcon from "@mui/icons-material/Fullscreen";
+import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
+import NewLabelIcon from "@mui/icons-material/NewLabel";
 import ArrowTooltip from "../Shared/ArrowTooltip";
 import { baseIconButton, flexCenter, scrollable } from "../../styles/mixins";
 import { UIContext } from "../../context/UIContext";
-
 import { createTag, updateTag, fetchTags } from "../../services/tagsApi";
 import {
   addTagToNote,
@@ -42,7 +47,7 @@ interface EditorProps {
 }
 
 const mdParser = new MarkdownIt();
-const AUTOSAVE_INTERVAL = 1500;
+const AUTOSAVE_INTERVAL = 5000;
 
 const Editor = ({ note }: EditorProps) => {
   const {
@@ -356,7 +361,7 @@ const Editor = ({ note }: EditorProps) => {
         <CenteredDiv $showInDesktop>
           <ArrowTooltip title={fullScreen ? "Collapse note" : "Expand note"}>
             <FullScreenButton onClick={toggleFullScreen}>
-              {fullScreen ? <CloseFullscreenIcon /> : <OpenInFullIcon />}
+              {fullScreen ? <FullscreenIcon /> : <FullscreenExitIcon />}
             </FullScreenButton>
           </ArrowTooltip>
         </CenteredDiv>
@@ -365,12 +370,13 @@ const Editor = ({ note }: EditorProps) => {
           placeholder="Title"
           value={title}
           onChange={handleNameChange}
+          maxLength={30}
         />
 
         <CenteredDiv>
           <ArrowTooltip title="More actions">
             <IconButton onClick={handleClickMenu}>
-              <MoreHorizIcon />
+              <MoreVertIcon />
             </IconButton>
           </ArrowTooltip>
         </CenteredDiv>
@@ -453,16 +459,16 @@ const Editor = ({ note }: EditorProps) => {
                   <span>{tag.name}</span>
                   {/* Кнопка для удаления */}
                   <TagButton onClick={() => handleDeleteTagFromNote(tag.id)}>
-                    Delete
+                    <CloseIcon />
                   </TagButton>
                   {/* Кнопка для редактирования */}
                   <TagButton
                     onClick={() => {
-                      setEditTagId(tag.id);
+                      if (tag.name == "") setEditTagId(tag.id);
                       setNewTag(tag.name);
                     }}
                   >
-                    Edit
+                    <DriveFileRenameOutlineIcon />
                   </TagButton>
                 </TagStyle>
               ) : null; // Если тег не найден, ничего не отображаем
@@ -487,11 +493,15 @@ const Editor = ({ note }: EditorProps) => {
             }}
             maxLength={10}
           />
-          <ButtonAddTag onClick={handleAddTag}>Add Tag</ButtonAddTag>
+          <ButtonAddTag onClick={handleAddTag}>
+            <NewLabelIcon />
+          </ButtonAddTag>
 
           {/* Кнопка редактирования тега */}
           {editTagId ? (
-            <ButtonEditTag onClick={handleEditTag}>Edit Tag</ButtonEditTag>
+            <ButtonEditTag onClick={handleEditTag}>
+              <DriveFileRenameOutlineIcon />
+            </ButtonEditTag>
           ) : null}
         </AddTagWrapper>
       </Footer>
@@ -535,7 +545,6 @@ const TitleInput = styled.input`
   width: 100%;
   font-size: 32px;
   font-weight: 500;
-
   &:focus {
     outline: none;
   }
@@ -545,7 +554,7 @@ const IconButton = styled.button`
   ${baseIconButton}
   font-size: 28px;
   padding: 2px;
-  color: #9b9a9a;
+  color: rgb(255, 131, 104);
 
   &:hover {
     background-color: #e9e9e7;
@@ -553,7 +562,7 @@ const IconButton = styled.button`
 `;
 
 const FullScreenButton = styled(IconButton)`
-  font-size: 22px;
+  font-size: 28px;
   width: 28px;
   height: 28px;
 `;
@@ -598,51 +607,27 @@ const CenteredDiv = styled.div<{
 const InvisibleDiv = styled.div`
   display: none;
 `;
+
 const StyledMdEditor = styled(MdEditor)`
     &:focus {
       outline: none;
     }
   }
 
-  .quill {
-    overflow: hidden;
-  }
 
-  .ql-toolbar.ql-snow {
-    border: none;
-    white-space: nowrap;
-
-    .ql-formats {
-      margin-right: 0;
   
-      @media (min-width: 810px) {
-        margin-right: 15px;
-      }
-    }
-  }
-
-  .ql-container.ql-snow {
-    height: calc(100vh - 60px - 40px - 40px); // Minus heights of header, toolbar and footer
-    border: none;
-    font-size: 16px !important;
-  }
-
-  .ql-editor.ql-blank::before {
-    font-style: normal;
-    opacity: 0.5;
-  }
-
-  .ql-editor {
-    ${scrollable}
-  }
+  // .ql-editor {
+  //   ${scrollable}
+  // }
 `;
 
 const Footer = styled.div`
   display: flex;
   flex-direction: column;
+  flex-wrap: wrap;
   align-items: flex-start;
   padding-left: 20px;
-  background-color: #c6e3de;
+  background-color: rgb(227, 227, 227);
   border-top: 1px solid #ddd;
 `;
 
@@ -666,9 +651,9 @@ const TagStyle = styled.div`
 const TagButton = styled.button`
   background-color: transparent;
   border: none;
-  color: rgb(25, 25, 25);
+  color: rgb(32, 32, 32);
   cursor: pointer;
-  font-size: 12px;
+  font-size: 14px;
   margin-left: 10px;
   margin-top: 2px;
 `;

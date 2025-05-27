@@ -7,6 +7,7 @@ import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import OpenInFullIcon from "@mui/icons-material/OpenInFull";
 import CloseFullscreenIcon from "@mui/icons-material/CloseFullscreen";
 import EditIcon from "@mui/icons-material/Edit";
+import NoteAddIcon from '@mui/icons-material/NoteAdd';
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import DensityMediumIcon from '@mui/icons-material/DensityMedium';
 import styled from "styled-components";
@@ -167,7 +168,7 @@ const Header = () => {
       <ButtonGroup>
         <ArrowTooltip title="Add new note" placement="bottom">
           <IconButton onClick={handleCreateNoteClick}>
-            <EditIcon />
+            <NoteAddIcon/>
           </IconButton>
         </ArrowTooltip>
         {activeNote?.id && (
@@ -264,7 +265,7 @@ const IconButton = styled.button`
   ${baseIconButton}
   font-size: 28px;
   padding: 2px;
-  color: #9b9a9a;
+  color:rgb(255, 131, 104);
 
   &:hover {
     background-color: #e9e9e7;

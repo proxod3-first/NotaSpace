@@ -100,7 +100,7 @@ const Dialog = styled(MuiDialog)`
 `;
 
 const Select = styled.select`
-  width: 400px;
+  width: 200px;
   margin-top: 6px;
   margin-bottom: 12px;
   padding: 12px 8px 10px 12px;

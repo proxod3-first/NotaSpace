@@ -137,7 +137,7 @@ const Tags = styled.div`
 
 const Tag = styled.div<{ color: string }>`
   background-color: ${({ color }) => color};
-  color: white;
+  color: black;
   padding: 4px 8px;
   border-radius: 16px;
   font-size: 12px;

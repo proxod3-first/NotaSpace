@@ -26,7 +26,7 @@ export default function Home() {
   } = useMainContext();
 
   const [isSidebarOpen, toggleSidebar] = useToggleItem(false);
-  const [isNoteListOpen, toggleNoteList] = useToggleItem(false);
+  const [isNoteListOpen, toggleNoteList] = useToggleItem(true);
   const [selectedTag, setSelectedTag] = useState<string>("");
   const [tags, setTags] = useState<string[]>([]); // Состояние тегов
 
@@ -97,19 +97,25 @@ export default function Home() {
           onSelectNote={handleSelectNote}
           onDeleteNote={handleDelete}
         />
-        {activeNote ? (
-          <Editor
-            note={activeNote}
-            onDeleteNote={handleDelete}
-            onMoveNote={(noteId, targetNotebookId, onSuccess, onError) => {
-              // Тут можно вызвать moveNote из контекста или реализовать локально
-            }}
-          />
-        ) : (
-          <EmptyState>
-            Выберите заметку слева, чтобы начать редактирование
-          </EmptyState>
-        )}
+
+        <EditorWrapper
+          $isNoteListOpen={isNoteListOpen}
+          $hasActiveNote={!!activeNote}
+        >
+          {activeNote ? (
+            <Editor
+              note={activeNote}
+              onDeleteNote={handleDelete}
+              onMoveNote={(noteId, targetNotebookId, onSuccess, onError) => {
+                // Тут можно вызвать moveNote из контекста или реализовать локально
+              }}
+            />
+          ) : (
+            <EmptyState>
+              Выберите заметку слева, чтобы начать редактирование
+            </EmptyState>
+          )}
+        </EditorWrapper>
       </Container>
     </UIContext.Provider>
   );
@@ -128,6 +134,36 @@ const Container = styled.div`
     grid-template-columns: 240px 380px calc(100vw - 240px - 380px);
   }
 `;
+
+const EditorWrapper = styled.div<{
+  $isNoteListOpen: boolean;
+  $hasActiveNote: boolean;
+}>`
+  display: ${({ $isNoteListOpen, $hasActiveNote }) =>
+    $isNoteListOpen ? "none" : $hasActiveNote ? "block" : "none"};
+
+  @media (max-width: 810px) {
+    display: ${({ $hasActiveNote }) => ($hasActiveNote ? "block" : "none")};
+    z-index: ${({ $isNoteListOpen }) => ($isNoteListOpen ? "-1" : "100")};
+    position: ${({ $isNoteListOpen }) => ($isNoteListOpen ? "none" : "fixed")};
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    overflow-y: auto;
+  }
+`;
+// @media (max-width: 809px) {
+//   display: ${({ $hasActiveNote }) => ($hasActiveNote ? "block" : "none")};
+//   position: fixed;
+//   top: 0;
+//   left: 0;
+//   overflow: auto;
+//   height: 100vh;
+//   width: 100vw;
+//   background-color: ${({ $hasActiveNote }) => ($hasActiveNote ? "white" : )};
+//   z-index: ${({ $hasActiveNote }) => ($hasActiveNote ? 100 : -1)};
+// }
 
 const EmptyState = styled.div`
   padding: 0px;

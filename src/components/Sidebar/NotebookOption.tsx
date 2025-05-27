@@ -5,6 +5,8 @@ import { flexCenter } from "../../styles/mixins";
 import { Notebook } from "../../types";
 import { UIContext } from "../../context/UIContext";
 import { fetchNotesByNotebook } from "../../services/notesApi"; // Добавляем функцию для получения заметок по блокноту
+import { useNotebooks } from "../../context/NotebookContext";
+import { fetchNotebooks } from "../../services/notebooksApi";
 
 interface ContainerProps {
   $active: boolean;
@@ -19,20 +21,36 @@ interface ComponentProps extends ContainerProps {
 const NotebookOption = ({ notebook, $active, onClick }: ComponentProps) => {
   const { toggleSidebar } = useContext(UIContext);
   const [noteCount, setNoteCount] = useState<number>(0); // Состояние для хранения количества заметок
+  const {
+    notebooks,
+    setNotebooks,
+    setActiveNotebook,
+    activeNotebook,
+    addNotebook,
+  } = useNotebooks();
 
+
+  // TODO: activeNotebook: 6 вместо объекта Notebook, error
   useEffect(() => {
-    const fetchNoteCount = async () => {
+    const fetchAll = async () => {
       try {
-        var notes = await fetchNotesByNotebook(notebook.id); // Получаем заметки для текущего блокнота
-        if (notes.length != 0) {
-          setNoteCount(notes.length);
+        if (activeNotebook?.id == null) {
+          const fetchedNotebooks = await fetchNotebooks();
+          setNotebooks(fetchedNotebooks);
+        }
+
+        // После этого — грузим заметки для notebook.id
+        console.log("notebook: ", notebooks);
+        const notes = await fetchNotesByNotebook(notebook.id);
+        if (notes.length !== 0) {
+          setNoteCount(notes.length );
         }
       } catch (error) {
-        console.error("Ошибка при загрузке заметок:", error);
+        console.error("Ошибка при загрузке данных:", error);
       }
     };
 
-    fetchNoteCount();
+    fetchAll();
   }, [notebook.id]); // Перезапускаем эффект при изменении блока
 
   return (

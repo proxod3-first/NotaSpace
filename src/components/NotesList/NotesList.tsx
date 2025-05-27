@@ -160,6 +160,12 @@ const NoteList: React.FC<NoteListProps> = ({
 
 export default NoteList;
 
+
+interface ContainerProps {
+  $isNoteListOpen?: boolean;
+}
+
+
 const ErrorMessage = styled.div`
   color: red;
   margin: 10px 0;
@@ -187,12 +193,13 @@ const List = styled(MuiList)`
 
   /* Мобильная адаптация */
   @media (max-width: 767px) {
-    max-height: 300px;
+
+    max-height: 100vh;
     padding-right: 5px;
   }
 
   @media (max-width: 480px) {
-    max-height: 250px;
+    max-height: 100vh;
   }
 
   @media (min-width: 810px) {

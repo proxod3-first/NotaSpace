@@ -17,6 +17,14 @@ import {
 // Интерфейс для контекста
 interface NotebookContextType {
   notebooks: Notebook[];
+  setNotebooks: React.Dispatch<React.SetStateAction<Notebook[]>>;
+  notesInNotebook: (id: string) => Note[];
+
+  getNotebookById: (id: string) => Promise<Notebook | undefined>; // Обновили тип, так как функция асинхронная
+
+  activeNotebook: Notebook | null;
+  setActiveNotebook: (id: string) => void;
+
   addNotebook: (name: string, description: string) => Promise<void>;
   updateNotebookInList: (
     id: string,
@@ -24,10 +32,6 @@ interface NotebookContextType {
     description: string
   ) => Promise<void>;
   removeNotebook: (id: string) => Promise<void>;
-  getNotebookById: (id: string) => Promise<Notebook | undefined>; // Обновили тип, так как функция асинхронная
-  setActiveNotebook: (id: string) => void;
-  activeNotebook: Notebook | null;
-  notesInNotebook: (id: string) => Note[];
 }
 
 // Тип для пропсов компонента NotebookProvider
@@ -72,6 +76,7 @@ export const NotebookProvider: React.FC<NotebookProviderProps> = ({
     });
     if (newNotebook) {
       setNotebooks((prevNotebooks) => [...prevNotebooks, newNotebook]);
+      setActiveNotebookState(newNotebook); // <-- здесь!
     } else {
       console.error("Error creating notebook");
     }
@@ -125,6 +130,7 @@ export const NotebookProvider: React.FC<NotebookProviderProps> = ({
 
   const setActiveNotebook = (id: string) => {
     const notebook = notebooks.find((notebook) => notebook.id === id);
+    console.log("setActiveNotebook =", notebook);
     setActiveNotebookState(notebook || null); // Если книга найдена, устанавливаем её, иначе null
   };
 
@@ -132,12 +138,13 @@ export const NotebookProvider: React.FC<NotebookProviderProps> = ({
     <NotebookContext.Provider
       value={{
         notebooks,
+        setNotebooks,
         addNotebook,
         updateNotebookInList,
         removeNotebook,
         getNotebookById,
         activeNotebook: activeNotebookState,
-          setActiveNotebook,
+        setActiveNotebook,
         notesInNotebook,
       }}
     >

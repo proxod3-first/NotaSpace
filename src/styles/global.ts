@@ -1,11 +1,13 @@
 import { createGlobalStyle } from "styled-components";
 
+
 export default createGlobalStyle`
   * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
   }
+
   :root {
     --font: --apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
       'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
@@ -16,6 +18,8 @@ export default createGlobalStyle`
 
     --scrollbar-thin-thumb: #8390c9; /* светло-синий, не ядовитый */
     --scrollbar-thin-track: transparent;
+
+    --icons-color: rgb(255, 131, 104);
 
     --sidebar-text-normal: #c8d0ec; /* очень мягкий, но не белый */
     --sidebar-text-muted: #94a0d0;  /* чуть светлее и теплее muted */

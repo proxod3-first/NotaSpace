@@ -28,7 +28,6 @@ export const truncatedText = css`
 `;
 
 export const scrollable = css`
-  overflow: hidden auto;
   scrollbar-color: var(--scrollbar-thin-thumb) var(--scrollbar-thin-track);
   scrollbar-width: thin;
 
