@@ -1,0 +1,102 @@
+Date : 2025-05-28 01:01:17
+Directory : c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\
+Total : 57 files,  4159 codes, 234 comments, 557 blanks, all 4950 lines
+
+Languages
++----------------+------------+------------+------------+------------+------------+
+| language       | files      | code       | comment    | blank      | total      |
++----------------+------------+------------+------------+------------+------------+
+| TypeScript JSX |         32 |      3,302 |        181 |        438 |      3,921 |
+| TypeScript     |         22 |        843 |         53 |        117 |      1,013 |
+| PostCSS        |          2 |         13 |          0 |          2 |         15 |
+| XML            |          1 |          1 |          0 |          0 |          1 |
++----------------+------------+------------+------------+------------+------------+
+
+Directories
++---------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                              | files      | code       | comment    | blank      | total      |
++---------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                 |         57 |      4,159 |        234 |        557 |      4,950 |
+| . (Files)                                                                                         |         10 |         87 |          6 |         16 |        109 |
+| components                                                                                        |         25 |      2,600 |        141 |        346 |      3,087 |
+| components\Editor                                                                                 |          3 |        749 |         58 |        106 |        913 |
+| components\NotesList                                                                              |          7 |        803 |         28 |        104 |        935 |
+| components\Shared                                                                                 |          6 |        112 |          0 |         21 |        133 |
+| components\Sidebar                                                                                |          9 |        936 |         55 |        115 |      1,106 |
+| constants                                                                                         |          1 |         38 |          0 |          1 |         39 |
+| context                                                                                           |          4 |        517 |         23 |         70 |        610 |
+| hooks                                                                                             |          1 |         40 |          1 |         10 |         51 |
+| pages                                                                                             |          1 |        139 |         17 |         17 |        173 |
+| reducers                                                                                          |          7 |        351 |         17 |         47 |        415 |
+| reducers (Files)                                                                                  |          5 |        307 |         11 |         36 |        354 |
+| reducers\features                                                                                 |          2 |         44 |          6 |         11 |         61 |
+| services                                                                                          |          3 |        242 |         27 |         34 |        303 |
+| store                                                                                             |          1 |         20 |          2 |          3 |         25 |
+| styles                                                                                            |          2 |         97 |          0 |          9 |        106 |
+| types                                                                                             |          1 |         22 |          0 |          3 |         25 |
+| utils                                                                                             |          1 |          6 |          0 |          1 |          7 |
++---------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++---------------------------------------------------------------------------------------------------+----------------+------------+------------+------------+------------+
+| filename                                                                                          | language       | code       | comment    | blank      | total      |
++---------------------------------------------------------------------------------------------------+----------------+------------+------------+------------+------------+
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\App.css                                      | PostCSS        |          0 |          0 |          1 |          1 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\App.test.tsx                                 | TypeScript JSX |          8 |          0 |          2 |         10 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\App.tsx                                      | TypeScript JSX |         21 |          0 |          2 |         23 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Editor\DeleteNoteDialog.tsx       | TypeScript JSX |         75 |          0 |          9 |         84 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Editor\Editor.tsx                 | TypeScript JSX |        556 |         58 |         86 |        700 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Editor\MoveNoteDialog.tsx         | TypeScript JSX |        118 |          0 |         11 |        129 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\NotesList\AutoUpdatingTimeAgo.tsx | TypeScript JSX |         26 |          0 |          8 |         34 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\NotesList\DeleteNoteDialog.tsx    | TypeScript JSX |         76 |          0 |          9 |         85 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\NotesList\Header.tsx              | TypeScript JSX |        266 |          2 |         33 |        301 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\NotesList\NoNotesMessage.tsx      | TypeScript JSX |         19 |          0 |          5 |         24 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\NotesList\NoteListItem.tsx        | TypeScript JSX |        130 |          3 |         17 |        150 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\NotesList\NotesList.tsx           | TypeScript JSX |        209 |         20 |         23 |        252 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\NotesList\RenameNoteDialog.tsx    | TypeScript JSX |         77 |          3 |          9 |         89 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Shared\ArrowTooltip.tsx           | TypeScript JSX |         33 |          0 |          5 |         38 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Shared\ContainedButton.tsx        | TypeScript JSX |         18 |          0 |          3 |         21 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Shared\ErrorMessage.tsx           | TypeScript JSX |          8 |          0 |          3 |         11 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Shared\Input.tsx                  | TypeScript JSX |         16 |          0 |          3 |         19 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Shared\OutlinedButton.tsx         | TypeScript JSX |         16 |          0 |          3 |         19 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Shared\PreLoader.tsx              | TypeScript JSX |         21 |          0 |          4 |         25 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Sidebar\AllNotesOption.tsx        | TypeScript JSX |         15 |          1 |          5 |         21 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Sidebar\CategoryOption.tsx        | TypeScript JSX |         81 |          0 |         12 |         93 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Sidebar\CreateNotebookDialog.tsx  | TypeScript JSX |         79 |          3 |         12 |         94 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Sidebar\DeletedNotesOption.tsx    | TypeScript JSX |         51 |          1 |         10 |         62 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Sidebar\NotebookOption.tsx        | TypeScript JSX |         96 |          4 |         13 |        113 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Sidebar\SearchField.tsx           | TypeScript JSX |         62 |          0 |          7 |         69 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Sidebar\Sidebar.tsx               | TypeScript JSX |        281 |         38 |         28 |        347 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Sidebar\TagManager.tsx            | TypeScript JSX |        234 |          3 |         20 |        257 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Sidebar\ThemeToggle.tsx           | TypeScript JSX |         37 |          5 |          8 |         50 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\constants\colors.ts                          | TypeScript     |         38 |          0 |          1 |         39 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\context\NoteContext.tsx                      | TypeScript JSX |        274 |          8 |         34 |        316 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\context\NotebookContext.tsx                  | TypeScript JSX |        138 |          8 |         18 |        164 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\context\TagContext.tsx                       | TypeScript JSX |         92 |          7 |         15 |        114 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\context\UIContext.ts                         | TypeScript     |         13 |          0 |          3 |         16 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\hooks\hooks.ts                               | TypeScript     |         40 |          1 |         10 |         51 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\index.css                                    | PostCSS        |         13 |          0 |          1 |         14 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\index.tsx                                    | TypeScript JSX |         30 |          0 |          4 |         34 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\logo.svg                                     | XML            |          1 |          0 |          0 |          1 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\pages\Home.tsx                               | TypeScript JSX |        139 |         17 |         17 |        173 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\react-app-env.d.ts                           | TypeScript     |          0 |          1 |          1 |          2 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\reducers\axiosBaseQuery.ts                   | TypeScript     |         47 |          1 |          2 |         50 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\reducers\features\errorSlice.ts              | TypeScript     |         21 |          5 |          6 |         32 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\reducers\features\uiSlice.ts                 | TypeScript     |         23 |          1 |          5 |         29 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\reducers\notebooksReducer.ts                 | TypeScript     |         55 |          5 |          7 |         67 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\reducers\notesReducer.ts                     | TypeScript     |        132 |          0 |         15 |        147 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\reducers\selectedNoteReducer.ts              | TypeScript     |         21 |          0 |          5 |         26 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\reducers\tagsReducer.ts                      | TypeScript     |         52 |          5 |          7 |         64 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\reportWebVitals.ts                           | TypeScript     |         13 |          0 |          3 |         16 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\services\notebooksApi.ts                     | TypeScript     |         42 |          5 |          7 |         54 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\services\notesApi.ts                         | TypeScript     |        150 |         16 |         18 |        184 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\services\tagsApi.ts                          | TypeScript     |         50 |          6 |          9 |         65 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\setupTests.ts                                | TypeScript     |          1 |          4 |          1 |          6 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\store\store.ts                               | TypeScript     |         20 |          2 |          3 |         25 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\styles\global.ts                             | TypeScript     |         43 |          0 |          3 |         46 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\styles\mixins.ts                             | TypeScript     |         54 |          0 |          6 |         60 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\types\index.ts                               | TypeScript     |         22 |          0 |          3 |         25 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\utils\errors.ts                              | TypeScript     |          6 |          0 |          1 |          7 |
+| c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\vite-env.d.ts                                | TypeScript     |          0 |          1 |          1 |          2 |
+| Total                                                                                             |                |      4,159 |        234 |        557 |      4,950 |
++---------------------------------------------------------------------------------------------------+----------------+------------+------------+------------+------------+

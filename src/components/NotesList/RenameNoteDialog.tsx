@@ -80,7 +80,6 @@ const Dialog = styled(MuiDialog)`
 
   ${Input} {
     margin-top: 12px;
-    width: 400px;
   }
 
   .MuiDialogActions-root {

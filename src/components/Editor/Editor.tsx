@@ -613,8 +613,6 @@ const StyledMdEditor = styled(MdEditor)`
       outline: none;
     }
   }
-
-
   
   // .ql-editor {
   //   ${scrollable}

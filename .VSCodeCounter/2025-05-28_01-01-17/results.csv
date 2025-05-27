@@ -1,0 +1,59 @@
+"filename", "language", "TypeScript", "TypeScript JSX", "XML", "PostCSS", "comment", "blank", "total"
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\App.css", "PostCSS", 0, 0, 0, 0, 0, 1, 1
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\App.test.tsx", "TypeScript JSX", 0, 8, 0, 0, 0, 2, 10
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\App.tsx", "TypeScript JSX", 0, 21, 0, 0, 0, 2, 23
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Editor\DeleteNoteDialog.tsx", "TypeScript JSX", 0, 75, 0, 0, 0, 9, 84
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Editor\Editor.tsx", "TypeScript JSX", 0, 556, 0, 0, 58, 86, 700
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Editor\MoveNoteDialog.tsx", "TypeScript JSX", 0, 118, 0, 0, 0, 11, 129
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\NotesList\AutoUpdatingTimeAgo.tsx", "TypeScript JSX", 0, 26, 0, 0, 0, 8, 34
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\NotesList\DeleteNoteDialog.tsx", "TypeScript JSX", 0, 76, 0, 0, 0, 9, 85
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\NotesList\Header.tsx", "TypeScript JSX", 0, 266, 0, 0, 2, 33, 301
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\NotesList\NoNotesMessage.tsx", "TypeScript JSX", 0, 19, 0, 0, 0, 5, 24
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\NotesList\NoteListItem.tsx", "TypeScript JSX", 0, 130, 0, 0, 3, 17, 150
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\NotesList\NotesList.tsx", "TypeScript JSX", 0, 209, 0, 0, 20, 23, 252
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\NotesList\RenameNoteDialog.tsx", "TypeScript JSX", 0, 77, 0, 0, 3, 9, 89
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Shared\ArrowTooltip.tsx", "TypeScript JSX", 0, 33, 0, 0, 0, 5, 38
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Shared\ContainedButton.tsx", "TypeScript JSX", 0, 18, 0, 0, 0, 3, 21
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Shared\ErrorMessage.tsx", "TypeScript JSX", 0, 8, 0, 0, 0, 3, 11
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Shared\Input.tsx", "TypeScript JSX", 0, 16, 0, 0, 0, 3, 19
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Shared\OutlinedButton.tsx", "TypeScript JSX", 0, 16, 0, 0, 0, 3, 19
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Shared\PreLoader.tsx", "TypeScript JSX", 0, 21, 0, 0, 0, 4, 25
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Sidebar\AllNotesOption.tsx", "TypeScript JSX", 0, 15, 0, 0, 1, 5, 21
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Sidebar\CategoryOption.tsx", "TypeScript JSX", 0, 81, 0, 0, 0, 12, 93
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Sidebar\CreateNotebookDialog.tsx", "TypeScript JSX", 0, 79, 0, 0, 3, 12, 94
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Sidebar\DeletedNotesOption.tsx", "TypeScript JSX", 0, 51, 0, 0, 1, 10, 62
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Sidebar\NotebookOption.tsx", "TypeScript JSX", 0, 96, 0, 0, 4, 13, 113
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Sidebar\SearchField.tsx", "TypeScript JSX", 0, 62, 0, 0, 0, 7, 69
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Sidebar\Sidebar.tsx", "TypeScript JSX", 0, 281, 0, 0, 38, 28, 347
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Sidebar\TagManager.tsx", "TypeScript JSX", 0, 234, 0, 0, 3, 20, 257
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\components\Sidebar\ThemeToggle.tsx", "TypeScript JSX", 0, 37, 0, 0, 5, 8, 50
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\constants\colors.ts", "TypeScript", 38, 0, 0, 0, 0, 1, 39
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\context\NoteContext.tsx", "TypeScript JSX", 0, 274, 0, 0, 8, 34, 316
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\context\NotebookContext.tsx", "TypeScript JSX", 0, 138, 0, 0, 8, 18, 164
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\context\TagContext.tsx", "TypeScript JSX", 0, 92, 0, 0, 7, 15, 114
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\context\UIContext.ts", "TypeScript", 13, 0, 0, 0, 0, 3, 16
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\hooks\hooks.ts", "TypeScript", 40, 0, 0, 0, 1, 10, 51
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\index.css", "PostCSS", 0, 0, 0, 13, 0, 1, 14
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\index.tsx", "TypeScript JSX", 0, 30, 0, 0, 0, 4, 34
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\logo.svg", "XML", 0, 0, 1, 0, 0, 0, 1
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\pages\Home.tsx", "TypeScript JSX", 0, 139, 0, 0, 17, 17, 173
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\react-app-env.d.ts", "TypeScript", 0, 0, 0, 0, 1, 1, 2
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\reducers\axiosBaseQuery.ts", "TypeScript", 47, 0, 0, 0, 1, 2, 50
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\reducers\features\errorSlice.ts", "TypeScript", 21, 0, 0, 0, 5, 6, 32
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\reducers\features\uiSlice.ts", "TypeScript", 23, 0, 0, 0, 1, 5, 29
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\reducers\notebooksReducer.ts", "TypeScript", 55, 0, 0, 0, 5, 7, 67
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\reducers\notesReducer.ts", "TypeScript", 132, 0, 0, 0, 0, 15, 147
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\reducers\selectedNoteReducer.ts", "TypeScript", 21, 0, 0, 0, 0, 5, 26
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\reducers\tagsReducer.ts", "TypeScript", 52, 0, 0, 0, 5, 7, 64
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\reportWebVitals.ts", "TypeScript", 13, 0, 0, 0, 0, 3, 16
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\services\notebooksApi.ts", "TypeScript", 42, 0, 0, 0, 5, 7, 54
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\services\notesApi.ts", "TypeScript", 150, 0, 0, 0, 16, 18, 184
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\services\tagsApi.ts", "TypeScript", 50, 0, 0, 0, 6, 9, 65
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\setupTests.ts", "TypeScript", 1, 0, 0, 0, 4, 1, 6
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\store\store.ts", "TypeScript", 20, 0, 0, 0, 2, 3, 25
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\styles\global.ts", "TypeScript", 43, 0, 0, 0, 0, 3, 46
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\styles\mixins.ts", "TypeScript", 54, 0, 0, 0, 0, 6, 60
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\types\index.ts", "TypeScript", 22, 0, 0, 0, 0, 3, 25
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\utils\errors.ts", "TypeScript", 6, 0, 0, 0, 0, 1, 7
+"c:\Users\proxo\Desktop\NotaSpace-REDUX\NotaSpace\src\vite-env.d.ts", "TypeScript", 0, 0, 0, 0, 1, 1, 2
+"Total", "-", 843, 3302, 1, 13, 234, 557, 4950
