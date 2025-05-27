@@ -15,7 +15,6 @@ import ArrowTooltip from "../Shared/ArrowTooltip";
 import { baseIconButton, flexCenter, scrollable } from "../../styles/mixins";
 import { UIContext } from "../../context/UIContext";
 
-
 import { createTag, updateTag, fetchTags } from "../../services/tagsApi";
 import {
   addTagToNote,
@@ -57,7 +56,6 @@ const Editor = ({ note }: EditorProps) => {
     setError,
   } = useMainContext();
 
-  
   const [title, setTitle] = useState(note.name);
   const [content, setContent] = useState(note.text);
   const [syncStatus, setSyncStatus] = useState("");
@@ -160,7 +158,6 @@ const Editor = ({ note }: EditorProps) => {
         text: content,
         tags: tags,
         order: 0,
-        // color: noteColor, // Сохраняем новый цвет
         color: "",
       });
 
@@ -169,7 +166,6 @@ const Editor = ({ note }: EditorProps) => {
         _name: title,
         text: content,
         tags: tags,
-        // color: noteColor,
       });
       const updatedNotes = await fetchNotes(); // Получаем обновленный список заметок
       setNotes(updatedNotes);
@@ -670,7 +666,7 @@ const TagStyle = styled.div`
 const TagButton = styled.button`
   background-color: transparent;
   border: none;
-  color:rgb(25, 25, 25);
+  color: rgb(25, 25, 25);
   cursor: pointer;
   font-size: 12px;
   margin-left: 10px;

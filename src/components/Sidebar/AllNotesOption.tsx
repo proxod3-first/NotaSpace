@@ -1,23 +1,20 @@
 import React, { useContext } from "react";
-import { Note } from "@mui/icons-material";
-import { Link } from "react-router-dom";
-import styled from "styled-components";
-import { flexCenter } from "../../styles/mixins";
-import { UIContext } from "../../context/UIContext";
+import { UIContext } from "../../context/UIContext"; // Контекст для управления боковой панелью
+import { Link } from "react-router-dom"; // Для навигации между страницами
+// Экспортируешь стили, как у тебя в коде
 
-interface ContainerProps {
+interface AllNotesOptionProps {
   $active: boolean;
 }
 
-const AllNotesOption = ({ $active }: ContainerProps) => {
-  const { toggleSidebar } = useContext(UIContext);
+const AllNotesOption = ({ $active }: AllNotesOptionProps) => {
+  const { toggleSidebar } = useContext(UIContext); // Получаем функцию toggleSidebar
 
   return (
     <Link to="/" onClick={toggleSidebar}>
+      All Notes
     </Link>
   );
 };
 
 export default AllNotesOption;
-
-

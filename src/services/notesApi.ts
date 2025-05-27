@@ -6,6 +6,7 @@ const BASE_URL = "http://localhost:8085/api/v1";
 export async function getNote(id: string): Promise<Note> {
   const res = await fetch(`${BASE_URL}/notes/${id}`);
   const json = await res.json();
+  if (json.error) throw new Error(json.error); // Обработка ошибки
   return json.data;
 }
 
@@ -13,6 +14,7 @@ export async function getNote(id: string): Promise<Note> {
 export async function fetchNotes(): Promise<Note[]> {
   const res = await fetch(`${BASE_URL}/notes`);
   const json = await res.json();
+  if (json.error) throw new Error(json.error); // Обработка ошибки
   return json.data;
 }
 
@@ -20,14 +22,34 @@ export async function fetchNotes(): Promise<Note[]> {
 export async function fetchTrashNotes(): Promise<Note[]> {
   const res = await fetch(`${BASE_URL}/notes/trash`);
   const json = await res.json();
+  if (json.error) throw new Error(json.error); // Обработка ошибки
   return json.data;
 }
 
 // Восстановить заметку из корзины (is_deleted: false)
-export async function restoreNoteFromTrash(id: string): Promise<Note> {
+export async function restoreNoteFromTrash(id: string): Promise<string> {
   const res = await fetch(`${BASE_URL}/notes/trash/${id}`);
   const json = await res.json();
+  if (json.error) throw new Error(json.error); // Обработка ошибки
   return json.data;
+}
+
+// Получить все заметки из архива
+export async function fetchArchivedNotes(): Promise<Note[]> {
+  const res = await fetch(`${BASE_URL}/notes/archive`);
+  const json = await res.json();
+  if (json.error) throw new Error(json.error);
+  return json.data;
+}
+
+// Восстановить заметку из архива
+export async function restoreNoteFromArchive(id: string): Promise<string> {
+  const res = await fetch(`${BASE_URL}/notes/archive/${id}`, {
+    method: "GET",
+  });
+  const json = await res.json();
+  if (json.error) throw new Error(json.error);
+  return json.data; // сообщение об успехе
 }
 
 // Получить заметки по notebook_id
@@ -36,6 +58,7 @@ export async function fetchNotesByNotebook(
 ): Promise<Note[]> {
   const res = await fetch(`${BASE_URL}/notes/group/${notebookId}`);
   const json = await res.json();
+  if (json.error) throw new Error(json.error); // Обработка ошибки
   return json.data;
 }
 
@@ -47,6 +70,7 @@ export async function fetchNotesByTags(tagIds: string[]): Promise<Note[]> {
     body: JSON.stringify({ tags: tagIds }),
   });
   const json = await res.json();
+  if (json.error) throw new Error(json.error); // Обработка ошибки
   return json.data;
 }
 
@@ -64,6 +88,7 @@ export async function createNote(
     }),
   });
   const json = await res.json();
+  if (json.error) throw new Error(json.error); // Обработка ошибки
   return json.data;
 }
 
@@ -78,6 +103,7 @@ export async function updateNote(
     body: JSON.stringify(note),
   });
   const json = await res.json();
+  if (json.error) throw new Error(json.error); // Обработка ошибки
   return json.data;
 }
 
@@ -92,6 +118,7 @@ export async function changeNoteNotebook(
     body: JSON.stringify({ notebook_id }),
   });
   const json = await res.json();
+  if (json.error) throw new Error(json.error); // Обработка ошибки
   return json.data;
 }
 
@@ -106,6 +133,7 @@ export async function addTagToNote(
     body: JSON.stringify({ tag_id: tagId }),
   });
   const json = await res.json();
+  if (json.error) throw new Error(json.error); // Обработка ошибки
   return json.data;
 }
 
@@ -114,13 +142,13 @@ export async function removeTagFromNote(
   noteId: string,
   tagId: string
 ): Promise<Note> {
-  console.log("PATCH: ", noteId, tagId);
   const res = await fetch(`${BASE_URL}/notes/tag/${noteId}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ tag_id: tagId }),
   });
   const json = await res.json();
+  if (json.error) throw new Error(json.error); // Обработка ошибки
   return json.data;
 }
 
@@ -130,6 +158,7 @@ export async function deleteNote(id: string): Promise<number> {
     method: "DELETE",
   });
   const json = await res.json();
+  if (json.error) throw new Error(json.error); // Обработка ошибки
   return json.data;
 }
 
@@ -139,5 +168,16 @@ export async function moveNoteToTrash(id: string): Promise<number> {
     method: "DELETE",
   });
   const json = await res.json();
+  if (json.error) throw new Error(json.error); // Обработка ошибки
   return json.data;
+}
+
+// Переместить заметку в архив (изменить значение поля is_archived на true)
+export async function moveNoteToArchive(id: string): Promise<string> {
+  const res = await fetch(`${BASE_URL}/notes/archive/${id}`, {
+    method: "DELETE",
+  });
+  const json = await res.json();
+  if (json.error) throw new Error(json.error);
+  return json.data; // сообщение об успехе
 }

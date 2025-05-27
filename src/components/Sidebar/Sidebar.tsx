@@ -33,11 +33,10 @@ const BaseSidebar = () => {
   const { notebooks, setActiveNotebook, activeNotebook, addNotebook } =
     useNotebooks(); // Используем контекст
 
-  const { archivedNotes} =
-    useMainContext(); // Подключаем архивированные заметки
+  const { archivedNotes } = useMainContext(); // Подключаем архивированные заметки
 
   const [archivedOpen, setArchivedOpen] = useState(false);
-    const { deletedNotes, restoreNote, permanentlyDeleteNote } = useMainContext();
+  const { deletedNotes, restoreNote, permanentlyDeleteNote } = useMainContext();
   const [deletedOpen, setDeletedOpen] = React.useState(false);
 
   const handlePermanentlyDelete = async (noteId: string) => {
@@ -66,29 +65,12 @@ const BaseSidebar = () => {
           <HeadingLeft>
             <ClickableSection onClick={() => console.log("All Notes clicked")}>
               <Book />
-              <TextWrapper>All Notes</TextWrapper>
+              <TextWrapper>
+                <AllNotesOption $active={true} />
+              </TextWrapper>
             </ClickableSection>
           </HeadingLeft>
         </Heading>
-
-        {/* {notebooksOpen ? (
-          Array.isArray(notebooks) && notebooks.length > 0 ? (
-            notebooks.map((notebook, index) => (
-              <NotebookOption
-                key={notebook.id || index} // Fallback to index if notebook.id is not available
-                notebook={notebook}
-                $active={notebook_id === notebook.id}
-                onClick={() => {
-                  setActiveNotebook(notebook.id); // Устанавливаем активную книгу
-                }}
-              />
-            ))
-          ) : (
-            <div>No notebooks found</div> // Сообщение, если нет книг
-          )
-        ) : (
-          <div></div> // Сообщение, если notebooksOpen равно false
-        )} */}
 
         <Heading>
           <HeadingLeft>
@@ -127,59 +109,65 @@ const BaseSidebar = () => {
           <div></div> // Сообщение, если notebooksOpen равно false
         )}
 
-       {/* Раздел для Archiving */}
+        {/* Раздел для Archiving */}
         <Heading>
           <HeadingLeft>
             <ClickableSection onClick={() => setArchivedOpen((prev) => !prev)}>
               <Book />
-              <TextWrapper>Archived Notes</TextWrapper>
+              <TextWrapper>Archive</TextWrapper>
               <RotateIcon open={archivedOpen} />
             </ClickableSection>
           </HeadingLeft>
         </Heading>
 
-        {archivedOpen && (
+
+        // TODO: Должно отображаться в NoteList
+        {/* {archivedOpen && (
           <div>
             {archivedNotes.length > 0 ? (
               archivedNotes.map((note: Note) => (
                 <div key={note.id}>
                   <span>{note.name}</span>
                   <button onClick={() => restoreNote(note.id)}>Restore</button>
-                  <button onClick={() => permanentlyDeleteNote(note.id)}>Delete Permanently</button>
+                  <button onClick={() => permanentlyDeleteNote(note.id)}>
+                    Delete Permanently
+                  </button>
                 </div>
               ))
             ) : (
               <p>No archived notes</p>
             )}
           </div>
-        )}
+        )} */}
 
         {/* Раздел для Deleted */}
         <Heading>
           <HeadingLeft>
             <ClickableSection onClick={() => setDeletedOpen((prev) => !prev)}>
               <Book />
-              <TextWrapper>Deleted Notes</TextWrapper>
+              <TextWrapper>Recently Deleted</TextWrapper>
               <RotateIcon open={deletedOpen} />
             </ClickableSection>
           </HeadingLeft>
         </Heading>
 
-        {deletedOpen && (
+        {/* {deletedOpen && (
           <div>
             {deletedNotes.length > 0 ? (
               deletedNotes.map((note: Note) => (
                 <div key={note.id}>
                   <span>{note.name}</span>
                   <button onClick={() => restoreNote(note.id)}>Restore</button>
-                  <button onClick={() => permanentlyDeleteNote(note.id)}>Delete Permanently</button>
+                  <button onClick={() => permanentlyDeleteNote(note.id)}>
+                    Delete Permanently
+                  </button>
                 </div>
               ))
             ) : (
               <p>No deleted notes</p>
             )}
-          </div>
-        )}
+          </div> */}
+        {/* )} */}
 
         <Heading>
           <HeadingLeft>

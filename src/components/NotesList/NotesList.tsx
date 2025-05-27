@@ -28,7 +28,6 @@ const NoteList: React.FC<NoteListProps> = ({
   onSelectNote,
   onDeleteNote,
 }) => {
-
   const { notes, setNotes } = useMainContext();
   const { activeNotebook } = useNotebooks(); // Получаем активный блокнот
   const [tags, setTags] = useState<
@@ -40,7 +39,7 @@ const NoteList: React.FC<NoteListProps> = ({
   useEffect(() => {
     setNotes(notes);
   }, [notes]);
-
+  
   const fetchTags = async () => {
     const tagsForNotes = await Promise.all(
       notes.map(async (note) => {
@@ -76,12 +75,11 @@ const NoteList: React.FC<NoteListProps> = ({
   }, [selectedTag, notes]);
 
   const filteredNotesInNotebook = useMemo(() => {
-    console.log("ACTIVE NOTEBOOK NOTES LIST:", activeNoteId);
     if (activeNotebook) {
       return notes.filter((note) => note.notebook_id === activeNotebook.id);
     }
     return notes; // Если книга не выбрана, показываем все заметки
-  }, [activeNotebook]);
+  }, [activeNotebook, notes]);
 
   useEffect(() => {}, [notes]);
 
@@ -89,11 +87,9 @@ const NoteList: React.FC<NoteListProps> = ({
     <Container>
       <Header />
 
-      {error && <ErrorMessage>{error}</ErrorMessage>}
       {/* Отображаем список тегов */}
       <div>
         {error && <ErrorMessage>{error}</ErrorMessage>}
-
         <TagListContainer>
           {Array.isArray(tags) && tags.length > 0 ? (
             tags.map((tagArray, index) => (
@@ -120,7 +116,7 @@ const NoteList: React.FC<NoteListProps> = ({
           )}
         </TagListContainer>
       </div>
-
+      {/* 
       {notes.length ? (
         <List>
           <MuiList>
@@ -137,19 +133,19 @@ const NoteList: React.FC<NoteListProps> = ({
         </List>
       ) : (
         <NoNotesMessage />
-      )}
+      )} */}
+
       <div>
-        {Array.isArray(filteredNotesInNotebook) &&
-        filteredNotesInNotebook.length > 0 ? (
+        {filteredNotesInNotebook.length ? (
           <List>
             <MuiList>
-              {filteredNotesInNotebook.map((note) => (
+              {filteredNotesInNotebook.map((note, index) => (
                 <NoteListItem
                   key={note.id}
                   note={note}
                   $active={activeNoteId === note.id}
                   onClick={() => onSelectNote(note.id)}
-                  tags={[]}
+                  tags={tags[index] || []}
                 />
               ))}
             </MuiList>
