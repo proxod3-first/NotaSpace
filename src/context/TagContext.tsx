@@ -32,12 +32,19 @@ export const TagProvider: React.FC<TagProviderProps> = ({ children }) => {
   const [tags, setTags] = useState<Tag[]>([]);
   const [loading, setLoading] = useState<boolean>(true); // Состояние для загрузки
 
-  useEffect(() => {
-    // Загрузка тегов при монтировании компонента
-    const loadTags = async () => {
+  const loadTags = async () => {
+    try {
+      setLoading(true);
       const fetchedTags = await fetchTags();
       setTags(fetchedTags);
-    };
+    } catch (error) {
+      console.error("Failed to fetch tags:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     loadTags();
   }, []);
 
@@ -59,6 +66,7 @@ export const TagProvider: React.FC<TagProviderProps> = ({ children }) => {
               return prevTags;
             }
           });
+          await loadTags();
         } else {
           console.error("Error fetching full tag object.");
         }
@@ -81,14 +89,19 @@ export const TagProvider: React.FC<TagProviderProps> = ({ children }) => {
           (tag) => (tag.id === id ? { ...tag, name, color } : tag) // Обновляем только тег с id === id
         )
       );
+
+      await loadTags(); // Перезагружаем теги
     } catch (error) {
       console.error("Error updating tag:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const removeTag = async (id: string) => {
     await deleteTag(id);
     setTags((prevTags) => prevTags.filter((tag) => tag.id !== id));
+    await loadTags();
   };
 
   const getTagById = (id: string) => {
@@ -97,7 +110,15 @@ export const TagProvider: React.FC<TagProviderProps> = ({ children }) => {
 
   return (
     <TagContext.Provider
-      value={{ tags, setTags, addTag, updateTag, removeTag, getTagById, loading }}
+      value={{
+        tags,
+        setTags,
+        addTag,
+        updateTag,
+        removeTag,
+        getTagById,
+        loading,
+      }}
     >
       {children}
     </TagContext.Provider>

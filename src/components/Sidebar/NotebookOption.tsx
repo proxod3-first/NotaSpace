@@ -29,8 +29,6 @@ const NotebookOption = ({ notebook, $active, onClick }: ComponentProps) => {
     addNotebook,
   } = useNotebooks();
 
-
-  // TODO: activeNotebook: 6 вместо объекта Notebook, error
   useEffect(() => {
     const fetchAll = async () => {
       try {
@@ -42,8 +40,8 @@ const NotebookOption = ({ notebook, $active, onClick }: ComponentProps) => {
         // После этого — грузим заметки для notebook.id
         console.log("notebook: ", notebooks);
         const notes = await fetchNotesByNotebook(notebook.id);
-        if (notes.length !== 0) {
-          setNoteCount(notes.length );
+        if (Array.isArray(notes) && notes.length !== 0) {
+          setNoteCount(notes.length);
         }
       } catch (error) {
         console.error("Ошибка при загрузке данных:", error);

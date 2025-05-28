@@ -74,7 +74,7 @@ const Dialog = styled(MuiDialog)`
 const DeleteButton = styled.button`
   ${baseButton}
   font-size: 15px;
-  color: white;
+  color: #f3f4f6;
   background-color: var(--danger);
   border: 1px solid var(--danger);
   padding: 10px;

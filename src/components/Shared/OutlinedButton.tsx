@@ -7,7 +7,7 @@ const OutlinedButton = styled.button`
   margin: 8px 0;
   padding: 10px 16px;
   color: #394053;
-  background-color: white;
+  background-color: #f3f4f6;
   border: 1px solid #394053;
 
   &:hover {

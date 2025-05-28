@@ -6,6 +6,8 @@ import { UIContext } from "../../context/UIContext";
 import AutoUpdatingTimeAgo from "./AutoUpdatingTimeAgo";
 import { useMainContext } from "../../context/NoteContext";
 import { ContainerProps } from "@mui/material";
+import { getTag } from "../../services/tagsApi";
+import { Tag } from "../../types/index";
 
 interface ComponentProps {
   note: Note;
@@ -35,11 +37,6 @@ const NoteListItem = ({ note, tags, onClick, active }: ComponentProps) => {
     deletedNotes,
   } = useMainContext();
 
-
-  useEffect(() => {
-    setActiveNote(activeNote);
-  }, [tags, activeNote]);
-
   const handleClick = () => {
     if (toggleNoteList) toggleNoteList();
     onClick(note.id);
@@ -50,13 +47,24 @@ const NoteListItem = ({ note, tags, onClick, active }: ComponentProps) => {
       <Title>{note.name ? note.name : "Untitled"}</Title>
       <Content>{formatText(note.text)}</Content>
       <Tags>
-        {tags.map((tag) => (
-          <Tag key={tag.id} color={tag.color}>
-            {tag.name}
-          </Tag>
-        ))}
+        {(() => {
+          console.log("note.tags:", note.tags);
+          console.log("tags prop:", tags);
+
+          return (note.tags ?? []).map((tagId) => {
+            const tagObj = tags.find((t) => t.id === tagId);
+            console.log("→ tagId:", tagId, "→ tagObj:", tagObj);
+            if (!tagObj) return null;
+
+            return (
+              <Tagg key={tagId} color={tagObj.color}>
+                {tagObj.name}
+              </Tagg>
+            );
+          });
+        })()}
       </Tags>
-      {/* <AutoUpdatingTimeAgo date={new Date(Date.now() - 60000)} /> */}
+      <AutoUpdatingTimeAgo date={new Date(Date.now() - 60000)} />
     </Container>
   );
 };
@@ -81,7 +89,7 @@ const Container = styled.div<{ $active: boolean }>`
   margin-bottom: 7px;
   height: auto;
   border-radius: 8px;
-  background-color: ${({ $active }) => ($active ? "#f7f7f7" : "#fffff")};
+  background-color: ${({ $active }) => ($active ? "#f7f7f7" : "#f3f4f6;")};
   border: 1px solid ${({ $active }) => ($active ? "#bbb" : "#ddd")};
   position: relative;
   box-shadow: ${({ $active }) =>
@@ -147,7 +155,7 @@ const Tags = styled.div`
   margin-top: 8px;
 `;
 
-const Tag = styled.div<{ color: string }>`
+const Tagg = styled.div<{ color: string }>`
   background-color: ${({ color }) => color};
   color: black;
   padding: 4px 8px;

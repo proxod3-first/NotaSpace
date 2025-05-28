@@ -9,6 +9,7 @@ import { getTag } from "../../services/tagsApi";
 import { useGetActiveNotebook } from "../../hooks/hooks";
 import { useNotebooks } from "../../context/NotebookContext";
 import { useMainContext } from "../../context/NoteContext";
+import { fetchNotes, fetchNotesByNotebook } from "../../services/notesApi";
 
 export interface NoteListProps {
   notes: Note[];
@@ -46,6 +47,7 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
   const [tags, setTags] = useState<
     { id: string; name: string; color: string }[][]
   >([]);
+
   const [selectedTag, setSelectedTag] = useState<string | null>(null); // Состояние для выбранного тега
   const [error, setError] = useState<string | null>(null);
 
@@ -70,11 +72,10 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
   };
 
   useEffect(() => {
-  if (activeNotebook) {
-    setActiveNotebook(activeNotebook.id);
-  }
-}, [activeNotebook]);
-
+    if (activeNotebook) {
+      setActiveNotebook(activeNotebook.id);
+    }
+  }, [activeNotebook]);
 
   useEffect(() => {
     fetchTags(); // Загружаем теги при изменении заметок
@@ -113,6 +114,7 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
         (note) => note.tags && note.tags.includes(selectedTag)
       );
     }
+    console.log("filteredNotesInNotebook: ", notesToFilter);
     return notesToFilter;
   }, [selectedTag, filteredNotesInNotebook]);
 
@@ -148,15 +150,22 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
           {filteredNotesByTag.length ? (
             <List>
               <MuiList>
-                {filteredNotesByTag.map((note, index) => (
-                  <NoteListItem
-                    key={note.id}
-                    note={note}
-                    tags={tags[index] || []}
-                    active={note.id === activeNote?.id}
-                    onClick={handleNoteClick}
-                  />
-                ))}
+                {filteredNotesByTag.map((note) => {
+                  // находим позицию этой заметки в общем массиве notes
+                  const idx = notes.findIndex((n) => n.id === note.id);
+                  // берём её теги из tags[idx] или пустой массив
+                  const noteTagObjects = tags[idx] || [];
+
+                  return (
+                    <NoteListItem
+                      key={note.id}
+                      note={note}
+                      tags={noteTagObjects}
+                      active={note.id === activeNote?.id}
+                      onClick={handleNoteClick}
+                    />
+                  );
+                })}
               </MuiList>
             </List>
           ) : (

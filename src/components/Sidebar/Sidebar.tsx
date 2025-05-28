@@ -2,10 +2,10 @@ import React, { useState, useContext, useEffect } from "react";
 import Drawer from "@mui/material/Drawer";
 import styled from "styled-components";
 import SellIcon from "@mui/icons-material/Sell";
-import ArchiveIcon from '@mui/icons-material/Archive';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddCircleIcon from '@mui/icons-material/AddCircle';
-import NotesIcon from '@mui/icons-material/Notes';
+import ArchiveIcon from "@mui/icons-material/Archive";
+import DeleteIcon from "@mui/icons-material/Delete";
+import AddCircleIcon from "@mui/icons-material/AddCircle";
+import NotesIcon from "@mui/icons-material/Notes";
 import {
   Search,
   AddCircleOutline,
@@ -50,6 +50,8 @@ const BaseSidebar = () => {
   const { deletedNotes, restoreNote, permanentlyDeleteNote } = useMainContext();
   const [deletedOpen, setDeletedOpen] = React.useState(false);
 
+  const { handleClick } = AllNotesOption();
+
   const handlePermanentlyDelete = async (noteId: string) => {
     try {
       await permanentlyDeleteNote(noteId); // Запрос в API для окончательного удаления
@@ -77,11 +79,9 @@ const BaseSidebar = () => {
         <SearchField onChange={(text) => console.log("Search:", text)} />
         <Heading>
           <HeadingLeft>
-            <ClickableSection onClick={() => console.log("All Notes clicked")}>
-              <NotesIcon/>
-              <TextWrapper>
-                <AllNotesOption $active={true} />
-              </TextWrapper>
+            <ClickableSection onClick={handleClick}>
+              <NotesIcon />
+              <TextWrapper>All Notes</TextWrapper>
             </ClickableSection>
           </HeadingLeft>
         </Heading>
@@ -96,7 +96,7 @@ const BaseSidebar = () => {
 
           <ArrowTooltip title="Create notebook" placement="right">
             <IconButton onClick={() => setOpenDialog(true)}>
-               <AddCircleIcon/>
+              <AddCircleIcon />
             </IconButton>
           </ArrowTooltip>
         </Heading>
@@ -120,7 +120,7 @@ const BaseSidebar = () => {
         <Heading>
           <HeadingLeft>
             <ClickableSection onClick={() => setArchivedOpen((prev) => !prev)}>
-              <ArchiveIcon/>
+              <ArchiveIcon />
               <TextWrapper>Archive</TextWrapper>
               <RotateIcon open={archivedOpen} />
             </ClickableSection>
@@ -149,7 +149,7 @@ const BaseSidebar = () => {
         <Heading>
           <HeadingLeft>
             <ClickableSection onClick={() => setDeletedOpen((prev) => !prev)}>
-              <DeleteIcon/>
+              <DeleteIcon />
               <TextWrapper>Recently Deleted</TextWrapper>
               <RotateIcon open={deletedOpen} />
             </ClickableSection>
@@ -175,10 +175,8 @@ const BaseSidebar = () => {
         <Heading>
           <HeadingLeft>
             <ClickableSection onClick={() => setTagsOpen((prev) => !prev)}>
-              <SellIcon/>
-              <TextWrapper>
-                Tags
-              </TextWrapper>
+              <SellIcon />
+              <TextWrapper>Tags</TextWrapper>
               <RotateIcon open={tagsOpen} />
             </ClickableSection>
           </HeadingLeft>
@@ -244,12 +242,17 @@ const Container = styled.div`
   background-color: var(--sidebar-background);
   position: relative;
   user-select: none;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
 `;
 
 const List = styled.div`
   ${scrollable};
   padding: 18px 0;
   height: calc(100vh - 60px);
+  overflow: auto;
 `;
 
 const TextWrapper = styled.span`
@@ -292,7 +295,7 @@ const IconButton = styled.button`
   }
 `;
 
-const ClickableSection = styled.div`
+export const ClickableSection = styled.div`
   display: flex;
   align-items: center;
   gap: 10px;
@@ -305,7 +308,7 @@ const ClickableSection = styled.div`
   box-sizing: border-box;
 
   &:hover {
-    background-color: #f0f0f0;
+    background-color: #4c5ea8;
   }
 
   svg {
@@ -329,7 +332,7 @@ const EmptyMessage = styled.div`
 
 const TagManagerContainer = styled.div`
   padding: 0 10px 8px 15px; /* Отступы, чтобы тегам было удобно */
-  max-height: 300px; /* Ограничение по высоте */
+  max-height: 400px; /* Ограничение по высоте */
   max-width: 300px;
   overflow-y: auto; /* Прокрутка, если много тегов */
 `;

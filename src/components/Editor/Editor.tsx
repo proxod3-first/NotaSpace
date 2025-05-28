@@ -89,7 +89,6 @@ const Editor = ({ note }: EditorProps) => {
   // Full screen
   const [fullScreen, setFullScreen] = useState(false);
   const toggleFullScreen = () => setFullScreen((f) => !f);
-
   // Header menu
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const isMenuOpen = Boolean(anchorEl);
@@ -100,6 +99,7 @@ const Editor = ({ note }: EditorProps) => {
 
   // Responsive layout context
   const { isNoteListOpen, toggleNoteList } = useContext(UIContext);
+  const { isSidebarOpen, toggleSidebar } = useContext(UIContext);
 
   useEffect(() => {
     if (!activeNote?.id || !Array.isArray(activeNote.tags)) return; // Если нет активной заметки или тегов, не выполняем запрос.
@@ -232,6 +232,7 @@ const Editor = ({ note }: EditorProps) => {
       await deleteNoteApi(activeNote?.id || "");
       const updatedNotes = await fetchNotes(); // Получаем обновленный список заметок
       setNotes(updatedNotes);
+      toggleNoteList();
     } catch {
       setError("Ошибка удаления заметки");
     }
@@ -339,6 +340,17 @@ const Editor = ({ note }: EditorProps) => {
       setEditTagId(null); // Сбрасываем режим редактирования
     }
   };
+
+  useEffect(() => {
+    if (!activeNote) return;
+
+    // Сбрасываем форму под новую заметку
+    setTitle(activeNote.name || "");
+    setContent(activeNote.text || "");
+    setTags(activeNote.tags || []);
+    setEditTagId(null);
+    setNewTag("");
+  }, [activeNote?.id]);
 
   return (
     <Container $isNoteListOpen={isNoteListOpen} $fullScreen={fullScreen}>
@@ -463,7 +475,6 @@ const Editor = ({ note }: EditorProps) => {
                   {/* Кнопка для редактирования */}
                   <TagButton
                     onClick={() => {
-                      // TODO: Edit tag
                       setEditTagId(tag.id);
                       setNewTag(tag.name);
                     }}
@@ -500,7 +511,7 @@ const Editor = ({ note }: EditorProps) => {
             </ButtonAddTag>
             {/* Кнопка редактирования тега */}
             {editTagId ? (
-              <ButtonEditTag>
+              <ButtonEditTag onClick={handleEditTag}>
                 <DriveFileRenameOutlineIcon />
               </ButtonEditTag>
             ) : null}

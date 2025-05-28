@@ -1,20 +1,31 @@
 import React, { useContext } from "react";
-import { UIContext } from "../../context/UIContext"; // Контекст для управления боковой панелью
-import { Link } from "react-router-dom"; // Для навигации между страницами
-// Экспортируешь стили, как у тебя в коде
+import { useNavigate } from "react-router-dom";
+import { UIContext } from "../../context/UIContext";
+import { useMainContext } from "../../context/NoteContext";
+import { fetchNotes } from "../../services/notesApi";
+import { useNotebooks } from "../../context/NotebookContext";
 
-interface AllNotesOptionProps {
-  $active: boolean;
-}
+const AllNotesOption = () => {
+  const { toggleSidebar } = useContext(UIContext);
+  const { setNotes, setActiveNote, setActiveNoteId } = useMainContext();
+  const { setActiveNotebook } = useNotebooks();
+  const navigate = useNavigate();
 
-const AllNotesOption = ({ $active }: AllNotesOptionProps) => {
-  const { toggleSidebar } = useContext(UIContext); // Получаем функцию toggleSidebar
+  const handleClick = async () => {
+    try {
+      toggleSidebar();
+      setActiveNote(null);
+      setActiveNoteId(null);
+      setActiveNotebook("");
 
-  return (
-    <Link to="/" onClick={toggleSidebar}>
-      All Notes
-    </Link>
-  );
+      // Навигация после успешной загрузки
+      navigate("http://localhost:3000/", { replace: true });
+    } catch (error) {
+      console.error("Failed to load all notes:", error);
+    }
+  };
+
+  return { handleClick };
 };
 
 export default AllNotesOption;

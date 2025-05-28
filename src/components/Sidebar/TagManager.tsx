@@ -3,11 +3,14 @@ import styled from "styled-components";
 import { DeleteOutline, Edit, Add } from "@mui/icons-material"; // Импортируем иконки из MUI
 import { useTags } from "../../context/TagContext"; // Используем хук из TagContext
 import { useNavigate } from "react-router-dom";
+import { useMainContext } from "../../context/NoteContext";
 
 const TagManager = () => {
-  const { tags, addTag, updateTag, removeTag, loading } = useTags(); // Получаем данные из контекста
+  const { tags, setTags, addTag, updateTag, removeTag, loading } = useTags(); // Получаем данные из контекста
+  const { notes, setNotes, activeNote, setActiveNote } = useMainContext();
+
   const [name, setName] = useState("");
-  const [color, setColor] = useState("#007bff");
+  const [color, setColor] = useState("#ff6347");
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -29,11 +32,11 @@ const TagManager = () => {
       updateTag(editingId, name, color); // Используем функцию из контекста для обновления тега
       setEditingId(null);
       setName("");
-      setColor("#007bff");
+      setColor("#ff6347");
     } else {
       addTag(name, color); // Используем функцию из контекста для добавления нового тега
       setName("");
-      setColor("#007bff");
+      setColor("#ff6347");
     }
   };
 
@@ -45,7 +48,7 @@ const TagManager = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Ограничиваем количество символов
-    if (e.target.value.length <= 10) {
+    if (e.target.value.length <= 20) {
       setName(e.target.value);
     }
   };
@@ -66,50 +69,60 @@ const TagManager = () => {
           value={name}
           onChange={handleChange}
         />
-        <input
-          type="color"
-          value={color}
-          onChange={(e) => setColor(e.target.value)}
-        />
-        <button onClick={handleSubmit}>
-          <Add />
-          {editingId ? "Update" : "Add"}
-        </button>
+
+        <ColorAndButtonWrapper>
+          <ColorPicker
+            type="color"
+            value={color}
+            onChange={(e) => setColor(e.target.value)}
+          />
+          <StyledButton onClick={handleSubmit}>
+            <Add />
+            {editingId ? "Update" : "Add"}
+          </StyledButton>
+        </ColorAndButtonWrapper>
       </Form>
       {/* Если данные загружаются, показываем индикатор загрузки */}
-      <TagList>
-        {Array.isArray(tags) && tags.length > 0 ? (
-          tags.map((tag) => (
-            <TagItem key={tag.id}>
-              <ColorDot style={{ backgroundColor: tag.color }} />
-              <span>{tag.name}</span>
-              <IconGroup>
-                {editingId !== tag.id && (
-                  <Edit onClick={() => handleEdit(tag)} />
-                )}
-                {editingId !== tag.id && (
-                  <DeleteOutline
-                    onClick={() => {
-                      console.log("Deleting tag:", tag);
-                      removeTag(tag.id); // Используем функцию удаления из контекста
-                    }}
-                  />
-                )}
-              </IconGroup>
-            </TagItem>
-          ))
-        ) : (
-          <Form
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            No foundtags
-          </Form>
-        )}
-      </TagList>
+      <TagListContainer>
+        <TagList>
+          {Array.isArray(tags) && tags.length > 0 ? (
+            tags.map((tag) => (
+              <TagItem key={tag.id}>
+                <TagItemContent>
+                  <ColorDot style={{ backgroundColor: tag.color }} />
+                  <span>{tag.name}</span>
+                </TagItemContent>
+                <IconGroup>
+                  {editingId !== tag.id && (
+                    <Edit onClick={() => handleEdit(tag)} />
+                  )}
+                  {editingId !== tag.id && (
+                    <Edit onClick={() => handleEdit(tag)} />
+                  )}
+                  {editingId !== tag.id && (
+                    <DeleteOutline
+                      onClick={() => {
+                        console.log("Deleting tag:", tag);
+                        removeTag(tag.id); // Используем функцию удаления из контекста
+                      }}
+                    />
+                  )}
+                </IconGroup>
+              </TagItem>
+            ))
+          ) : (
+            <Form
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              No found tags
+            </Form>
+          )}
+        </TagList>
+      </TagListContainer>
     </Wrapper>
   );
 };
@@ -124,9 +137,68 @@ const Wrapper = styled.div`
 const Heading = styled.h2`
   font-size: 18px;
   margin-bottom: 12px;
-  @media (max-width: 600px) {
+  @media (max-width: 480px) {
     font-size: 16px;
     margin-bottom: 10px;
+  }
+`;
+
+const ColorAndButtonWrapper = styled.div`
+  display: flex;
+  width: 100%;
+  gap: 8px;
+`;
+
+const ColorPicker = styled.input`
+  width: 30px;
+  height: 30px;
+  border: none;
+  padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background: none;
+
+  &::-webkit-color-swatch-wrapper {
+    padding: 0;
+    border: none;
+    background: none;
+  }
+  &::-webkit-color-swatch {
+    border: none;
+    border-radius: 50%;
+    background: none;
+  }
+  &::-moz-color-swatch {
+    border: none;
+    border-radius: 50%;
+    background: none;
+  }
+
+  /* Убираем фокусные обводки */
+  &:focus {
+    outline: none;
+    box-shadow: none;
+  }
+`;
+
+const StyledButton = styled.button`
+  flex: 1; /* занимает всё оставшееся место */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background-color: #1e40af;
+  color: #f3f4f6;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  height: 30px;
+
+  &:hover {
+    background-color: #1e3a8a;
   }
 `;
 
@@ -172,7 +244,7 @@ const Form = styled.div`
     gap: 6px;
     padding: 8px 12px;
     background-color: #1e40af;
-    color: white;
+    color: #f3f4f6;
     border: none;
     border-radius: 6px;
     cursor: pointer;
@@ -183,10 +255,16 @@ const Form = styled.div`
     }
   }
 
-  @media (max-width: 600px) {
+  @media (max-width: 480px) {
     gap: 12px;
     padding: 8px;
   }
+`;
+
+const TagListContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 `;
 
 const TagList = styled.div`
@@ -194,7 +272,7 @@ const TagList = styled.div`
   flex-direction: column;
   gap: 8px;
 
-  @media (max-width: 600px) {
+  @media (max-width: 480px) {
     gap: 6px; /* Уменьшаем отступы на мобильных */
   }
 `;
@@ -202,9 +280,10 @@ const TagList = styled.div`
 const TagItem = styled.div`
   display: flex;
   align-items: center;
+  flex-direction: column;
   justify-content: space-between;
   padding: 6px 10px;
-  background: white;
+  background: #f3f4f6;
   border-radius: 6px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   font-size: 14px;
@@ -214,7 +293,7 @@ const TagItem = styled.div`
     margin-left: 10px;
   }
 
-  @media (max-width: 600px) {
+  @media (max-width: 480px) {
     font-size: 12px; /* Уменьшаем размер шрифта на мобильных */
     padding: 8px 12px; /* Делаем элементы чуть крупнее для мобильных */
   }
@@ -224,6 +303,12 @@ const ColorDot = styled.div`
   width: 14px;
   height: 14px;
   border-radius: 50%;
+`;
+
+const TagItemContent = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 `;
 
 const IconGroup = styled.div`
@@ -241,7 +326,7 @@ const IconGroup = styled.div`
     }
   }
 
-  @media (max-width: 600px) {
+  @media (max-width: 480px) {
     font-size: 16px; /* Уменьшаем размер иконок на мобильных */
     gap: 8px;
   }
