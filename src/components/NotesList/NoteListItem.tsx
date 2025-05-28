@@ -1,42 +1,52 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import styled from "styled-components";
 import { Note } from "../../types";
 import { truncatedText } from "../../styles/mixins";
 import { UIContext } from "../../context/UIContext";
 import AutoUpdatingTimeAgo from "./AutoUpdatingTimeAgo";
-
-interface ContainerProps {
-  $active: boolean;
-}
+import { useMainContext } from "../../context/NoteContext";
+import { ContainerProps } from "@mui/material";
 
 interface ComponentProps {
   note: Note;
-  $active: boolean;
   onClick: (noteId: string) => void;
   tags: { id: string; name: string; color: string }[];
+  active: boolean; // новый проп для активности
 }
 
-const NoteListItem = ({ note, $active, onClick, tags }: ComponentProps) => {
+const NoteListItem = ({ note, tags, onClick, active }: ComponentProps) => {
   const { toggleNoteList } = useContext(UIContext);
+
+  const {
+    notes,
+    setNotes,
+    activeNote,
+    setActiveNote,
+    setActiveNoteId,
+    notebooks,
+    setNotebooks,
+    setLoading,
+    deleteNoteApi,
+    moveNote,
+    archiveNote,
+    restoreNote,
+    permanentlyDeleteNote,
+    archivedNotes,
+    deletedNotes,
+  } = useMainContext();
+
+
+  useEffect(() => {
+    setActiveNote(activeNote);
+  }, [tags, activeNote]);
 
   const handleClick = () => {
     if (toggleNoteList) toggleNoteList();
     onClick(note.id);
   };
 
-  useEffect(() => {
-    // This effect runs whenever `tags` or `$active` prop changes
-    console.log("Tags or active state has changed:", tags, $active);
-
-    // Example: You could perform additional logic, like updating analytics, or saving data
-    // For example, if note's active status changes, we can perform some action:
-    if ($active) {
-      console.log(`Note with id ${note.id} is active`);
-    }
-  }, [tags, $active]);
-
   return (
-    <Container onClick={handleClick} $active={$active}>
+    <Container onClick={handleClick} $active={active}>
       <Title>{note.name ? note.name : "Untitled"}</Title>
       <Content>{formatText(note.text)}</Content>
       <Tags>
@@ -46,7 +56,7 @@ const NoteListItem = ({ note, $active, onClick, tags }: ComponentProps) => {
           </Tag>
         ))}
       </Tags>
-      <AutoUpdatingTimeAgo date={new Date(Date.now() - 60000)} />
+      {/* <AutoUpdatingTimeAgo date={new Date(Date.now() - 60000)} /> */}
     </Container>
   );
 };
@@ -64,24 +74,26 @@ const formatText = (text: string) => {
   ));
 };
 
-const Container = styled.div<ContainerProps>`
+const Container = styled.div<{ $active: boolean }>`
   font-size: 15px;
   padding: 16px 25px;
   margin-right: 10px;
   margin-bottom: 7px;
   height: auto;
   border-radius: 8px;
-  background-color: ${({ $active }) => ($active ? "#f0f0f0" : "#ffffff")};
+  background-color: ${({ $active }) => ($active ? "#f7f7f7" : "#fffff")};
   border: 1px solid ${({ $active }) => ($active ? "#bbb" : "#ddd")};
   position: relative;
   box-shadow: ${({ $active }) =>
-    $active ? "0 4px 8px rgba(0, 0, 0, 0.1)" : "0 2px 6px rgba(0, 0, 0, 0.1)"};
+    $active
+      ? "0 4px 8px rgba(16, 16, 16, 0.4)"
+      : "0 2px 6px rgba(0, 0, 0, 0.2)"};
   transition: all 0.2s ease-in-out;
 
   &:hover {
     cursor: pointer;
     background-color: ${({ $active }) => (!$active ? "#fafafa" : "#e0e8ff")};
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 6px 12px rgba(5, 5, 5, 0.3);
   }
 
   &:before {

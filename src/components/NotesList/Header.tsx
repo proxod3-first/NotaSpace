@@ -36,7 +36,17 @@ const Header = () => {
     setNotes,
     activeNote,
     setActiveNote,
-    setActiveNoteState,
+    setActiveNoteId,
+    notebooks,
+    setNotebooks,
+    setLoading,
+    deleteNoteApi,
+    moveNote,
+    archiveNote,
+    restoreNote,
+    permanentlyDeleteNote,
+    archivedNotes,
+    deletedNotes,
     setError,
   } = useMainContext();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -60,6 +70,7 @@ const Header = () => {
     const newNoteData = {
       name: `New Note ${newNotes.length + 1}`,
       text: "",
+      content: "",
       color: "",
       order: 0,
       notebook_id: activeNotebook?.id || "",
@@ -72,9 +83,9 @@ const Header = () => {
       setNotes(updatedNotes);
 
       if (activeNote) {
-        setActiveNoteState(activeNote.id);
+        setActiveNoteId(activeNote.id);
       } else {
-        setActiveNoteState(null);
+        setActiveNoteId(null);
       }
     } catch (error) {
       setError(
@@ -119,11 +130,6 @@ const Header = () => {
   };
   
 
-  /////////////////////////
-  const {
-    deleteNoteApi,
-  } = useMainContext();
-
   const handleDeleteNote = async () => {
     try {
       await deleteNoteApi(activeNote?.id || "");
@@ -162,7 +168,6 @@ const Header = () => {
         <HamburgerButton onClick={toggleSidebar}>
           <DensityMediumIcon/>
         </HamburgerButton>
-        {/* <Heading>{activeNote ? activeNote.name : "Notes"}</Heading> */}
         <Heading>{activeNotebook ? activeNotebook.name : "All Notes"}</Heading>
       </HeaderLeft>
       <ButtonGroup>

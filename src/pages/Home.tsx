@@ -17,7 +17,7 @@ export default function Home() {
     setNotes,
     activeNote,
     setActiveNote,
-    setActiveNoteState,
+    setActiveNoteId,
     loading,
     setLoading,
     error,
@@ -58,7 +58,7 @@ export default function Home() {
       // Optionally, reset active note if the deleted note was the active one
       if (activeNote?.id === id) {
         setActiveNote(null); // Clear the active note
-        setActiveNoteState(null); // Make sure it's not active
+        setActiveNoteId(null); // Make sure it's not active
       }
     } catch (error) {
       setError(
@@ -111,9 +111,7 @@ export default function Home() {
               }}
             />
           ) : (
-            <EmptyState>
-              Выберите заметку слева, чтобы начать редактирование
-            </EmptyState>
+            <></>
           )}
         </EditorWrapper>
       </Container>
@@ -143,7 +141,7 @@ const EditorWrapper = styled.div<{
     $isNoteListOpen ? "none" : $hasActiveNote ? "block" : "none"};
 
   @media (max-width: 810px) {
-    display: ${({ $hasActiveNote }) => ($hasActiveNote ? "block" : "none")};
+    display: ${({ $hasActiveNote }) => ($hasActiveNote ? "block" : "block")};
     z-index: ${({ $isNoteListOpen }) => ($isNoteListOpen ? "-1" : "100")};
     position: ${({ $isNoteListOpen }) => ($isNoteListOpen ? "none" : "fixed")};
     top: 0;

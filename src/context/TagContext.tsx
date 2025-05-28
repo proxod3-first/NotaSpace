@@ -12,6 +12,7 @@ import { updateTag as updateTagApi } from "../services/tagsApi"; // Исполь
 // Интерфейс для контекста
 interface TagContextType {
   tags: Tag[];
+  setTags: (tags: Tag[]) => void;
   addTag: (name: string, color: string) => Promise<void>;
   updateTag: (id: string, name: string, color: string) => Promise<void>;
   removeTag: (id: string) => Promise<void>;
@@ -96,7 +97,7 @@ export const TagProvider: React.FC<TagProviderProps> = ({ children }) => {
 
   return (
     <TagContext.Provider
-      value={{ tags, addTag, updateTag, removeTag, getTagById, loading }}
+      value={{ tags, setTags, addTag, updateTag, removeTag, getTagById, loading }}
     >
       {children}
     </TagContext.Provider>

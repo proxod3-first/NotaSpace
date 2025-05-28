@@ -23,7 +23,7 @@ type MainContextType = {
 
   activeNote: Note | null;
   setActiveNote: (note: Note | null) => void;
-  setActiveNoteState: (id: string | null) => void;
+  setActiveNoteId: (id: string | null) => void;
 
   activeNotebook: Notebook | null;
   setActiveNotebook: (notebook: Notebook | null) => void;
@@ -56,8 +56,13 @@ type MainContextType = {
   fetchNoteById: (id: string) => void;
   fetchNotesByNotebook: (notebookId: string) => void;
   fetchNotesByTags: (tagIds: string[]) => void;
-  createNoteApi: (note: Omit<Note, "id" | "is_deleted" | "is_archived">) => void;
-  updateNoteApi: (id: string, note: Pick<Note, "name" | "text" | "color" | "order" | "tags">) => void;
+  createNoteApi: (
+    note: Omit<Note, "id" | "is_deleted" | "is_archived">
+  ) => void;
+  updateNoteApi: (
+    id: string,
+    note: Pick<Note, "name" | "text" | "color" | "order" | "tags">
+  ) => void;
   addTagToNoteApi: (noteId: string, tagId: string) => void;
   removeTagFromNoteApi: (noteId: string, tagId: string) => void;
   moveNoteToTrashApi: (id: string) => void;
@@ -109,7 +114,7 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const setActiveNoteState = (id: string | null) => {
+  const setActiveNoteId = (id: string | null) => {
     const note = notes.find((note) => note.id === id);
     setActiveNote(note || null);
   };
@@ -194,7 +199,9 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const createNoteApiHandler = async (note: Omit<Note, "id" | "is_deleted" | "is_archived">) => {
+  const createNoteApiHandler = async (
+    note: Omit<Note, "id" | "is_deleted" | "is_archived">
+  ) => {
     try {
       setLoading(true);
       const createdNote = await createNote(note);
@@ -206,7 +213,10 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const updateNoteApiHandler = async (id: string, note: Pick<Note, "name" | "text" | "color" | "order" | "tags">) => {
+  const updateNoteApiHandler = async (
+    id: string,
+    note: Pick<Note, "name" | "text" | "color" | "order" | "tags">
+  ) => {
     try {
       setLoading(true);
       const updatedNote = await updateNote(id, note);
@@ -246,7 +256,11 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       await moveNoteToTrash(id);
-      setNotes((prev) => prev.map((note) => (note.id === id ? { ...note, is_deleted: true } : note)));
+      setNotes((prev) =>
+        prev.map((note) =>
+          note.id === id ? { ...note, is_deleted: true } : note
+        )
+      );
     } catch (error) {
       setError("Ошибка при перемещении в корзину");
     } finally {
@@ -258,7 +272,11 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       await restoreNoteFromTrash(id);
-      setNotes((prev) => prev.map((note) => (note.id === id ? { ...note, is_deleted: false } : note)));
+      setNotes((prev) =>
+        prev.map((note) =>
+          note.id === id ? { ...note, is_deleted: false } : note
+        )
+      );
     } catch (error) {
       setError("Ошибка при восстановлении из корзины");
     } finally {
@@ -275,7 +293,7 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
         setNotebooks,
         activeNote,
         setActiveNote,
-        setActiveNoteState,
+        setActiveNoteId,
         activeNotebook,
         setActiveNotebook,
         loading,

@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Fade from "@mui/material/Fade";
+import isEqual from "lodash/isEqual";
 import styled, { css } from "styled-components";
 import CloseIcon from "@mui/icons-material/Close";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
@@ -46,8 +47,14 @@ interface EditorProps {
   ) => void;
 }
 
+interface PrevNoteState {
+  _name: string;
+  text: string;
+  tags: string[];
+}
+
 const mdParser = new MarkdownIt();
-const AUTOSAVE_INTERVAL = 5000;
+const AUTOSAVE_INTERVAL = 10000;
 
 const Editor = ({ note }: EditorProps) => {
   const {
@@ -55,27 +62,29 @@ const Editor = ({ note }: EditorProps) => {
     setNotes,
     activeNote,
     setActiveNote,
+    setActiveNoteId,
+    notebooks,
+    setNotebooks,
+    setLoading,
     deleteNoteApi,
     moveNote,
-    notebooks,
+    archiveNote,
+    restoreNote,
+    permanentlyDeleteNote,
+    archivedNotes,
+    deletedNotes,
     setError,
   } = useMainContext();
 
-  const [title, setTitle] = useState(note.name);
-  const [content, setContent] = useState(note.text);
-  const [syncStatus, setSyncStatus] = useState("");
+  const [title, setTitle] = useState(activeNote?.name);
+  const [content, setContent] = useState(activeNote?.text);
+  const [syncStatus, setSyncStatus] = useState("Сохранено");
   const [isFirstRun, setIsFirstRun] = useState(true);
 
-  const [tags, setTags] = useState<string[]>([]); // Массив только ID тегов
+  const [tags, setTags] = useState<string[]>(activeNote?.tags || []); // Массив только ID тегов
   const [tagObjects, setTagObjects] = useState<Tag[]>([]); // Массив объектов тегов для отображения
   const [newTag, setNewTag] = useState<string>(""); // Новое название тега
   const [editTagId, setEditTagId] = useState<string | null>(null); // ID тега для редактирования
-
-  const [prevNoteState, setPrevNoteState] = useState({
-    _name: title,
-    text: content,
-    tags: tags,
-  });
 
   // Full screen
   const [fullScreen, setFullScreen] = useState(false);
@@ -117,91 +126,78 @@ const Editor = ({ note }: EditorProps) => {
     };
 
     loadTagsForActiveNote();
-  }, [activeNote?.tags]); // Зависимость от поля tags активной заметки
-  // Перезапуск эффекта, если activeNote.tags изменится
+  }, [activeNote?.tags]);
 
-  // Автосохранение по таймеру
+  // Автосейв с интервалом
+  // useEffect(async () => {
+  //   const hasChanges = () => {
+  //     const nameChanged = title !== activeNote?.name;
+  //     const contentChanged = content !== activeNote?.text;
+  //     const tagsChanged = !isEqual(tags, activeNote?.tags || []);
 
-  useEffect(() => {
-    console.log("useEffect triggered");
+  //     return nameChanged || contentChanged || tagsChanged;
+  //   };
 
-    // Функция для проверки изменений
-    const hasChanges = () => {
-      return (
-        title !== prevNoteState._name ||
-        content !== prevNoteState.text ||
-        (prevNoteState.tags && tags.length !== prevNoteState.tags.length)
-        // noteColor !== prevNoteState.color // Если необходимо отслеживать изменения цвета
-      );
-    };
+  //   const interval = setInterval(() => {
+  //     console.log(hasChanges());
+  //     if (hasChanges()) {
+  //       setSyncStatus("Сохраняется…");
+  //       autoSave();
+  //     }
+  //   }, AUTOSAVE_INTERVAL);
 
-    // Запуск автосохранения только при изменениях
-    const interval = setInterval(() => {
-      if (hasChanges()) {
-        autoSave(); // Запуск автосохранения, если есть изменения
-      }
-    }, AUTOSAVE_INTERVAL);
+  //   return () => clearInterval(interval);
+  // }, [title, content, tags]);
 
-    return () => {
-      console.log("Clearing interval");
-      clearInterval(interval); // Очищаем интервал при размонтировании компонента
-    };
-  }, [activeNote, tags, content, title, notes]); // Зависимости useEffect
-  // Слежение за изменениями content и activeNote // Слежение за изменениями content и activeNote
-
-  const autoSave = async () => {
-    if (!activeNote) return; // Если заметка не выбрана
-
-    try {
-      if (activeNote.is_deleted) return; // Не сохраняем удалённые заметки
-
-      console.log("activeNote: ", activeNote);
-
-      // Обновляем только если есть изменения
-      await updateNote(activeNote.id, {
-        name: activeNote.name,
-        text: content,
-        tags: tags,
-        order: 0,
-        color: "",
-      });
-
-      // Обновляем состояние с последними сохраненными данными
-      setPrevNoteState({
-        _name: title,
-        text: content,
-        tags: tags,
-      });
-      const updatedNotes = await fetchNotes(); // Получаем обновленный список заметок
-      setNotes(updatedNotes);
-      console.log("Заметка успешно сохранена!");
-    } catch (error) {
-      console.error("Ошибка при автосохранении:", error);
-    }
-  };
-
-  //   const handleSave = async () => {
-  //   if (!activeNote) return;
+  // const autoSave = async () => {
+  //   if (!activeNote || activeNote.is_deleted) return;
 
   //   try {
-  //     // Убираем ненужное | "" в коде
-  //     await updateNote(activeNote.id, {
-  //       name: activeNote.name,
-  //       text: content,
-  //       color: "",
-  //       tags: tags,
-  //       order: 0,
-  //     });
+  // await updateNote(activeNote?.id || "", {
+  //   name: title || "",
+  //   text: content || "",
+  //   tags: tags,
+  //   order: 0,
+  //   color: "",
+  // });
 
-  //     console.log("Заметка успешно сохранена!");
-  //   } catch (error) {
-  //     console.error("Update note failed", error);
-  //   }
-  // };
-
-  // const updatedNotes = await fetchNotes(); // Получаем обновленный список заметок
+  // const updatedNotes = await fetchNotes();
   // setNotes(updatedNotes);
-  // onSuccess();
+
+  // setSyncStatus("Сохранено");
+  // console.log("Заметка успешно сохранена!");
+  // } catch (error) {
+  //   console.error("Ошибка при автосохранении:", error);
+  //   setSyncStatus("Ошибка");
+  // }
+  // });
+
+  useEffect(() => {
+    const saveNote = async () => {
+      if (!activeNote || activeNote.is_deleted) return;
+
+      try {
+        await updateNote(activeNote.id || "", {
+          name: title || "",
+          text: content || "",
+          tags: tags,
+          order: 0,
+          color: "",
+        });
+
+        const updatedNotes = await fetchNotes();
+        setNotes(updatedNotes);
+
+        setSyncStatus("Сохранено");
+        console.log("Заметка успешно сохранена!");
+      } catch (error) {
+        console.error("Ошибка при сохранении:", error);
+        setSyncStatus("Ошибка");
+      }
+    };
+
+    saveNote();
+  }, [title, content, tags, activeNote]);
 
   const handleCloseMenu = () => setAnchorEl(null);
   const handleClickMenu = (e: React.MouseEvent<HTMLElement>) =>
@@ -231,13 +227,9 @@ const Editor = ({ note }: EditorProps) => {
     }
   };
 
-  useEffect(() => {
-    setNotes(notes);
-  }, [notes]);
-
   const handleDeleteNote = async () => {
     try {
-      await deleteNoteApi(note.id);
+      await deleteNoteApi(activeNote?.id || "");
       const updatedNotes = await fetchNotes(); // Получаем обновленный список заметок
       setNotes(updatedNotes);
     } catch {
@@ -317,7 +309,7 @@ const Editor = ({ note }: EditorProps) => {
     // Обновляем тег на сервере
     await updateTag(editTagId, {
       name: newTag.trim(),
-      color: "#ff6347", // Цвет по умолчанию
+      color: activeNote.color,
     });
 
     console.log("Тег обновлён:", { id: editTagId, name: newTag.trim() });
@@ -338,8 +330,8 @@ const Editor = ({ note }: EditorProps) => {
           (tagId) => (tagId === editTagId ? editTagId : tagId) // Просто обновляем id, потому что тег уже обновлён в tagObjects
         ),
       };
-      setTags(activeNote.tags);
       // Обновляем состояние activeNote с новым тегом
+
       setActiveNote(updatedNote);
       setNotes(notes);
       // Сбрасываем поле ввода
@@ -347,8 +339,6 @@ const Editor = ({ note }: EditorProps) => {
       setEditTagId(null); // Сбрасываем режим редактирования
     }
   };
-
-  console.log("tagObjects", tagObjects); // Проверяем, что передается в tagObjects
 
   return (
     <Container $isNoteListOpen={isNoteListOpen} $fullScreen={fullScreen}>
@@ -441,7 +431,16 @@ const Editor = ({ note }: EditorProps) => {
 
       <Footer>
         {/* Статус синхронизации */}
-        <SyncStatus>{syncStatus}</SyncStatus>
+        <SyncStatus>
+          {syncStatus && (
+            <>
+              <span>{syncStatus}</span>
+              {syncStatus.includes("Сохраняется") && <span>🔄</span>}
+              {syncStatus.includes("Сохранено") && <span>✅</span>}
+              {syncStatus.includes("Ошибка") && <span>⚠️</span>}
+            </>
+          )}
+        </SyncStatus>
         {/* Отображаем текущие теги */}
         <TagContainer>
           {activeNote?.tags &&
@@ -464,7 +463,8 @@ const Editor = ({ note }: EditorProps) => {
                   {/* Кнопка для редактирования */}
                   <TagButton
                     onClick={() => {
-                      if (tag.name == "") setEditTagId(tag.id);
+                      // TODO: Edit tag
+                      setEditTagId(tag.id);
                       setNewTag(tag.name);
                     }}
                   >
@@ -479,31 +479,33 @@ const Editor = ({ note }: EditorProps) => {
         </TagContainer>
 
         {/* Добавление нового тега */}
-        <AddTagWrapper>
-          <input
-            type="text"
-            placeholder="New tag"
-            value={newTag}
-            onChange={(e) => setNewTag(e.currentTarget.value)}
-            style={{
-              padding: "5px",
-              borderRadius: "5px",
-              border: "1px solid #ccc",
-              marginRight: "10px",
-            }}
-            maxLength={10}
-          />
-          <ButtonAddTag onClick={handleAddTag}>
-            <NewLabelIcon />
-          </ButtonAddTag>
+        <ButtonsContainer>
+          <AddTagWrapper>
+            <input
+              type="text"
+              placeholder="New tag"
+              value={newTag}
+              onChange={(e) => setNewTag(e.currentTarget.value)}
+              style={{
+                padding: "12px",
+                borderRadius: "20px",
+                border: "1px solid #ccc",
+                marginRight: "1px",
+              }}
+              maxLength={10}
+            />
 
-          {/* Кнопка редактирования тега */}
-          {editTagId ? (
-            <ButtonEditTag onClick={handleEditTag}>
-              <DriveFileRenameOutlineIcon />
-            </ButtonEditTag>
-          ) : null}
-        </AddTagWrapper>
+            <ButtonAddTag onClick={handleAddTag}>
+              <NewLabelIcon />
+            </ButtonAddTag>
+            {/* Кнопка редактирования тега */}
+            {editTagId ? (
+              <ButtonEditTag>
+                <DriveFileRenameOutlineIcon />
+              </ButtonEditTag>
+            ) : null}
+          </AddTagWrapper>
+        </ButtonsContainer>
       </Footer>
     </Container>
   );
@@ -577,6 +579,16 @@ const StyledMenu = styled(Menu)`
       margin-right: 6px;
     }
   }
+`;
+
+const SyncStatus = styled.div`
+  font-size: 12px;
+  color: #555;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-content: flex-end;
+  width: 100%;
 `;
 
 const CenteredDiv = styled.div<{
@@ -657,43 +669,76 @@ const TagButton = styled.button`
 `;
 
 const AddTagWrapper = styled.div`
+  display: flex;
+  align-items: center; /* по вертикали выровнять */
   margin-bottom: 15px;
+  border: none;
+  gap: 5px;
 `;
 
-const SyncStatus = styled.div`
-  margin-bottom: 0px;
-  font-size: 14px;
-  color: #555;
+const ButtonsContainer = styled.div`
+  display: flex;
+  margin-top: 15px;
+  justify-content: flex-start; /* прижать к левому краю */
+  gap: 15px; /* расстояние между кнопками */
 `;
 
 const ButtonAddTag = styled.button`
-  padding: 5px 10px;
-  background-color: #1e81b0;
+  padding: 8px 8px; /* чуть больше паддинга для комфорта */
+  background-color: #1e3a8a;
   color: white;
+  font-weight: 600; /* чуть жирнее текст */
+  font-size: 16px; /* более читаемый размер шрифта */
   border: none;
-  border-radius: 5px;
+  border-radius: 20px; /* чуть более округлённые углы */
   cursor: pointer;
-  margin-top: 10px;
+  margin-top: 0; /* убираем отступ сверху — уже flex-контейнер */
+  display: flex; /* для правильного центрирования содержимого */
+  align-items: center;
+  gap: 8px; /* расстояние между текстом и иконкой */
+
+  svg {
+    width: 24px; /* чуть поменьше иконка */
+    height: 24px;
+  }
+
+  transition: background-color 0.3s ease;
 
   &:hover {
-    background-color: #0066b3;
+    background-color: #144a9e; /* чуть темнее при ховере */
+  }
+
+  &:active {
+    background-color: #0f397d; /* ещё темнее при клике */
   }
 `;
 
 const ButtonEditTag = styled.button`
-  padding: 5px 10px;
+  padding: 8px 8px; /* чуть больше паддинга для комфорта */
   background-color: rgb(173, 18, 18); /* Цвет для кнопки редактирования */
   color: white;
+  font-weight: 600; /* чуть жирнее текст */
+  font-size: 16px; /* более читаемый размер шрифта */
   border: none;
-  border-radius: 5px;
+  border-radius: 20px; /* округлённые углы */
   cursor: pointer;
-  margin-top: 10px;
+  margin-top: 0; /* убираем отступ сверху — уже flex-контейнер */
+  display: flex; /* для правильного центрирования содержимого */
+  align-items: center;
+  gap: 8px; /* расстояние между текстом и иконкой */
+
+  svg {
+    width: 24px; /* размер иконки */
+    height: 24px;
+  }
+
+  transition: background-color 0.3s ease;
 
   &:hover {
-    background-color: rgb(
-      196,
-      56,
-      56
-    ); /* Темный цвет для кнопки редактирования */
+    background-color: rgb(196, 56, 56); /* чуть светлее при ховере */
+  }
+
+  &:active {
+    background-color: rgb(140, 12, 12); /* темнее при клике */
   }
 `;

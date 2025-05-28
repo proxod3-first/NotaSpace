@@ -106,7 +106,7 @@ const TagManager = () => {
               alignItems: "center",
             }}
           >
-            No tags found
+            No foundtags
           </Form>
         )}
       </TagList>

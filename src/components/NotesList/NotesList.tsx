@@ -23,13 +23,26 @@ interface TagButtonProps {
   style?: React.CSSProperties;
 }
 
-const NoteList: React.FC<NoteListProps> = ({
-  activeNoteId,
-  onSelectNote,
-  onDeleteNote,
-}) => {
-  const { notes, setNotes } = useMainContext();
-  const { activeNotebook } = useNotebooks(); // Получаем активный блокнот
+const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
+  const {
+    notes,
+    setNotes,
+    activeNote,
+    setActiveNote,
+    setActiveNoteId,
+    notebooks,
+    setNotebooks,
+    setLoading,
+    deleteNoteApi,
+    moveNote,
+    archiveNote,
+    restoreNote,
+    permanentlyDeleteNote,
+    archivedNotes,
+    deletedNotes,
+  } = useMainContext();
+
+  const { activeNotebook, setActiveNotebook } = useNotebooks(); // Получаем активный блокнот
   const [tags, setTags] = useState<
     { id: string; name: string; color: string }[][]
   >([]);
@@ -39,7 +52,7 @@ const NoteList: React.FC<NoteListProps> = ({
   useEffect(() => {
     setNotes(notes);
   }, [notes]);
-  
+
   const fetchTags = async () => {
     const tagsForNotes = await Promise.all(
       notes.map(async (note) => {
@@ -57,6 +70,13 @@ const NoteList: React.FC<NoteListProps> = ({
   };
 
   useEffect(() => {
+  if (activeNotebook) {
+    setActiveNotebook(activeNotebook.id);
+  }
+}, [activeNotebook]);
+
+
+  useEffect(() => {
     fetchTags(); // Загружаем теги при изменении заметок
   }, [notes]);
 
@@ -64,24 +84,41 @@ const NoteList: React.FC<NoteListProps> = ({
     setSelectedTag((prevTag) => (prevTag === tagId ? null : tagId));
   };
 
-  const filteredNotesTags = useMemo(() => {
-    if (selectedTag) {
-      return notes.filter(
-        (note) => note.tags && note.tags.includes(selectedTag)
-      );
-    } else {
-      return notes;
-    }
-  }, [selectedTag, notes]);
-
   const filteredNotesInNotebook = useMemo(() => {
     if (activeNotebook) {
+      setActiveNotebook(activeNotebook.id);
       return notes.filter((note) => note.notebook_id === activeNotebook.id);
     }
     return notes; // Если книга не выбрана, показываем все заметки
   }, [activeNotebook, notes]);
 
-  useEffect(() => {}, [notes]);
+  const uniqueTags = useMemo(() => {
+    const tagMap = new Map();
+    filteredNotesInNotebook.forEach((note) => {
+      console.log("UNIQUE TAGS: ", note);
+      note.tags?.forEach((tagId) => {
+        const tagObj = tags.flat().find((t) => t.id === tagId);
+        if (tagObj && !tagMap.has(tagObj.id)) {
+          tagMap.set(tagObj.id, tagObj);
+        }
+      });
+    });
+    return Array.from(tagMap.values());
+  }, [filteredNotesInNotebook, tags]);
+
+  const filteredNotesByTag = useMemo(() => {
+    let notesToFilter = filteredNotesInNotebook;
+    if (selectedTag) {
+      notesToFilter = notesToFilter.filter(
+        (note) => note.tags && note.tags.includes(selectedTag)
+      );
+    }
+    return notesToFilter;
+  }, [selectedTag, filteredNotesInNotebook]);
+
+  const handleNoteClick = (noteId: string) => {
+    setActiveNoteId(noteId);
+  };
 
   return (
     <Container>
@@ -91,68 +128,41 @@ const NoteList: React.FC<NoteListProps> = ({
       <div>
         {error && <ErrorMessage>{error}</ErrorMessage>}
         <TagListContainer>
-          {Array.isArray(tags) && tags.length > 0 ? (
-            tags.map((tagArray, index) => (
-              <div key={index}>
-                {tagArray.map((tag) => (
-                  <TagButton
-                    key={tag.id}
-                    selected={selectedTag?.toString === index.toString} // Проверяем, выбран ли тег
-                    onClick={() => handleTagClick(tag.id)} // При клике фильтруем по тегу
-                    style={{ backgroundColor: tag.color }} // Цвет фона можно менять в зависимости от тега
-                  >
-                    {tag.name}
-                  </TagButton>
-                ))}
-              </div>
+          {uniqueTags.length > 0 ? (
+            uniqueTags.map((tag) => (
+              <TagButton
+                key={tag.id}
+                selected={selectedTag === tag.id}
+                onClick={() => handleTagClick(tag.id)}
+                style={{ backgroundColor: tag.color }}
+              >
+                {tag.name}
+              </TagButton>
             ))
           ) : (
-            <p>
-              {" "}
-              {selectedTag === null && (
-                <NoTagsMessage>Нет выбранных тегов</NoTagsMessage>
-              )}
-            </p>
+            <NoTagsMessage>Нет тегов для этой книги</NoTagsMessage>
           )}
         </TagListContainer>
-      </div>
-      {/* 
-      {notes.length ? (
-        <List>
-          <MuiList>
-            {filteredNotesTags.map((note, index) => (
-              <NoteListItem
-                key={note.id}
-                note={note}
-                $active={activeNoteId === note.id}
-                onClick={() => onSelectNote(note.id)} // Выбираем заметку
-                tags={tags[index] || []} // Получаем теги для текущей заметки по индексу
-              />
-            ))}
-          </MuiList>
-        </List>
-      ) : (
-        <NoNotesMessage />
-      )} */}
 
-      <div>
-        {filteredNotesInNotebook.length ? (
-          <List>
-            <MuiList>
-              {filteredNotesInNotebook.map((note, index) => (
-                <NoteListItem
-                  key={note.id}
-                  note={note}
-                  $active={activeNoteId === note.id}
-                  onClick={() => onSelectNote(note.id)}
-                  tags={tags[index] || []}
-                />
-              ))}
-            </MuiList>
-          </List>
-        ) : (
-          <NoNotesMessage />
-        )}
+        <div>
+          {filteredNotesByTag.length ? (
+            <List>
+              <MuiList>
+                {filteredNotesByTag.map((note, index) => (
+                  <NoteListItem
+                    key={note.id}
+                    note={note}
+                    tags={tags[index] || []}
+                    active={note.id === activeNote?.id}
+                    onClick={handleNoteClick}
+                  />
+                ))}
+              </MuiList>
+            </List>
+          ) : (
+            <NoNotesMessage />
+          )}
+        </div>
       </div>
     </Container>
   );
@@ -160,11 +170,9 @@ const NoteList: React.FC<NoteListProps> = ({
 
 export default NoteList;
 
-
 interface ContainerProps {
   $isNoteListOpen?: boolean;
 }
-
 
 const ErrorMessage = styled.div`
   color: red;
@@ -193,7 +201,6 @@ const List = styled(MuiList)`
 
   /* Мобильная адаптация */
   @media (max-width: 767px) {
-
     max-height: 100vh;
     padding-right: 5px;
   }
