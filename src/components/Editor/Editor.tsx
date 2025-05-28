@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Fade from "@mui/material/Fade";
@@ -100,6 +100,38 @@ const Editor = ({ note }: EditorProps) => {
   // Responsive layout context
   const { isNoteListOpen, toggleNoteList } = useContext(UIContext);
   const { isSidebarOpen, toggleSidebar } = useContext(UIContext);
+
+  useEffect(() => {
+    if (!activeNote) return;
+
+    // Сбрасываем форму под новую заметку
+    setTitle(activeNote.name || "");
+    setContent(activeNote.text || "");
+    setTags(activeNote.tags || []);
+    setEditTagId(null);
+    setNewTag("");
+  }, [activeNote?.id]);
+
+  const footerRef = useRef<HTMLDivElement>(null);
+  const [editorHeight, setEditorHeight] = useState("100vh");
+
+  useEffect(() => {
+    const resizeObserver = new ResizeObserver(() => {
+      if (footerRef.current) {
+        const footerHeight = footerRef.current.offsetHeight;
+        const headerHeight = 61; // высота хедера
+        setEditorHeight(`calc(100vh - ${headerHeight}px - ${footerHeight}px`);
+      }
+    });
+
+    // Наблюдаем за футером
+    if (footerRef.current) {
+      resizeObserver.observe(footerRef.current);
+    }
+
+    // Очистка при размонтировании компонента
+    return () => resizeObserver.disconnect();
+  }, []);
 
   useEffect(() => {
     if (!activeNote?.id || !Array.isArray(activeNote.tags)) return; // Если нет активной заметки или тегов, не выполняем запрос.
@@ -249,7 +281,7 @@ const Editor = ({ note }: EditorProps) => {
   };
 
   const handleAddTag = async () => {
-    if (!newTag.trim() || newTag.length > 10) return; // Если новый тег пустой, выходим
+    if (!newTag.trim() || newTag.length > 20) return; // Если новый тег пустой, выходим
 
     // Создаем новый тег
     const tagData = { name: newTag.trim(), color: "#ff6347" }; // Цвет по умолчанию
@@ -341,17 +373,6 @@ const Editor = ({ note }: EditorProps) => {
     }
   };
 
-  useEffect(() => {
-    if (!activeNote) return;
-
-    // Сбрасываем форму под новую заметку
-    setTitle(activeNote.name || "");
-    setContent(activeNote.text || "");
-    setTags(activeNote.tags || []);
-    setEditTagId(null);
-    setNewTag("");
-  }, [activeNote?.id]);
-
   return (
     <Container $isNoteListOpen={isNoteListOpen} $fullScreen={fullScreen}>
       <Header>
@@ -434,14 +455,15 @@ const Editor = ({ note }: EditorProps) => {
       </Header>
 
       <StyledMdEditor
-        style={{ height: "calc(100vh - 60px - 40px - 40px)" }}
+        // style={{ flex: 1 }}
+        style={{ height: editorHeight }}
         value={content}
         renderHTML={(text: string) => mdParser.render(text)}
         onChange={handleEditorChange}
         placeholder="Начните печатать"
       />
 
-      <Footer>
+      <Footer ref={footerRef} style={{ height: "auto" }}>
         {/* Статус синхронизации */}
         <SyncStatus>
           {syncStatus && (
@@ -503,7 +525,7 @@ const Editor = ({ note }: EditorProps) => {
                 border: "1px solid #ccc",
                 marginRight: "1px",
               }}
-              maxLength={10}
+              maxLength={20}
             />
 
             <ButtonAddTag onClick={handleAddTag}>

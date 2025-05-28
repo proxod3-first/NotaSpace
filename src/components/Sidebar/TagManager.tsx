@@ -4,6 +4,15 @@ import { DeleteOutline, Edit, Add } from "@mui/icons-material"; // Импорт�
 import { useTags } from "../../context/TagContext"; // Используем хук из TagContext
 import { useNavigate } from "react-router-dom";
 import { useMainContext } from "../../context/NoteContext";
+import AddBoxIcon from "@mui/icons-material/AddBox";
+import {
+  addTagToNote,
+  fetchNotes,
+  getNote,
+  updateNote,
+} from "../../services/notesApi";
+import { Tag } from "../../types";
+import { fetchTags } from "../../services/tagsApi";
 
 const TagManager = () => {
   const { tags, setTags, addTag, updateTag, removeTag, loading } = useTags(); // Получаем данные из контекста
@@ -24,11 +33,30 @@ const TagManager = () => {
     navigate("/");
   };
 
+  useEffect(() => {
+    async function fetchData() {
+      const allNotes = await fetchNotes();
+      setNotes(allNotes);
+      console.log("Tags updated:", tags);
+    }
+
+    fetchData();
+  }, [tags]);
+
+  useEffect(() => {
+    async function fetchData() {
+      const allTags = await fetchTags();
+      setTags(allTags);
+      console.log("Tags updated:", tags);
+    }
+    fetchData();
+  }, [notes]);
+
   const handleSubmit = () => {
     if (!name.trim()) return;
     if (editingId) {
-      console.log("NAME:", tags);
-      console.log("NAME:", editingId);
+      console.log("NAME1:", tags);
+      console.log("NAME2:", editingId);
       updateTag(editingId, name, color); // Используем функцию из контекста для обновления тега
       setEditingId(null);
       setName("");
@@ -38,6 +66,29 @@ const TagManager = () => {
       setName("");
       setColor("#ff6347");
     }
+  };
+
+  const handleAdd = async (tag: Tag) => {
+    if (!activeNote) return;
+
+    const noteTagIds = activeNote.tags || [];
+
+    if (noteTagIds.includes(tag.id)) {
+      console.log("Tag already added to active note.");
+      return;
+    }
+
+    await addTagToNote(activeNote.id, tag.id);
+
+    const updatedFromServer = await getNote(activeNote.id);
+    console.log("NOOTES1: ", updatedFromServer);
+
+    setActiveNote(updatedFromServer);
+
+    const allNotes = await fetchNotes();
+    setNotes(allNotes);
+
+    console.log("NOOTES2: ", allNotes);
   };
 
   const handleEdit = (tag: any) => {
@@ -52,11 +103,6 @@ const TagManager = () => {
       setName(e.target.value);
     }
   };
-
-  useEffect(() => {
-    // Это будет срабатывать при изменении списка тегов
-    console.log("Tags updated:", tags);
-  }, [tags]); // Следим за изменениями в tags
 
   return (
     <Wrapper>
@@ -87,21 +133,19 @@ const TagManager = () => {
         <TagList>
           {Array.isArray(tags) && tags.length > 0 ? (
             tags.map((tag) => (
-              <TagItem key={tag.id}>
+              <TagItem key={tag.id} style={{ backgroundColor: tag.color }}>
                 <TagItemContent>
-                  <ColorDot style={{ backgroundColor: tag.color }} />
+                  {/* <ColorDot style={{ backgroundColor: tag.color }} /> */}
                   <span>{tag.name}</span>
                 </TagItemContent>
                 <IconGroup>
-                  {editingId !== tag.id && (
-                    <Edit onClick={() => handleEdit(tag)} />
-                  )}
+                  {tag.id && <AddBoxIcon onClick={() => handleAdd(tag)} />}
                   {editingId !== tag.id && (
                     <Edit onClick={() => handleEdit(tag)} />
                   )}
                   {editingId !== tag.id && (
                     <DeleteOutline
-                      onClick={() => {
+                      onClick={async () => {
                         console.log("Deleting tag:", tag);
                         removeTag(tag.id); // Используем функцию удаления из контекста
                       }}
@@ -290,7 +334,6 @@ const TagItem = styled.div`
 
   span {
     flex: 1;
-    margin-left: 10px;
   }
 
   @media (max-width: 480px) {
@@ -299,11 +342,11 @@ const TagItem = styled.div`
   }
 `;
 
-const ColorDot = styled.div`
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-`;
+// const ColorDot = styled.div`
+//   width: 14px;
+//   height: 14px;
+//   border-radius: 50%;
+// `;
 
 const TagItemContent = styled.div`
   display: flex;

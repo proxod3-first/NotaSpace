@@ -89,7 +89,7 @@ const Container = styled.div<{ $active: boolean }>`
   margin-bottom: 7px;
   height: auto;
   border-radius: 8px;
-  background-color: ${({ $active }) => ($active ? "#f7f7f7" : "#f3f4f6;")};
+  background-color: ${({ $active }) => ($active ? "#e8e8e8" : "#f3f4f6")};
   border: 1px solid ${({ $active }) => ($active ? "#bbb" : "#ddd")};
   position: relative;
   box-shadow: ${({ $active }) =>

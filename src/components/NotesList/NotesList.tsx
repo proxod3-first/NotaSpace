@@ -185,7 +185,7 @@ interface ContainerProps {
 
 const ErrorMessage = styled.div`
   color: red;
-  margin: 10px 0;
+  margin: 0px 0;
 `;
 
 const List = styled(MuiList)`
@@ -220,7 +220,7 @@ const List = styled(MuiList)`
 
   @media (min-width: 810px) {
     height: calc(
-      100vh - 100px
+      100vh - 115px
     ); /* 100vh минус высота заголовка (например, 60px) и футера (например, 40px) */
     position: absolute;
     bottom: 0;
