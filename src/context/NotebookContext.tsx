@@ -20,7 +20,7 @@ interface NotebookContextType {
   setNotebooks: React.Dispatch<React.SetStateAction<Notebook[]>>;
   notesInNotebook: (id: string) => Note[];
 
-  getNotebookById: (id: string) => Promise<Notebook | undefined>; // Обновили тип, так как функция асинхронная
+  getNotebookById: (id: string) => Promise<Notebook | null>; // Обновили тип, так как функция асинхронная
 
   activeNotebook: Notebook | null;
   setActiveNotebook: (id: string) => void;
@@ -46,7 +46,7 @@ const NotebookContext = createContext<NotebookContextType | undefined>(
 export const NotebookProvider: React.FC<NotebookProviderProps> = ({
   children,
 }) => {
-  const [notebooks, setNotebooks] = useState<any[]>([]); // Initialize as an empty array
+  const [notebooks, setNotebooks] = useState<Notebook[]>([]); // Инициализация с типом Notebook[]
   const [activeNotebookState, setActiveNotebookState] =
     useState<Notebook | null>(null);
   const [notes, setNotes] = useState<Note[]>([]);
@@ -113,13 +113,20 @@ export const NotebookProvider: React.FC<NotebookProviderProps> = ({
   };
 
   // Получение книги по ID
-  const getNotebookById = async (id: string) => {
+  // Типизация функции для получения книги по ID
+  // Типизация функции для получения книги по ID
+  const getNotebookById = async (id: string): Promise<Notebook | null> => {
     try {
-      const notebook = await getNotebook(id);
+      const notebook = await getNotebook(id); // предполагаем, что getNotebook возвращает Promise<Notebook | null>
+
+      if (notebook === null) {
+        return null; // Если возвращается null, вернем undefined
+      }
+
       return notebook; // Возвращаем полученную книгу
     } catch (error) {
       console.error("Error fetching notebook:", error);
-      return undefined;
+      return null; // В случае ошибки возвращаем undefined
     }
   };
 

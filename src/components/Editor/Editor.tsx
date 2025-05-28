@@ -76,8 +76,8 @@ const Editor = ({ note }: EditorProps) => {
     setError,
   } = useMainContext();
 
-  const [title, setTitle] = useState(activeNote?.name);
-  const [content, setContent] = useState(activeNote?.text);
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
   const [syncStatus, setSyncStatus] = useState("Сохранено");
   const [isFirstRun, setIsFirstRun] = useState(true);
 
@@ -209,6 +209,7 @@ const Editor = ({ note }: EditorProps) => {
       if (!activeNote || activeNote.is_deleted) return;
 
       try {
+        console.log("useEffect Editor: ", activeNote, title, content);
         await updateNote(activeNote.id || "", {
           name: title || "",
           text: content || "",
@@ -248,16 +249,21 @@ const Editor = ({ note }: EditorProps) => {
   };
 
   const handleEditorChange = ({ text }: { text: string }) => {
+    setContent(text);
     if (activeNote) {
       const updatedNote = {
         ...activeNote,
-        text, // Обновляем только свойство text
+        text,
       };
-
-      setActiveNote(updatedNote); // Обновляем состояние активной заметки
-      setContent(text);
     }
   };
+
+  useEffect(() => {
+    if (activeNote) {
+      setTitle(activeNote.name); // Устанавливаем название заметки
+      setContent(activeNote.text); // Устанавливаем текст заметки
+    }
+  }, [activeNote]);
 
   const handleDeleteNote = async () => {
     try {
@@ -336,42 +342,75 @@ const Editor = ({ note }: EditorProps) => {
   };
 
   const handleEditTag = async () => {
+    // Логируем значения на начальном этапе
+    console.log("Попытка редактирования тега...");
+    console.log("newTag:", newTag);
+    console.log("editTagId:", editTagId);
+    console.log("activeNote:", activeNote);
+
     // Если новое имя тега пустое, нет id для редактирования, или нет активной заметки, выходим
-    if (!newTag.trim() || !editTagId || !activeNote?.id) return;
+    if (!newTag.trim() || !editTagId || !activeNote?.id) {
+      console.log("Редактирование отменено. Условия не выполнены.");
+      return;
+    }
 
     // Обновляем тег на сервере
-    await updateTag(editTagId, {
-      name: newTag.trim(),
-      color: activeNote.color,
-    });
+    try {
+      console.log("Обновляем тег на сервере...");
+      await updateTag(editTagId, {
+        name: newTag.trim(),
+        color: !activeNote.color ? "#ff6347" : activeNote.color,
+      });
+      console.log("Тег обновлён на сервере:", {
+        id: editTagId,
+        name: newTag.trim(),
+      });
+    } catch (error) {
+      console.log("Ошибка при обновлении тега на сервере:", error);
+      return;
+    }
 
-    console.log("Тег обновлён:", { id: editTagId, name: newTag.trim() });
+    // Обновляем список тегов с сервера
+    try {
+      console.log("Загружаем актуальные теги с сервера...");
+      const fetchedTags = await fetchTags(); // Запрос на сервер для получения всех тегов
+      console.log("Получены все теги с сервера:", fetchedTags);
 
-    // Обновляем теги в списке tagObjects (если он хранит все теги)
-    setTagObjects((prevTags) =>
-      prevTags.map((tag) =>
-        tag.id === editTagId
-          ? { ...tag, name: newTag.trim(), color: "#ff6347" } // Обновляем только тот тег, который редактируем
-          : tag
-      )
-    );
+      // Фильтруем только те теги, ID которых есть в activeNote.tags
+      const filteredTags = fetchedTags.filter((tag) =>
+        activeNote.tags.includes(tag.id)
+      );
 
-    if (activeNote) {
+      // Обновляем локальное состояние tagObjects с актуальными тегами
+      setTagObjects(filteredTags);
+      console.log("Обновлённый список тегов:", filteredTags);
+
+      // Обновляем теги в activeNote
       const updatedNote = {
         ...activeNote,
-        tags: activeNote?.tags.map(
+        tags: activeNote.tags.map(
           (tagId) => (tagId === editTagId ? editTagId : tagId) // Просто обновляем id, потому что тег уже обновлён в tagObjects
         ),
       };
-      // Обновляем состояние activeNote с новым тегом
 
-      setActiveNote(updatedNote);
-      setNotes(notes);
+      setActiveNote(updatedNote); // Обновляем activeNote
+
+      // Обновляем список заметок
+      const updatedNotes = notes.map((note) =>
+        note.id === activeNote.id ? updatedNote : note
+      );
+      setNotes(updatedNotes); // Обновляем заметки
+
       // Сбрасываем поле ввода
       setNewTag("");
       setEditTagId(null); // Сбрасываем режим редактирования
+      console.log("Режим редактирования сброшен.");
+    } catch (error) {
+      console.log("Ошибка при загрузке тегов с сервера:", error);
     }
   };
+
+  console.log("isNoteListOpen in Editor: ", activeNote, isNoteListOpen);
 
   return (
     <Container $isNoteListOpen={isNoteListOpen} $fullScreen={fullScreen}>
@@ -555,6 +594,8 @@ const Container = styled.div<{
 
   @media (min-width: 810px) {
     display: block;
+    display: ${({ $isNoteListOpen }) => ($isNoteListOpen ? "block" : "block")};
+
     ${({ $fullScreen }) =>
       $fullScreen &&
       css`

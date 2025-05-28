@@ -91,6 +91,7 @@ export const TagProvider: React.FC<TagProviderProps> = ({ children }) => {
       );
 
       await loadTags(); // Перезагружаем теги
+      
     } catch (error) {
       console.error("Error updating tag:", error);
     } finally {

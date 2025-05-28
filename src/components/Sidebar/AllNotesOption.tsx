@@ -7,19 +7,18 @@ import { useNotebooks } from "../../context/NotebookContext";
 
 const AllNotesOption = () => {
   const { toggleSidebar } = useContext(UIContext);
-  const { setNotes, setActiveNote, setActiveNoteId } = useMainContext();
+  const { activeNote, setNotes, setActiveNote, setActiveNoteId } =
+    useMainContext();
   const { setActiveNotebook } = useNotebooks();
   const navigate = useNavigate();
 
   const handleClick = async () => {
     try {
       toggleSidebar();
-      setActiveNote(null);
-      setActiveNoteId(null);
+
       setActiveNotebook("");
 
-      // Навигация после успешной загрузки
-      navigate("http://localhost:3000/", { replace: true });
+      navigate("/");
     } catch (error) {
       console.error("Failed to load all notes:", error);
     }

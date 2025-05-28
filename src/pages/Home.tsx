@@ -33,7 +33,7 @@ export default function Home() {
   const handleTagSelect = (tag: string) => {
     setSelectedTag(tag); // Сохраняем выбранный тег
   };
-
+  
   useEffect(() => {
     setLoading(true);
     fetchNotes()
@@ -138,12 +138,12 @@ const EditorWrapper = styled.div<{
   $hasActiveNote: boolean;
 }>`
   display: ${({ $isNoteListOpen, $hasActiveNote }) =>
-    $isNoteListOpen ? "none" : $hasActiveNote ? "block" : "none"};
+    $isNoteListOpen ? "block" : $hasActiveNote ? "block" : "none"};
 
   @media (max-width: 810px) {
-    display: ${({ $hasActiveNote }) => ($hasActiveNote ? "block" : "block")};
+    display: ${({ $hasActiveNote }) => ($hasActiveNote ? "block" : "none")};
     z-index: ${({ $isNoteListOpen }) => ($isNoteListOpen ? "-1" : "100")};
-    position: ${({ $isNoteListOpen }) => ($isNoteListOpen ? "none" : "fixed")};
+    position: ${({ $isNoteListOpen }) => ($isNoteListOpen ? "block" : "fixed")};
     top: 0;
     left: 0;
     height: 100%;

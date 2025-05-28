@@ -7,9 +7,9 @@ import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import OpenInFullIcon from "@mui/icons-material/OpenInFull";
 import CloseFullscreenIcon from "@mui/icons-material/CloseFullscreen";
 import EditIcon from "@mui/icons-material/Edit";
-import NoteAddIcon from '@mui/icons-material/NoteAdd';
+import NoteAddIcon from "@mui/icons-material/NoteAdd";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
-import DensityMediumIcon from '@mui/icons-material/DensityMedium';
+import DensityMediumIcon from "@mui/icons-material/DensityMedium";
 import styled from "styled-components";
 import { baseIconButton, flexCenter, truncatedText } from "../../styles/mixins";
 import RenameNoteDialog from "./RenameNoteDialog";
@@ -27,10 +27,7 @@ import {
 import { useNotebooks } from "../../context/NotebookContext";
 import { useMainContext } from "../../context/NoteContext";
 
-
-
 const Header = () => {
-
   const {
     notes,
     setNotes,
@@ -67,16 +64,15 @@ const Header = () => {
 
   const handleCreateNoteClick = async () => {
     const newNotes = notes.filter((note) => note.name.startsWith("New Note"));
+    const template_text = "# Привет, это документ в Markdown!";
     const newNoteData = {
       name: `New Note ${newNotes.length + 1}`,
-      text: "",
-      content: "",
+      text: template_text,
       color: "",
       order: 0,
       notebook_id: activeNotebook?.id || "",
       tags: [],
     };
-
     try {
       await createNote(newNoteData);
       const updatedNotes = await fetchNotes();
@@ -128,7 +124,6 @@ const Header = () => {
     handleCloseMenu();
     setIsDeleteNoteDialogOpen(true);
   };
-  
 
   const handleDeleteNote = async () => {
     try {
@@ -166,14 +161,14 @@ const Header = () => {
     <Container>
       <HeaderLeft>
         <HamburgerButton onClick={toggleSidebar}>
-          <DensityMediumIcon/>
+          <DensityMediumIcon />
         </HamburgerButton>
         <Heading>{activeNotebook ? activeNotebook.name : "All Notes"}</Heading>
       </HeaderLeft>
       <ButtonGroup>
         <ArrowTooltip title="Add new note" placement="bottom">
           <IconButton onClick={handleCreateNoteClick}>
-            <NoteAddIcon/>
+            <NoteAddIcon />
           </IconButton>
         </ArrowTooltip>
         {activeNote?.id && (
@@ -222,17 +217,20 @@ const Header = () => {
             note={activeNote}
             open={isDeleteNoteDialogOpen}
             setOpen={setIsDeleteNoteDialogOpen}
-            deleteNoteDial={handleDeleteNote} onSuccess={function (): void {
+            deleteNoteDial={handleDeleteNote}
+            onSuccess={function (): void {
               throw new Error("Function not implemented.");
-            } }          />
+            }}
+          />
           <DeleteNoteDialog
             note={activeNote!}
             open={isTrashDialogOpen}
             setOpen={setIsTrashDialogOpen}
-            deleteNoteDial={handleMoveNoteToTrash} 
+            deleteNoteDial={handleMoveNoteToTrash}
             onSuccess={function (): void {
               throw new Error("Function not implemented.");
-            } }          />
+            }}
+          />
         </>
       )}
     </Container>
@@ -270,7 +268,7 @@ const IconButton = styled.button`
   ${baseIconButton}
   font-size: 28px;
   padding: 2px;
-  color:rgb(255, 131, 104);
+  color: rgb(255, 131, 104);
 
   &:hover {
     background-color: #e9e9e7;

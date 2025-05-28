@@ -8,6 +8,7 @@ import { useMainContext } from "../../context/NoteContext";
 import { ContainerProps } from "@mui/material";
 import { getTag } from "../../services/tagsApi";
 import { Tag } from "../../types/index";
+import { useNotebooks } from "../../context/NotebookContext";
 
 interface ComponentProps {
   note: Note;
@@ -25,8 +26,6 @@ const NoteListItem = ({ note, tags, onClick, active }: ComponentProps) => {
     activeNote,
     setActiveNote,
     setActiveNoteId,
-    notebooks,
-    setNotebooks,
     setLoading,
     deleteNoteApi,
     moveNote,
@@ -37,14 +36,25 @@ const NoteListItem = ({ note, tags, onClick, active }: ComponentProps) => {
     deletedNotes,
   } = useMainContext();
 
+  const { notebooks, activeNotebook } = useNotebooks();
+
   const handleClick = () => {
-    if (toggleNoteList) toggleNoteList();
+    if (toggleNoteList) 
+      toggleNoteList();
     onClick(note.id);
   };
 
+  const notebook = notebooks.find((nb) => nb.id === note.notebook_id);
+  console.log("NOTEBOOK in NoteListItem: ", notebook);
+
   return (
     <Container onClick={handleClick} $active={active}>
-      <Title>{note.name ? note.name : "Untitled"}</Title>
+      <Title>
+        {note.name ? note.name : "Untitled"}{" "}
+        <NotebookTitleNote>
+          {notebook && (activeNotebook?.id !== notebook.id) ? `| ${notebook.name}` : ""}
+        </NotebookTitleNote>{" "}
+      </Title>
       <Content>{formatText(note.text)}</Content>
       <Tags>
         {(() => {
@@ -105,7 +115,6 @@ const Container = styled.div<{ $active: boolean }>`
   }
 
   &:before {
-    content: "";
     position: absolute;
     top: 23px;
     left: 10px;
@@ -163,7 +172,7 @@ const Tagg = styled.div<{ color: string }>`
   font-size: 12px;
 `;
 
-const Timestamp = styled.div`
-  color: rgb(98, 98, 98);
-  font-size: 12px;
+const NotebookTitleNote = styled.span`
+  font-size: 14px;
+  color: gray;
 `;

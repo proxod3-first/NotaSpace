@@ -116,6 +116,7 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
 
   const setActiveNoteId = (id: string | null) => {
     const note = notes.find((note) => note.id === id);
+    console.log("setActiveNote: ", note);
     setActiveNote(note || null);
   };
 
@@ -205,7 +206,10 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       const createdNote = await createNote(note);
-      setNotes((prev) => [...prev, createdNote]);
+      setNotes((prev) => {
+        const validNotes = createdNote ? [...prev, createdNote] : prev; // Добавляем только если createdNote не null
+        return validNotes;
+      });
     } catch (error) {
       setError("Ошибка при создании заметки");
     } finally {
@@ -220,7 +224,9 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       const updatedNote = await updateNote(id, note);
-      setNotes((prev) => prev.map((n) => (n.id === id ? updatedNote : n)));
+      setNotes((prev) =>
+        prev.map((n) => (n.id === id && updatedNote ? updatedNote : n))
+      );
     } catch (error) {
       setError("Ошибка при обновлении заметки");
     } finally {
@@ -232,7 +238,9 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       const updatedNote = await addTagToNote(noteId, tagId);
-      setNotes((prev) => prev.map((n) => (n.id === noteId ? updatedNote : n)));
+      setNotes((prev) =>
+        prev.map((n) => (n.id === noteId && updatedNote ? updatedNote : n))
+      );
     } catch (error) {
       setError("Ошибка при добавлении тэга");
     } finally {
@@ -244,7 +252,9 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       const updatedNote = await removeTagFromNote(noteId, tagId);
-      setNotes((prev) => prev.map((n) => (n.id === noteId ? updatedNote : n)));
+      setNotes((prev) =>
+        prev.map((n) => (n.id === noteId && updatedNote ? updatedNote : n))
+      );
     } catch (error) {
       setError("Ошибка при удалении тэга");
     } finally {

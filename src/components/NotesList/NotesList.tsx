@@ -55,22 +55,6 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
     setNotes(notes);
   }, [notes]);
 
-  const fetchTags = async () => {
-    const tagsForNotes = await Promise.all(
-      notes.map(async (note) => {
-        // Проверяем, что у заметки есть теги, и если есть, загружаем их
-        if (note.tags) {
-          const noteTags = await Promise.all(
-            note.tags.map((tagId) => getTag(tagId)) // Получаем тег по ID
-          );
-          return noteTags.filter(Boolean); // Фильтруем null и undefined
-        }
-        return []; // Если тегов нет, возвращаем пустой массив
-      })
-    );
-    setTags(tagsForNotes); // Сохраняем в состоянии
-  };
-
   useEffect(() => {
     if (activeNotebook) {
       setActiveNotebook(activeNotebook.id);
@@ -83,6 +67,40 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
 
   const handleTagClick = (tagId: string | null) => {
     setSelectedTag((prevTag) => (prevTag === tagId ? null : tagId));
+  };
+
+  const fetchTags = async () => {
+    try {
+      // Получаем теги для каждой заметки, не используя кэш
+      const tagsForNotes = await Promise.all(
+        notes.map(async (note) => {
+          if (note.tags) {
+            const noteTags = await Promise.all(
+              note.tags.map(async (tagId) => {
+                const tag = await getTag(tagId); // Запрос к серверу для получения тега по ID
+                if (tag) {
+                  return { id: tag.id, name: tag.name, color: tag.color }; // Возвращаем тег
+                }
+                return null;
+              })
+            );
+            // Фильтруем null значения, если не удалось получить тег
+            return noteTags.filter(Boolean) as {
+              id: string;
+              name: string;
+              color: string;
+            }[];
+          }
+          return [];
+        })
+      );
+
+      // Обновляем состояние тегов
+      setTags(tagsForNotes);
+    } catch (error) {
+      setError("Ошибка при загрузке тегов");
+      console.error("Ошибка при загрузке тегов:", error);
+    }
   };
 
   const filteredNotesInNotebook = useMemo(() => {
@@ -118,8 +136,17 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
     return notesToFilter;
   }, [selectedTag, filteredNotesInNotebook]);
 
-  const handleNoteClick = (noteId: string) => {
-    setActiveNoteId(noteId);
+  const handleNoteClick = async (noteId: string) => {
+    const updatedNotes = await fetchNotes();
+    setNotes(updatedNotes);
+
+    // 2. Находим именно ту заметку, по которой кликнули
+    const selectedNote = updatedNotes.find((n) => n.id === noteId) || null;
+    console.log("noteId: ", noteId);
+    console.log("noteId: ", selectedNote);
+
+    // 3. Устанавливаем и активную заметку, и её ID
+    setActiveNote(selectedNote);
   };
 
   return (
@@ -142,7 +169,7 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
               </TagButton>
             ))
           ) : (
-            <NoTagsMessage>Нет тегов для этой книги</NoTagsMessage>
+            <NoTagsMessage>{}</NoTagsMessage>
           )}
         </TagListContainer>
 
@@ -179,9 +206,9 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
 
 export default NoteList;
 
-interface ContainerProps {
-  $isNoteListOpen?: boolean;
-}
+// interface ContainerProps {
+//   $isNoteListOpen?: boolean;
+// }
 
 const ErrorMessage = styled.div`
   color: red;
@@ -236,7 +263,7 @@ const TagListContainer = styled.div`
 
 const TagButton = styled.button<TagButtonProps>`
   background-color: ${(props) =>
-    props.selected ? "#d1d1d1" : props.style?.backgroundColor || "#f4f4f4"};
+    props.selected ? "#ddd" : props.style?.backgroundColor || "#f4f4f4"};
   border: 1px solid #ddd;
   padding: 8px 16px;
   border-radius: 8px;
