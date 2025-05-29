@@ -6,10 +6,10 @@ import NoNotesMessage from "./NoNotesMessage";
 import { Note } from "../../types/index";
 import { Container, List as MuiList } from "@mui/material";
 import { getTag } from "../../services/tagsApi";
-import { useGetActiveNotebook } from "../../hooks/hooks";
 import { useNotebooks } from "../../context/NotebookContext";
 import { useMainContext } from "../../context/NoteContext";
-import { fetchNotes, fetchNotesByNotebook } from "../../services/notesApi";
+import { fetchNotes } from "../../services/notesApi";
+import SearchField from "./SearchField";
 
 export interface NoteListProps {
   notes: Note[];
@@ -31,25 +31,22 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
     activeNote,
     setActiveNote,
     setActiveNoteId,
-    notebooks,
-    setNotebooks,
     setLoading,
     deleteNoteApi,
-    moveNote,
-    archiveNote,
-    restoreNote,
-    permanentlyDeleteNote,
-    archivedNotes,
-    deletedNotes,
   } = useMainContext();
 
+  const [selectedNotesIds, setSelectedNotesIds] = useState<string[]>([]);
   const { activeNotebook, setActiveNotebook } = useNotebooks(); // Получаем активный блокнот
   const [tags, setTags] = useState<
     { id: string; name: string; color: string }[][]
   >([]);
-
-  const [selectedTag, setSelectedTag] = useState<string | null>(null); // Состояние для выбранного тега
+  const [selectedTags, setSelectedTags] = useState<string[]>([]); // Массив для хранения выбранных тегов
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>(""); // Состояние для поискового запроса
+
+  // useEffect(() => {
+  //   setSelectedTags(selectedTags);
+  // }, [selectedTags]);
 
   useEffect(() => {
     setNotes(notes);
@@ -63,28 +60,36 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
 
   useEffect(() => {
     fetchTags(); // Загружаем теги при изменении заметок
-  }, [notes]);
+  }, [notes, selectedTags]);
 
-  const handleTagClick = (tagId: string | null) => {
-    setSelectedTag((prevTag) => (prevTag === tagId ? null : tagId));
+  useEffect(() => {
+    checkSelectedTags(selectedTags);
+  }, [selectedTags, tags]);
+
+  const handleTagClick = (tagId: string) => {
+    setSelectedTags((prevTags) => {
+      if (prevTags.includes(tagId)) {
+        return prevTags.filter((id) => id !== tagId); // Убираем тег, если он уже выбран
+      } else {
+        return [...prevTags, tagId]; // Добавляем тег, если он не выбран
+      }
+    });
   };
 
   const fetchTags = async () => {
     try {
-      // Получаем теги для каждой заметки, не используя кэш
       const tagsForNotes = await Promise.all(
         notes.map(async (note) => {
           if (note.tags) {
             const noteTags = await Promise.all(
               note.tags.map(async (tagId) => {
-                const tag = await getTag(tagId); // Запрос к серверу для получения тега по ID
+                const tag = await getTag(tagId);
                 if (tag) {
-                  return { id: tag.id, name: tag.name, color: tag.color }; // Возвращаем тег
+                  return { id: tag.id, name: tag.name, color: tag.color };
                 }
                 return null;
               })
             );
-            // Фильтруем null значения, если не удалось получить тег
             return noteTags.filter(Boolean) as {
               id: string;
               name: string;
@@ -94,8 +99,6 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
           return [];
         })
       );
-
-      // Обновляем состояние тегов
       setTags(tagsForNotes);
     } catch (error) {
       setError("Ошибка при загрузке тегов");
@@ -105,16 +108,14 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
 
   const filteredNotesInNotebook = useMemo(() => {
     if (activeNotebook) {
-      setActiveNotebook(activeNotebook.id);
       return notes.filter((note) => note.notebook_id === activeNotebook.id);
     }
-    return notes; // Если книга не выбрана, показываем все заметки
+    return notes;
   }, [activeNotebook, notes]);
 
   const uniqueTags = useMemo(() => {
     const tagMap = new Map();
     filteredNotesInNotebook.forEach((note) => {
-      console.log("UNIQUE TAGS: ", note);
       note.tags?.forEach((tagId) => {
         const tagObj = tags.flat().find((t) => t.id === tagId);
         if (tagObj && !tagMap.has(tagObj.id)) {
@@ -127,31 +128,65 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
 
   const filteredNotesByTag = useMemo(() => {
     let notesToFilter = filteredNotesInNotebook;
-    if (selectedTag) {
-      notesToFilter = notesToFilter.filter(
-        (note) => note.tags && note.tags.includes(selectedTag)
+    if (selectedTags.length > 0) {
+      notesToFilter = notesToFilter.filter((note) =>
+        note.tags?.some((tagId) => selectedTags.includes(tagId))
       );
     }
-    console.log("filteredNotesInNotebook: ", notesToFilter);
     return notesToFilter;
-  }, [selectedTag, filteredNotesInNotebook]);
+  }, [selectedTags, filteredNotesInNotebook]);
+
+  // Фильтрация заметок по поисковому запросу
+  const filteredNotesBySearch = useMemo(() => {
+    const notesToFilter = filteredNotesByTag;
+    if (searchQuery) {
+      return notesToFilter.filter(
+        (note) =>
+          note.text?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          note.name?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    return notesToFilter;
+  }, [searchQuery, filteredNotesByTag]);
 
   const handleNoteClick = async (noteId: string) => {
     const updatedNotes = await fetchNotes();
     setNotes(updatedNotes);
 
-    // 2. Находим именно ту заметку, по которой кликнули
     const selectedNote = updatedNotes.find((n) => n.id === noteId) || null;
-    console.log("noteId: ", noteId);
-    console.log("noteId: ", selectedNote);
-
-    // 3. Устанавливаем и активную заметку, и её ID
     setActiveNote(selectedNote);
+  };
+
+  const checkSelectedTags = (selectedTags: string[]) => {
+    const validTags = selectedTags.filter((tagId) =>
+      tags.flat().some((tag) => tag.id === tagId)
+    );
+    if (validTags.length !== selectedTags.length) {
+      // Если есть недействительные теги, обновляем состояние
+      setSelectedTags(validTags);
+    }
+  };
+
+  const handleNoteSelection = (noteId: string) => {
+    setSelectedNotesIds((prevSelectedIds) => {
+      if (prevSelectedIds.includes(noteId)) {
+        return prevSelectedIds.filter((id) => id !== noteId);
+      } else {
+        return [...prevSelectedIds, noteId];
+      }
+    });
+  };
+
+  const handleSearchChange = (val: string) => {
+    setSearchQuery(val);
   };
 
   return (
     <Container>
       <Header />
+
+      {/* Поле для поиска */}
+      <SearchField onChange={handleSearchChange} />
 
       {/* Отображаем список тегов */}
       <div>
@@ -161,7 +196,7 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
             uniqueTags.map((tag) => (
               <TagButton
                 key={tag.id}
-                selected={selectedTag === tag.id}
+                selected={selectedTags.includes(tag.id)} // Проверяем, выбран ли тег
                 onClick={() => handleTagClick(tag.id)}
                 style={{ backgroundColor: tag.color }}
               >
@@ -174,13 +209,11 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
         </TagListContainer>
 
         <div>
-          {filteredNotesByTag.length ? (
+          {filteredNotesBySearch.length ? (
             <List>
               <MuiList>
-                {filteredNotesByTag.map((note) => {
-                  // находим позицию этой заметки в общем массиве notes
+                {filteredNotesBySearch.map((note) => {
                   const idx = notes.findIndex((n) => n.id === note.id);
-                  // берём её теги из tags[idx] или пустой массив
                   const noteTagObjects = tags[idx] || [];
 
                   return (
@@ -206,10 +239,7 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
 
 export default NoteList;
 
-// interface ContainerProps {
-//   $isNoteListOpen?: boolean;
-// }
-
+// Стиль для контейнера
 const ErrorMessage = styled.div`
   color: red;
   margin: 0px 0;
@@ -218,12 +248,17 @@ const ErrorMessage = styled.div`
 const List = styled(MuiList)`
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow-y: auto; /* Включает прокрутку, если элементы выходят за пределы контейнера */
+  overflow-x: hidden; /* Отключает горизонтальную прокрутку */
   padding-right: 10px;
+  max-height: calc(
+    100vh - 177px
+  ); /* Ограничивает высоту списка, чтобы он не выходил за пределы экрана */
+  margin-bottom: 20px; /* Дополнительный отступ снизу для удобства */
 
+  /* Устанавливаем стиль для полосы прокрутки */
   &::-webkit-scrollbar {
-    width: 8px;
+    width: 2px;
   }
 
   &::-webkit-scrollbar-thumb {
@@ -234,56 +269,44 @@ const List = styled(MuiList)`
   &::-webkit-scrollbar-thumb:hover {
     background-color: #555;
   }
-
-  /* Мобильная адаптация */
-  @media (max-width: 767px) {
-    max-height: 100vh;
-    padding-right: 5px;
-  }
-
-  @media (max-width: 480px) {
-    max-height: 100vh;
-  }
-
-  @media (min-width: 810px) {
-    height: calc(
-      100vh - 115px
-    ); /* 100vh минус высота заголовка (например, 60px) и футера (например, 40px) */
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-  }
 `;
 
 const TagListContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
   padding: 10px 0;
+  gap: 10px;
 `;
 
-const TagButton = styled.button<TagButtonProps>`
+const TagButton = styled.button<{ selected: boolean }>`
   background-color: ${(props) =>
-    props.selected ? "#ddd" : props.style?.backgroundColor || "#f4f4f4"};
-  border: 1px solid #ddd;
+    props.selected
+      ? "#007bff"
+      : "#f4f4f4"}; /* Если выбран - синий, если нет - обычный фон */
+  border: 1px solid ${(props) => (props.selected ? "#ddd" : "#ddd")}; /* Темная граница для выбранных тегов */
   padding: 8px 16px;
   border-radius: 8px;
   font-size: 14px;
   cursor: pointer;
-  transition: all 0.23s ease;
+  transition: all 0.3s ease;
+  box-shadow: ${(props) =>
+    props.selected
+      ? "0 0 10px rgba(0, 123, 255, 0.5)"
+      : "none"}; /* Тень для выделенных тегов */
 
   &:hover {
-    background-color: ${(props) => (props.selected ? "#b5b5b5" : "#e0e0e0")};
+    background-color: ${(props) =>
+      props.selected
+        ? "#0056b3"
+        : "#e0e0e0"}; /* При наведении, для выбранных - темный оттенок */
     transform: scale(1.05);
   }
 
   &:active {
-    background-color: ${(props) => (props.selected ? "#a0a0a0" : "#ccc")};
+    box-shadow: 3px 4px 5px rgba(0, 0, 255, 0.3); /* Тень при фокусе */
+    background-color: ${(props) =>
+      props.selected ? "#004085" : "#ccc"}; /* При активном нажатии */
     transform: scale(0.98);
-  }
-
-  &:focus {
-    outline: none;
-    box-shadow: 0 0 5px rgba(0, 0, 255, 0.3);
   }
 `;
 

@@ -16,7 +16,6 @@ import {
 } from "@mui/icons-material"; // Используем иконки MUI
 import CreateNotebookDialog from "./CreateNotebookDialog";
 import { UIContext } from "../../context/UIContext";
-import SearchField from "./SearchField";
 import TagManager from "./TagManager";
 import ThemeToggle from "./ThemeToggle";
 import ArrowTooltip from "../Shared/ArrowTooltip";
@@ -47,20 +46,10 @@ const BaseSidebar = () => {
   const { archivedNotes } = useMainContext(); // Подключаем архивированные заметки
 
   const [archivedOpen, setArchivedOpen] = useState(false);
-  const { deletedNotes, restoreNote, permanentlyDeleteNote } = useMainContext();
-  const [deletedOpen, setDeletedOpen] = React.useState(false);
+  // const [deletedOpen, setDeletedOpen] = React.useState(false);
 
   const { handleClick } = AllNotesOption();
 
-  const handlePermanentlyDelete = async (noteId: string) => {
-    try {
-      await permanentlyDeleteNote(noteId); // Запрос в API для окончательного удаления
-      alert("Note deleted permanently");
-    } catch (error) {
-      console.error("Failed to delete permanently", error);
-      alert("Error deleting note permanently");
-    }
-  };
   const [openDialog, setOpenDialog] = useState(false);
   const [notebooksOpen, setNotebooksOpen] = useState(false);
   const [tagsOpen, setTagsOpen] = useState(false);
@@ -76,7 +65,6 @@ const BaseSidebar = () => {
   return (
     <Container>
       <List>
-        <SearchField onChange={(text) => console.log("Search:", text)} />
         <Heading>
           <HeadingLeft>
             <ClickableSection onClick={handleClick}>
@@ -148,11 +136,11 @@ const BaseSidebar = () => {
         {/* Раздел для Deleted */}
         <Heading>
           <HeadingLeft>
-            <ClickableSection onClick={() => setDeletedOpen((prev) => !prev)}>
+            {/* <ClickableSection onClick={() => setDeletedOpen((prev) => !prev)}> */}
               <DeleteIcon />
               <TextWrapper>Recently Deleted</TextWrapper>
-              <RotateIcon open={deletedOpen} />
-            </ClickableSection>
+              {/* <RotateIcon open={deletedOpen} /> */}
+            {/* </ClickableSection> */}
           </HeadingLeft>
         </Heading>
         {/* {deletedOpen && (
@@ -264,7 +252,7 @@ const Heading = styled.div`
   justify-content: space-between;
   align-items: center;
   padding: 0 16px;
-  height: 36px;
+  height: 40px;
   color: var(--sidebar-text-muted);
 
   & svg {

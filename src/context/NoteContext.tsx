@@ -12,6 +12,11 @@ import {
   updateNote,
   addTagToNote,
   removeTagFromNote,
+  fetchTrashNotes,
+  fetchArchivedNotes,
+  moveNoteToArchive,
+  restoreNoteFromArchive,
+  changeNoteNotebook,
 } from "../services/notesApi";
 
 type MainContextType = {
@@ -33,9 +38,7 @@ type MainContextType = {
   error: string | null;
   setError: React.Dispatch<React.SetStateAction<string | null>>;
 
-  deleteNoteApi: (id: string) => Promise<void>;
-
-  moveNote: (
+  moveNoteToNewNotebook: (
     noteId: string,
     targetNotebookId: string,
     onSuccess: () => void,
@@ -43,13 +46,20 @@ type MainContextType = {
   ) => void;
 
   // Архивация
-  archiveNote: (noteId: string) => void;
-  restoreNote: (noteId: string) => void;
-  permanentlyDeleteNote: (noteId: string) => void;
+  fetchArchiveAllNotes: () => void; // Добавлено сюда
+  moveNoteIntoArchive: (noteId: string) => void;
+  restoreNoteArchive: (noteId: string) => void;
+
+  deleteNoteApi: (id: string) => Promise<void>;
+
+  // Корзина
+  fetchTrashAllNotes: () => void; // Добавлено сюда
+  moveNoteIntoTrash: (noteId: string) => void;
+  restoreNoteTrash: (noteId: string) => void;
 
   // Получаем архивированные и удаленные заметки
   archivedNotes: Note[];
-  deletedNotes: Note[];
+  trashedNotes: Note[];
 
   // API функции для работы с заметками
   fetchNotes: () => void;
@@ -65,8 +75,6 @@ type MainContextType = {
   ) => void;
   addTagToNoteApi: (noteId: string, tagId: string) => void;
   removeTagFromNoteApi: (noteId: string, tagId: string) => void;
-  moveNoteToTrashApi: (id: string) => void;
-  restoreNoteFromTrashApi: (id: string) => void;
 };
 
 const NoteContext = createContext<MainContextType | undefined>(undefined);
@@ -81,75 +89,11 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const deleteNoteApi = async (id: string) => {
-    try {
-      await deleteNote(id);
-      setNotes((prev) => prev.filter((note) => note.id !== id));
-      setActiveNote((prev) => (prev?.id === id ? null : prev));
-    } catch (error) {
-      setError("Не удалось удалить заметку");
-    }
-  };
-
-  const moveNote = (
-    noteId: string,
-    targetNotebookId: string,
-    onSuccess: () => void,
-    onError: (msg: string) => void
-  ) => {
-    try {
-      setNotes((prev) => {
-        const idx = prev.findIndex((n) => n.id === noteId);
-        if (idx === -1) {
-          onError("Заметка не найдена");
-          return prev;
-        }
-        const updated = [...prev];
-        updated[idx] = { ...updated[idx], notebook_id: targetNotebookId };
-        onSuccess();
-        return updated;
-      });
-    } catch (error) {
-      onError("Ошибка при перемещении");
-    }
-  };
-
   const setActiveNoteId = (id: string | null) => {
     const note = notes.find((note) => note.id === id);
     console.log("setActiveNote: ", note);
     setActiveNote(note || null);
   };
-
-  // Архивируем заметку
-  const archiveNote = (noteId: string) => {
-    setNotes((prev) => {
-      const updatedNotes = prev.map((note) =>
-        note.id === noteId ? { ...note, is_archived: true } : note
-      );
-      return updatedNotes;
-    });
-  };
-
-  // Восстанавливаем заметку из архива
-  const restoreNote = (noteId: string) => {
-    setNotes((prev) => {
-      const updatedNotes = prev.map((note) =>
-        note.id === noteId
-          ? { ...note, is_archived: false, is_deleted: false }
-          : note
-      );
-      return updatedNotes;
-    });
-  };
-
-  // Окончательное удаление заметки
-  const permanentlyDeleteNote = (noteId: string) => {
-    setNotes((prev) => prev.filter((note) => note.id !== noteId));
-  };
-
-  // Фильтруем архивированные и удаленные заметки
-  const archivedNotes = notes.filter((note) => note.is_archived);
-  const deletedNotes = notes.filter((note) => note.is_deleted);
 
   // API Функции для работы с заметками
   const fetchNotesHandler = async () => {
@@ -262,13 +206,59 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const moveNoteToTrashApiHandler = async (id: string) => {
+
+
+  const moveNoteToNewNotebook = async (noteId: string, notebookId: string) => {
+  try {
+    setLoading(true);
+    // Используем уже существующую ручку
+    const updatedNote = await changeNoteNotebook(noteId, notebookId);
+    
+    if (updatedNote) {
+      // Обновляем заметки в контексте, если операция успешна
+      setNotes((prevNotes) =>
+        prevNotes.map((note) =>
+          note.id === updatedNote.id ? { ...note, notebook_id: notebookId } : note
+        )
+      );
+      setLoading(false);
+    } else {
+      setError("Не удалось переместить заметку в блокнот");
+      setLoading(false);
+    }
+  } catch (error) {
+    console.error("Произошла ошибка при перемещении заметки в новый блокнот:", error);
+    setError("Произошла ошибка при перемещении заметки");
+    setLoading(false);
+  }
+};
+
+
+  //////////////////////////////////////////////////////
+
+  // Фильтруем архивированные и удаленные заметки
+  const archivedNotes = notes.filter((note) => note.is_archived);
+  const trashedNotes = notes.filter((note) => note.is_deleted);
+
+  const fetchTrashAllNotesHandler = async () => {
     try {
       setLoading(true);
-      await moveNoteToTrash(id);
+      const trashNotes = await fetchTrashNotes();
+      setNotes(trashNotes);
+    } catch (error) {
+      setError("Ошибка при загрузке заметок из корзины");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const moveNoteIntoTrashHandler = async (noteId: string) => {
+    try {
+      setLoading(true);
+      await moveNoteToTrash(noteId);
       setNotes((prev) =>
         prev.map((note) =>
-          note.id === id ? { ...note, is_deleted: true } : note
+          note.id === noteId ? { ...note, is_deleted: true } : note
         )
       );
     } catch (error) {
@@ -278,17 +268,73 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const restoreNoteFromTrashApiHandler = async (id: string) => {
+  const restoreNoteTrashHandler = async (noteId: string) => {
     try {
       setLoading(true);
-      await restoreNoteFromTrash(id);
+      await restoreNoteFromTrash(noteId);
       setNotes((prev) =>
         prev.map((note) =>
-          note.id === id ? { ...note, is_deleted: false } : note
+          note.id === noteId ? { ...note, is_deleted: false } : note
         )
       );
     } catch (error) {
       setError("Ошибка при восстановлении из корзины");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteNoteApi = async (id: string) => {
+    try {
+      await deleteNote(id);
+      setNotes((prev) => prev.filter((note) => note.id !== id));
+      setActiveNote((prev) => (prev?.id === id ? null : prev));
+    } catch (error) {
+      setError("Не удалось удалить заметку");
+    }
+  };
+
+  const fetchArchiveAllNotesHandler = async () => {
+    try {
+      setLoading(true);
+      const archivedNotes = await fetchArchivedNotes();
+      setNotes(archivedNotes);
+    } catch (error) {
+      setError("Ошибка при загрузке архивных заметок");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const moveNoteIntoArchiveHandler = async (noteId: string) => {
+    try {
+      setLoading(true);
+      await moveNoteToArchive(noteId);
+      setNotes((prev) =>
+        prev.map((note) =>
+          note.id === noteId ? { ...note, is_archived: true } : note
+        )
+      );
+    } catch (error) {
+      setError("Ошибка при перемещении в архив");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const restoreNoteArchiveHandler = async (noteId: string) => {
+    try {
+      setLoading(true);
+      await restoreNoteFromArchive(noteId);
+      setNotes((prev) =>
+        prev.map((note) =>
+          note.id === noteId
+            ? { ...note, is_archived: false, is_deleted: false }
+            : note
+        )
+      );
+    } catch (error) {
+      setError("Ошибка при восстановлении из архива");
     } finally {
       setLoading(false);
     }
@@ -311,12 +357,20 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
         error,
         setError,
         deleteNoteApi,
-        moveNote,
-        archiveNote,
-        restoreNote,
-        permanentlyDeleteNote,
+
+        moveNoteToNewNotebook,
+
+        fetchTrashAllNotes: fetchTrashAllNotesHandler,
+        moveNoteIntoTrash: moveNoteIntoTrashHandler,
+        restoreNoteTrash: restoreNoteTrashHandler,
+
+        fetchArchiveAllNotes: fetchArchiveAllNotesHandler,
+        moveNoteIntoArchive: moveNoteIntoArchiveHandler,
+        restoreNoteArchive: restoreNoteArchiveHandler,
+
         archivedNotes,
-        deletedNotes,
+        trashedNotes,
+
         fetchNotes: fetchNotesHandler,
         fetchNoteById: fetchNoteByIdHandler,
         fetchNotesByNotebook: fetchNotesByNotebookHandler,
@@ -325,8 +379,6 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
         updateNoteApi: updateNoteApiHandler,
         addTagToNoteApi: addTagToNoteApiHandler,
         removeTagFromNoteApi: removeTagFromNoteApiHandler,
-        moveNoteToTrashApi: moveNoteToTrashApiHandler,
-        restoreNoteFromTrashApi: restoreNoteFromTrashApiHandler,
       }}
     >
       {children}

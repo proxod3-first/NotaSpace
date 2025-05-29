@@ -34,6 +34,7 @@ import "react-markdown-editor-lite/lib/index.css";
 import { Note } from "../../types";
 import { useMainContext } from "../../context/NoteContext";
 import { updateNote } from "../../services/notesApi";
+import { useNotebooks } from "../../context/NotebookContext";
 
 interface EditorProps {
   note: Note;
@@ -63,16 +64,8 @@ const Editor = ({ note }: EditorProps) => {
     activeNote,
     setActiveNote,
     setActiveNoteId,
-    notebooks,
-    setNotebooks,
     setLoading,
     deleteNoteApi,
-    moveNote,
-    archiveNote,
-    restoreNote,
-    permanentlyDeleteNote,
-    archivedNotes,
-    deletedNotes,
     setError,
   } = useMainContext();
 
@@ -85,6 +78,7 @@ const Editor = ({ note }: EditorProps) => {
   const [tagObjects, setTagObjects] = useState<Tag[]>([]); // Массив объектов тегов для отображения
   const [newTag, setNewTag] = useState<string>(""); // Новое название тега
   const [editTagId, setEditTagId] = useState<string | null>(null); // ID тега для редактирования
+  const { notebooks, setNotebooks } = useNotebooks();
 
   // Full screen
   const [fullScreen, setFullScreen] = useState(false);
@@ -100,6 +94,8 @@ const Editor = ({ note }: EditorProps) => {
   // Responsive layout context
   const { isNoteListOpen, toggleNoteList } = useContext(UIContext);
   const { isSidebarOpen, toggleSidebar } = useContext(UIContext);
+
+  const { moveNoteToNewNotebook } = useMainContext();
 
   useEffect(() => {
     if (!activeNote) return;
@@ -278,12 +274,11 @@ const Editor = ({ note }: EditorProps) => {
 
   const handleMoveNote = (
     noteId: string,
-    currentNotebookId: string,
     targetNotebookId: string,
     onSuccess: () => void,
     onError: (msg: string) => void
   ) => {
-    moveNote(noteId, targetNotebookId, onSuccess, onError);
+    moveNoteToNewNotebook(noteId, targetNotebookId, onSuccess, onError);
   };
 
   const handleAddTag = async () => {
@@ -482,9 +477,9 @@ const Editor = ({ note }: EditorProps) => {
           />
           <MoveNoteDialog
             note={note}
+            notebookIds={notebooks.map((nb) => nb.id)}
             open={isMoveNoteDialogOpen}
             setOpen={setIsMoveNoteDialogOpen}
-            notebookIds={notebooks.map((nb) => nb.id)}
             notebooks={Object.fromEntries(
               notebooks.map((nb) => [nb.id, { name: nb.name }])
             )}

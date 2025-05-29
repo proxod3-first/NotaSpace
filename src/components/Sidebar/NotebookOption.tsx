@@ -4,60 +4,57 @@ import styled from "styled-components";
 import { flexCenter } from "../../styles/mixins";
 import { Notebook } from "../../types";
 import { UIContext } from "../../context/UIContext";
-import { fetchNotesByNotebook } from "../../services/notesApi"; // Добавляем функцию для получения заметок по блокноту
+import { fetchNotesByNotebook } from "../../services/notesApi"; // Функция для получения заметок по блокноту
 import { useNotebooks } from "../../context/NotebookContext";
-import { fetchNotebooks } from "../../services/notebooksApi";
+import { useMainContext } from "../../context/NoteContext";
 
 interface ContainerProps {
   $active: boolean;
 }
-// TODO: Добавить логику для Trash и Archive (что можно и нельзя) и переименовать компонент
 
 interface ComponentProps extends ContainerProps {
   notebook: Notebook;
-  onClick?: () => void; // Мы добавляем опциональный пропс onClick
+  onClick?: () => void; // Опциональный пропс onClick
 }
 
 const NotebookOption = ({ notebook, $active, onClick }: ComponentProps) => {
   const { toggleSidebar } = useContext(UIContext);
   const [noteCount, setNoteCount] = useState<number>(0); // Состояние для хранения количества заметок
+  const { notes, setNotes } = useMainContext();
+
   const {
     notebooks,
-    setNotebooks,
-    setActiveNotebook,
-    activeNotebook,
-    addNotebook,
+    setActiveNotebook, // Чтобы установить активный блокнот
+    activeNotebook, // Делаем проверку, чтобы избежать лишних запросов
   } = useNotebooks();
 
-  useEffect(() => {
-    const fetchAll = async () => {
-      try {
-        if (activeNotebook?.id == null) {
-          const fetchedNotebooks = await fetchNotebooks();
-          setNotebooks(fetchedNotebooks);
-        }
-
-        // После этого — грузим заметки для notebook.id
-        console.log("notebook: ", notebooks);
-        const notes = await fetchNotesByNotebook(notebook.id);
-        if (Array.isArray(notes) && notes.length !== 0) {
-          setNoteCount(notes.length);
-        }
-      } catch (error) {
-        console.error("Ошибка при загрузке данных:", error);
+  // Функция для получения заметок из блокнота
+  const fetchNotesForNotebook = async (notebookId: string) => {
+    try {
+      const notes = await fetchNotesByNotebook(notebookId);
+      if (Array.isArray(notes)) {
+        setNoteCount(notes.length); // Обновляем количество заметок
       }
-    };
+    } catch (error) {
+      console.error("Ошибка при загрузке данных:", error);
+    }
+  };
 
-    fetchAll();
-  }, [notebook.id]); // Перезапускаем эффект при изменении блока
+  useEffect(() => {
+    fetchNotesForNotebook(notebook.id); // Загружаем заметки для блокнота
+  }, notes);
+
+  // Для изменения активного блокнота
+  const handleClick = () => {
+    toggleSidebar(); // Закрываем сайдбар
+    setActiveNotebook(notebook.id); // Устанавливаем активный блокнот, передавая его id
+    if (onClick) onClick(); // Если передан onClick, вызываем его
+  };
 
   return (
     <Link
-      to={`/`}
-      onClick={() => {
-        toggleSidebar();
-        if (onClick) onClick();
-      }}
+      to={`/`} // Переход на нужный путь
+      onClick={handleClick} // Обработчик клика на блокнот
     >
       <Container $active={$active}>
         <TextWrapper>
@@ -79,6 +76,8 @@ const Container = styled.div<ContainerProps>`
   height: 36px;
   color: var(--sidebar-text-normal);
   padding-left: 43px;
+  border-radius: 10px;
+  margin-bottom: 3px;
   ${({ $active }) =>
     $active && "background-color: var(--sidebar-background-active);"}
 

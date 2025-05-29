@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-import { Search } from "@mui/icons-material"; // Импортируем иконки из MUI
+import { Search } from "@mui/icons-material";
 
 const SearchWrapper = styled.div`
   display: flex;
@@ -58,7 +58,7 @@ export default function SearchField({
       <SearchIcon />
       <SearchInput
         type="text"
-        placeholder="Search notebooks, tags..."
+        placeholder="Search name and text"
         value={value}
         onChange={handleChange}
         spellCheck={false}

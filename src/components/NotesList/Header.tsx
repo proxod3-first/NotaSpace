@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Fade from "@mui/material/Fade";
@@ -38,12 +38,6 @@ const Header = () => {
     setNotebooks,
     setLoading,
     deleteNoteApi,
-    moveNote,
-    archiveNote,
-    restoreNote,
-    permanentlyDeleteNote,
-    archivedNotes,
-    deletedNotes,
     setError,
   } = useMainContext();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -57,6 +51,7 @@ const Header = () => {
   const [isRenameNoteDialogOpen, setIsRenameNoteDialogOpen] = useState(false);
   const [isDeleteNoteDialogOpen, setIsDeleteNoteDialogOpen] = useState(false);
   const [isTrashDialogOpen, setIsTrashDialogOpen] = useState(false);
+
 
   const handleCloseMenu = () => {
     setAnchorEl(null);
@@ -78,6 +73,7 @@ const Header = () => {
       const updatedNotes = await fetchNotes();
       setNotes(updatedNotes);
 
+      
       if (activeNote) {
         setActiveNoteId(activeNote.id);
       } else {
@@ -163,7 +159,30 @@ const Header = () => {
         <HamburgerButton onClick={toggleSidebar}>
           <DensityMediumIcon />
         </HamburgerButton>
-        <Heading>{activeNotebook ? activeNotebook.name : "All Notes"}</Heading>
+        <Heading>
+          {activeNotebook ? (
+            // Когда есть активный блокнот, показываем его название и количество заметок в нем
+            <>
+              {activeNotebook.name}{" "}
+              {Array.isArray(notes) &&
+              notes.filter((note) => note.notebook_id === activeNotebook.id)
+                .length > 0
+                ? `(${
+                    notes.filter(
+                      (note) => note.notebook_id === activeNotebook.id
+                    ).length
+                  })`
+                : "(0)"}
+            </>
+          ) : (
+            // Когда нет активного блокнота, показываем "All Notes" и количество всех заметок
+            `All Notes ${
+              Array.isArray(notes) && notes.length > 0
+                ? `(${notes.length})`
+                : "(0)"
+            }`
+          )}
+        </Heading>
       </HeaderLeft>
       <ButtonGroup>
         <ArrowTooltip title="Add new note" placement="bottom">

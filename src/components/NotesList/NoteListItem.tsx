@@ -28,19 +28,12 @@ const NoteListItem = ({ note, tags, onClick, active }: ComponentProps) => {
     setActiveNoteId,
     setLoading,
     deleteNoteApi,
-    moveNote,
-    archiveNote,
-    restoreNote,
-    permanentlyDeleteNote,
-    archivedNotes,
-    deletedNotes,
   } = useMainContext();
 
   const { notebooks, activeNotebook } = useNotebooks();
 
   const handleClick = () => {
-    if (toggleNoteList) 
-      toggleNoteList();
+    if (toggleNoteList) toggleNoteList();
     onClick(note.id);
   };
 
@@ -52,7 +45,9 @@ const NoteListItem = ({ note, tags, onClick, active }: ComponentProps) => {
       <Title>
         {note.name ? note.name : "Untitled"}{" "}
         <NotebookTitleNote>
-          {notebook && (activeNotebook?.id !== notebook.id) ? `| ${notebook.name}` : ""}
+          {notebook && activeNotebook?.id !== notebook.id
+            ? `| ${notebook.name}`
+            : ""}
         </NotebookTitleNote>{" "}
       </Title>
       <Content>{formatText(note.text)}</Content>
@@ -96,32 +91,42 @@ const Container = styled.div<{ $active: boolean }>`
   font-size: 15px;
   padding: 16px 25px;
   margin-right: 10px;
-  margin-bottom: 7px;
+  margin-bottom: 10px;
   height: auto;
   border-radius: 8px;
-  background-color: ${({ $active }) => ($active ? "#e8e8e8" : "#f3f4f6")};
-  border: 1px solid ${({ $active }) => ($active ? "#bbb" : "#ddd")};
+  background-color: ${({ $active }) =>
+    $active
+      ? "#e4f0f9"
+      : "#f9fafb"}; /* Мягкий голубой для активного, светло-серый для неактивного */
+  border: 1px solid ${({ $active }) => ($active ? "#a3c4d7" : "#d1d9e6")}; /* Легкий серо-голубой для активного, светло-серый для неактивного */
   position: relative;
   box-shadow: ${({ $active }) =>
     $active
-      ? "0 4px 8px rgba(16, 16, 16, 0.4)"
-      : "0 2px 6px rgba(0, 0, 0, 0.2)"};
+      ? "0 4px 8px rgba(100, 150, 200, 0.1)" /* Мягкая тень для активного */
+      : "0 2px 6px rgba(0, 0, 0, 0.1)"}; /* Легкая тень для неактивного */
   transition: all 0.2s ease-in-out;
 
   &:hover {
     cursor: pointer;
-    background-color: ${({ $active }) => (!$active ? "#fafafa" : "#e0e8ff")};
-    box-shadow: 0 6px 12px rgba(5, 5, 5, 0.3);
+    background-color: ${({ $active }) =>
+      !$active
+        ? "#f0f4f8"
+        : "#d1e3f0"}; /* Плавный переход для фона при наведении */
+    box-shadow: 0 4px 8px rgba(50, 100, 150, 0.2); /* Мягкая тень при наведении */
   }
 
   &:before {
+    content: ""; /* Обязательно для псевдоэлемента */
     position: absolute;
     top: 23px;
     left: 10px;
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background-color: ${({ $active }) => ($active ? "#2ecc71" : "#e74c3c")};
+    background-color: ${({ $active }) =>
+      $active
+        ? "#8BC34A"
+        : "#FF7043"}; /* Зеленый для активного, оранжевый для неактивного */
     transition: background-color 0.3s ease;
   }
 
