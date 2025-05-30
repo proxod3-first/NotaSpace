@@ -57,15 +57,16 @@ type MainContextType = {
   moveNoteIntoTrash: (noteId: string) => void;
   restoreNoteTrash: (noteId: string) => void;
 
-  // Получаем архивированные и удаленные заметки
   archivedNotes: Note[];
+  setArchivedNotes: React.Dispatch<React.SetStateAction<Note[]>>;
   trashedNotes: Note[];
+  setTrashedNotes: React.Dispatch<React.SetStateAction<Note[]>>;
 
   // API функции для работы с заметками
   fetchNotes: () => void;
   fetchNoteById: (id: string) => void;
-  fetchNotesByNotebook: (notebookId: string) => void;
-  fetchNotesByTags: (tagIds: string[]) => void;
+  fetchNotesByNoteBook: (notebookId: string) => void;
+  fetchNotesByTagS: (tagIds: string[]) => void;
   createNoteApi: (
     note: Omit<Note, "id" | "is_deleted" | "is_archived">
   ) => void;
@@ -86,11 +87,14 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
   const [activeNotebook, setActiveNotebook] = useState<Notebook | null>(null);
   const [activeNote, setActiveNote] = useState<Note | null>(null);
 
+  const [archivedNotes, setArchivedNotes] = useState<Note[]>([]); // Список архивированных заметок
+  const [trashedNotes, setTrashedNotes] = useState<Note[]>([]);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const setActiveNoteId = (id: string | null) => {
-    const note = notes.find((note) => note.id === id);
+    const note = notes?.find((note) => note.id === id);
     console.log("setActiveNote: ", note);
     setActiveNote(note || null);
   };
@@ -126,7 +130,7 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
       const notesByNotebook = await fetchNotesByNotebook(notebookId);
       setNotes(notesByNotebook);
     } catch (error) {
-      setError("Ошибка при загрузке заметок из блокнота");
+      setError("Ошибка при загрузке заметок из книги");
     } finally {
       setLoading(false);
     }
@@ -206,45 +210,43 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-
-
   const moveNoteToNewNotebook = async (noteId: string, notebookId: string) => {
-  try {
-    setLoading(true);
-    // Используем уже существующую ручку
-    const updatedNote = await changeNoteNotebook(noteId, notebookId);
-    
-    if (updatedNote) {
-      // Обновляем заметки в контексте, если операция успешна
-      setNotes((prevNotes) =>
-        prevNotes.map((note) =>
-          note.id === updatedNote.id ? { ...note, notebook_id: notebookId } : note
-        )
+    try {
+      setLoading(true);
+      // Используем уже существующую ручку
+      const updatedNote = await changeNoteNotebook(noteId, notebookId);
+
+      if (updatedNote) {
+        // Обновляем заметки в контексте, если операция успешна
+        setNotes((prevNotes) =>
+          prevNotes.map((note) =>
+            note.id === updatedNote.id
+              ? { ...note, notebook_id: notebookId }
+              : note
+          )
+        );
+        setLoading(false);
+      } else {
+        setError("Не удалось переместить заметку в книгу");
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error(
+        "Произошла ошибка при перемещении заметки в новую книгу:",
+        error
       );
-      setLoading(false);
-    } else {
-      setError("Не удалось переместить заметку в блокнот");
+      setError("Произошла ошибка при перемещении заметки");
       setLoading(false);
     }
-  } catch (error) {
-    console.error("Произошла ошибка при перемещении заметки в новый блокнот:", error);
-    setError("Произошла ошибка при перемещении заметки");
-    setLoading(false);
-  }
-};
-
+  };
 
   //////////////////////////////////////////////////////
 
-  // Фильтруем архивированные и удаленные заметки
-  const archivedNotes = notes.filter((note) => note.is_archived);
-  const trashedNotes = notes.filter((note) => note.is_deleted);
-
+  // Загрузка всех заметок из корзины
   const fetchTrashAllNotesHandler = async () => {
     try {
-      setLoading(true);
-      const trashNotes = await fetchTrashNotes();
-      setNotes(trashNotes);
+      const temp_trashNotes = await fetchTrashNotes();
+      setTrashedNotes(temp_trashNotes);
     } catch (error) {
       setError("Ошибка при загрузке заметок из корзины");
     } finally {
@@ -252,53 +254,11 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const moveNoteIntoTrashHandler = async (noteId: string) => {
-    try {
-      setLoading(true);
-      await moveNoteToTrash(noteId);
-      setNotes((prev) =>
-        prev.map((note) =>
-          note.id === noteId ? { ...note, is_deleted: true } : note
-        )
-      );
-    } catch (error) {
-      setError("Ошибка при перемещении в корзину");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const restoreNoteTrashHandler = async (noteId: string) => {
-    try {
-      setLoading(true);
-      await restoreNoteFromTrash(noteId);
-      setNotes((prev) =>
-        prev.map((note) =>
-          note.id === noteId ? { ...note, is_deleted: false } : note
-        )
-      );
-    } catch (error) {
-      setError("Ошибка при восстановлении из корзины");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const deleteNoteApi = async (id: string) => {
-    try {
-      await deleteNote(id);
-      setNotes((prev) => prev.filter((note) => note.id !== id));
-      setActiveNote((prev) => (prev?.id === id ? null : prev));
-    } catch (error) {
-      setError("Не удалось удалить заметку");
-    }
-  };
-
+  // Загрузка всех архивных заметок
   const fetchArchiveAllNotesHandler = async () => {
     try {
-      setLoading(true);
-      const archivedNotes = await fetchArchivedNotes();
-      setNotes(archivedNotes);
+      const temp_archivedNotes = await fetchArchivedNotes();
+      setArchivedNotes(temp_archivedNotes);
     } catch (error) {
       setError("Ошибка при загрузке архивных заметок");
     } finally {
@@ -306,15 +266,98 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Перемещение заметки в корзину
+  const moveNoteIntoTrashHandler = async (noteId: string) => {
+    try {
+      setLoading(true);
+      await moveNoteToTrash(noteId);
+
+      // Обновляем статус заметки в основной коллекции
+      setNotes((prev) =>
+        prev?.map((note) =>
+          note.id === noteId ? { ...note, is_deleted: true } : note
+        )
+      );
+
+      // Перемещаем заметку в корзину
+      setTrashedNotes((prevTrashedNotes) => {
+        const updatedTrashedNotes = Array.isArray(prevTrashedNotes)
+          ? [
+              ...prevTrashedNotes,
+              notes?.find((note) => note.id === noteId) as Note,
+            ]
+          : [notes?.find((note) => note.id === noteId) as Note]; // если prevTrashedNotes не массив, создаём новый массив с одной заметкой
+        return updatedTrashedNotes;
+      });
+    } catch (error) {
+      setError("Ошибка при перемещении в корзину");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Восстановление заметки из корзины
+  const restoreNoteTrashHandler = async (noteId: string) => {
+    try {
+      setLoading(true);
+      await restoreNoteFromTrash(noteId);
+
+      // Обновляем статус заметки в основной коллекции
+      setNotes((prev) =>
+        prev.map((note) =>
+          note.id === noteId ? { ...note, is_deleted: false } : note
+        )
+      );
+
+      // Удаляем заметку из корзины
+      setTrashedNotes((prev) => prev?.filter((note) => note.id !== noteId));
+    } catch (error) {
+      setError("Ошибка при восстановлении из корзины");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Удаление заметки окончательно
+  const deleteNoteApi = async (id: string) => {
+    try {
+      setLoading(true);
+      await deleteNote(id);
+
+      // Удаляем заметку из всех коллекций
+      setNotes((prev) => prev?.filter((note) => note.id !== id));
+      setTrashedNotes((prev) => prev?.filter((note) => note.id !== id));
+      setArchivedNotes((prev) => prev?.filter((note) => note.id !== id));
+    } catch (error) {
+      setError("Не удалось удалить заметку");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Перемещение заметки в архив
   const moveNoteIntoArchiveHandler = async (noteId: string) => {
     try {
       setLoading(true);
       await moveNoteToArchive(noteId);
+
+      // Обновляем статус заметки в основной коллекции
       setNotes((prev) =>
         prev.map((note) =>
           note.id === noteId ? { ...note, is_archived: true } : note
         )
       );
+
+      // Перемещаем заметку в архив
+      setArchivedNotes((prevArchivedNotes) => {
+        const updatedArchivedNotes = Array.isArray(prevArchivedNotes)
+          ? [
+              ...prevArchivedNotes,
+              notes?.find((note) => note.id === noteId) as Note,
+            ]
+          : [notes?.find((note) => note.id === noteId) as Note]; // если prevArchivedNotes не массив, создаём новый массив с одной заметкой
+        return updatedArchivedNotes;
+      });
     } catch (error) {
       setError("Ошибка при перемещении в архив");
     } finally {
@@ -322,10 +365,13 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Восстановление заметки из архива
   const restoreNoteArchiveHandler = async (noteId: string) => {
     try {
       setLoading(true);
       await restoreNoteFromArchive(noteId);
+
+      // Обновляем статус заметки в основной коллекции
       setNotes((prev) =>
         prev.map((note) =>
           note.id === noteId
@@ -333,6 +379,9 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
             : note
         )
       );
+
+      // Удаляем заметку из архива
+      setArchivedNotes((prev) => prev?.filter((note) => note.id !== noteId));
     } catch (error) {
       setError("Ошибка при восстановлении из архива");
     } finally {
@@ -369,12 +418,14 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
         restoreNoteArchive: restoreNoteArchiveHandler,
 
         archivedNotes,
+        setArchivedNotes,
         trashedNotes,
+        setTrashedNotes,
 
         fetchNotes: fetchNotesHandler,
         fetchNoteById: fetchNoteByIdHandler,
-        fetchNotesByNotebook: fetchNotesByNotebookHandler,
-        fetchNotesByTags: fetchNotesByTagsHandler,
+        fetchNotesByNoteBook: fetchNotesByNotebookHandler,
+        fetchNotesByTagS: fetchNotesByTagsHandler,
         createNoteApi: createNoteApiHandler,
         updateNoteApi: updateNoteApiHandler,
         addTagToNoteApi: addTagToNoteApiHandler,

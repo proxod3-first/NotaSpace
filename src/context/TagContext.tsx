@@ -91,7 +91,6 @@ export const TagProvider: React.FC<TagProviderProps> = ({ children }) => {
       );
 
       await loadTags(); // Перезагружаем теги
-      
     } catch (error) {
       console.error("Error updating tag:", error);
     } finally {
@@ -101,12 +100,12 @@ export const TagProvider: React.FC<TagProviderProps> = ({ children }) => {
 
   const removeTag = async (id: string) => {
     await deleteTag(id);
-    setTags((prevTags) => prevTags.filter((tag) => tag.id !== id));
+    setTags((prevTags) => prevTags?.filter((tag) => tag.id !== id));
     await loadTags();
   };
 
   const getTagById = (id: string) => {
-    return tags.find((tag) => tag.id === id);
+    return tags?.find((tag) => tag.id === id);
   };
 
   return (

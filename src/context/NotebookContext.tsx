@@ -108,7 +108,7 @@ export const NotebookProvider: React.FC<NotebookProviderProps> = ({
   const removeNotebook = async (id: string) => {
     await deleteNotebook(id);
     setNotebooks((prevNotebooks) =>
-      prevNotebooks.filter((notebook) => notebook.id !== id)
+      prevNotebooks?.filter((notebook) => notebook.id !== id)
     );
   };
 
@@ -132,11 +132,11 @@ export const NotebookProvider: React.FC<NotebookProviderProps> = ({
 
   // Получение всех заметок в определенной книге
   const notesInNotebook = (id: string) => {
-    return notes.filter((note) => note.notebook_id === id);
+    return notes?.filter((note) => note.notebook_id === id);
   };
 
   const setActiveNotebook = (id: string) => {
-    const notebook = notebooks.find((notebook) => notebook.id === id);
+    const notebook = notebooks?.find((notebook) => notebook.id === id);
     console.log("setActiveNotebook =", notebook);
     setActiveNotebookState(notebook || null); // Если книга найдена, устанавливаем её, иначе null
   };

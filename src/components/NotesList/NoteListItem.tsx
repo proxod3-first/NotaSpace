@@ -32,12 +32,13 @@ const NoteListItem = ({ note, tags, onClick, active }: ComponentProps) => {
 
   const { notebooks, activeNotebook } = useNotebooks();
 
+  
   const handleClick = () => {
     if (toggleNoteList) toggleNoteList();
     onClick(note.id);
   };
 
-  const notebook = notebooks.find((nb) => nb.id === note.notebook_id);
+  const notebook = notebooks?.find((nb) => nb.id === note.notebook_id);
   console.log("NOTEBOOK in NoteListItem: ", notebook);
 
   return (
@@ -57,8 +58,8 @@ const NoteListItem = ({ note, tags, onClick, active }: ComponentProps) => {
           console.log("tags prop:", tags);
 
           return (note.tags ?? []).map((tagId) => {
-            const tagObj = tags.find((t) => t.id === tagId);
-            console.log("→ tagId:", tagId, "→ tagObj:", tagObj);
+            const tagObj = tags?.find((t) => t.id === tagId);
+            console.log("tagId:", tagId, "tagObj:", tagObj);
             if (!tagObj) return null;
 
             return (

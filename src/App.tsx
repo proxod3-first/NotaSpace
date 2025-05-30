@@ -4,17 +4,20 @@ import { MainProvider } from "./context/NoteContext";
 import { TagProvider } from "./context/TagContext";
 import { NotebookProvider } from "./context/NotebookContext";
 import GlobalStyle from "./styles/global";
+import { NotesVisibilityProvider } from "./context/NotesVisibilityContext";
 
 export default function App() {
   return (
     <MainProvider>
       <TagProvider>
         <NotebookProvider>
-          <GlobalStyle />
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
+          <NotesVisibilityProvider>
+            <GlobalStyle />
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
+          </NotesVisibilityProvider>
         </NotebookProvider>
       </TagProvider>
     </MainProvider>

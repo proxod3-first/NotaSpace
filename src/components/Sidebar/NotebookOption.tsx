@@ -4,7 +4,7 @@ import styled from "styled-components";
 import { flexCenter } from "../../styles/mixins";
 import { Notebook } from "../../types";
 import { UIContext } from "../../context/UIContext";
-import { fetchNotesByNotebook } from "../../services/notesApi"; // Функция для получения заметок по блокноту
+import { fetchNotesByNotebook } from "../../services/notesApi"; 
 import { useNotebooks } from "../../context/NotebookContext";
 import { useMainContext } from "../../context/NoteContext";
 
@@ -24,6 +24,7 @@ const NotebookOption = ({ notebook, $active, onClick }: ComponentProps) => {
 
   const {
     notebooks,
+    setNotebooks,
     setActiveNotebook, // Чтобы установить активный блокнот
     activeNotebook, // Делаем проверку, чтобы избежать лишних запросов
   } = useNotebooks();
@@ -33,7 +34,7 @@ const NotebookOption = ({ notebook, $active, onClick }: ComponentProps) => {
     try {
       const notes = await fetchNotesByNotebook(notebookId);
       if (Array.isArray(notes)) {
-        setNoteCount(notes.length); // Обновляем количество заметок
+        setNoteCount(notes?.length); // Обновляем количество заметок
       }
     } catch (error) {
       console.error("Ошибка при загрузке данных:", error);

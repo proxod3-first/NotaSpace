@@ -10,6 +10,7 @@ import { useNotebooks } from "../../context/NotebookContext";
 import { useMainContext } from "../../context/NoteContext";
 import { fetchNotes } from "../../services/notesApi";
 import SearchField from "./SearchField";
+import { useNotesVisibility } from "../../context/NotesVisibilityContext";
 
 export interface NoteListProps {
   notes: Note[];
@@ -33,10 +34,16 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
     setActiveNoteId,
     setLoading,
     deleteNoteApi,
+    archivedNotes,
+    setArchivedNotes,
+    trashedNotes,
+    setTrashedNotes,
+    fetchArchiveAllNotes,
+    fetchTrashAllNotes,
   } = useMainContext();
 
   const [selectedNotesIds, setSelectedNotesIds] = useState<string[]>([]);
-  const { activeNotebook, setActiveNotebook } = useNotebooks(); // Получаем активный блокнот
+  const { activeNotebook, setActiveNotebook } = useNotebooks(); 
   const [tags, setTags] = useState<
     { id: string; name: string; color: string }[][]
   >([]);
@@ -44,22 +51,28 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>(""); // Состояние для поискового запроса
 
+  const { showArchived, setShowArchived, showTrashed, setShowTrashed } =
+    useNotesVisibility(); // Получаем состояние из контекста
+
   // useEffect(() => {
-  //   setSelectedTags(selectedTags);
-  // }, [selectedTags]);
+  //   if (activeNotebook) {
+  //     setActiveNotebook(activeNotebook.id);
+  //   }
+  // }, [activeNotebook]);
 
   useEffect(() => {
-    setNotes(notes);
-  }, [notes]);
+    const loadTags = async () => {
+      try {
+        // Проверка, если заметки изменились (или selectedTags), загружаем теги
+        if (notes && Array.isArray(notes)) {
+          await fetchTags(); // Загружаем теги асинхронно
+        }
+      } catch (error) {
+        console.error("Ошибка загрузки тегов:", error);
+      }
+    };
 
-  useEffect(() => {
-    if (activeNotebook) {
-      setActiveNotebook(activeNotebook.id);
-    }
-  }, [activeNotebook]);
-
-  useEffect(() => {
-    fetchTags(); // Загружаем теги при изменении заметок
+    loadTags(); // Вызов асинхронной функции
   }, [notes, selectedTags]);
 
   useEffect(() => {
@@ -68,15 +81,22 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
 
   const handleTagClick = (tagId: string) => {
     setSelectedTags((prevTags) => {
-      if (prevTags.includes(tagId)) {
-        return prevTags.filter((id) => id !== tagId); // Убираем тег, если он уже выбран
-      } else {
-        return [...prevTags, tagId]; // Добавляем тег, если он не выбран
-      }
+      const updatedTags = prevTags.includes(tagId)
+        ? prevTags.filter((id) => id !== tagId)
+        : [...prevTags, tagId];
+
+      checkSelectedTags(updatedTags); // Можем прямо здесь вызывать проверку
+      return updatedTags;
     });
   };
 
   const fetchTags = async () => {
+    if (!notes || !Array.isArray(notes)) {
+      setNotes(notes || []);
+      console.log(notes);
+      throw new Error("Некорректный формат данных заметок");
+    }
+
     try {
       const tagsForNotes = await Promise.all(
         notes.map(async (note) => {
@@ -90,11 +110,13 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
                 return null;
               })
             );
-            return noteTags.filter(Boolean) as {
-              id: string;
-              name: string;
-              color: string;
-            }[];
+            return (
+              (noteTags?.filter(Boolean) as {
+                id: string;
+                name: string;
+                color: string;
+              }[]) ?? []
+            );
           }
           return [];
         })
@@ -108,60 +130,152 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
 
   const filteredNotesInNotebook = useMemo(() => {
     if (activeNotebook) {
-      return notes.filter((note) => note.notebook_id === activeNotebook.id);
+      console.log("NOTES: ");
+      return (
+        notes?.filter((note) => note.notebook_id === activeNotebook.id) ?? []
+      );
     }
     return notes;
   }, [activeNotebook, notes]);
 
-  const uniqueTags = useMemo(() => {
-    const tagMap = new Map();
-    filteredNotesInNotebook.forEach((note) => {
-      note.tags?.forEach((tagId) => {
-        const tagObj = tags.flat().find((t) => t.id === tagId);
-        if (tagObj && !tagMap.has(tagObj.id)) {
-          tagMap.set(tagObj.id, tagObj);
-        }
-      });
-    });
-    return Array.from(tagMap.values());
-  }, [filteredNotesInNotebook, tags]);
-
-  const filteredNotesByTag = useMemo(() => {
-    let notesToFilter = filteredNotesInNotebook;
-    if (selectedTags.length > 0) {
-      notesToFilter = notesToFilter.filter((note) =>
-        note.tags?.some((tagId) => selectedTags.includes(tagId))
+  const filteredNotesByTag = (notes: Note[]) => {
+    if (selectedTags?.length > 0) {
+      return (
+        notes?.filter((note) =>
+          note.tags?.some((tagId) => selectedTags.includes(tagId))
+        ) ?? []
       );
     }
-    return notesToFilter;
-  }, [selectedTags, filteredNotesInNotebook]);
+    return notes;
+  };
 
   // Фильтрация заметок по поисковому запросу
-  const filteredNotesBySearch = useMemo(() => {
-    const notesToFilter = filteredNotesByTag;
+  const filteredNotesBySearch = (notes: Note[]) => {
     if (searchQuery) {
-      return notesToFilter.filter(
-        (note) =>
-          note.text?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          note.name?.toLowerCase().includes(searchQuery.toLowerCase())
+      return (
+        notes?.filter(
+          (note) =>
+            note.text?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            note.name?.toLowerCase().includes(searchQuery.toLowerCase())
+        ) ?? []
       );
     }
-    return notesToFilter;
-  }, [searchQuery, filteredNotesByTag]);
+    return notes;
+  };
+
+  useEffect(() => {
+    console.log("Archived notes: ", archivedNotes);
+  }, [archivedNotes]);
+
+  useEffect(() => {
+    console.log("Trashed notes: ", trashedNotes);
+  }, [trashedNotes]);
+
+  const filterNotes = (
+    notes: Note[],
+    showArchived: boolean,
+    showTrashed: boolean
+  ) => {
+    if (!notes) return [];
+
+    // Если показываем архивные заметки
+    if (showArchived) {
+      return archivedNotes?.filter((note) => note.is_archived) ?? [];
+    }
+    // Если показываем удалённые заметки
+    if (showTrashed) {
+      return trashedNotes?.filter((note) => note.is_deleted) ?? [];
+    }
+    // Если не показываем ни архивные, ни удалённые
+    return notes?.filter((note) => !note.is_archived && !note.is_deleted) ?? [];
+  };
+
+  useEffect(() => {
+    async function fetchNotess() {
+      if (showArchived) {
+        await fetchArchiveAllNotes(); // Загружаем архивные заметки
+      } else if (showTrashed) {
+        await fetchTrashAllNotes(); // Загружаем удалённые заметки
+      }
+    }
+
+    fetchNotess();
+  }, [showArchived, showTrashed]);
+
+  // const filteredNotes = useMemo(() => {
+  //   const filteredByArchivedOrTrashed = filterNotes(
+  //     filteredNotesInNotebook,
+  //     showArchived,
+  //     showTrashed
+  //   );
+  //   const filteredByTag = filteredNotesByTag(filteredByArchivedOrTrashed);
+  //   const filteredBySearch = filteredNotesBySearch(filteredByTag);
+  //   return filteredBySearch;
+  // }, [
+  //   activeNotebook,
+  //   notes,
+  //   showArchived,
+  //   showTrashed,
+  //   trashedNotes,
+  //   archivedNotes,
+  //   selectedTags,
+  //   searchQuery,
+  //   filteredNotesInNotebook,
+  //   filterNotes,
+  //   filteredNotesByTag,
+  //   filteredNotesBySearch,
+  // ]);
+
+  const filteredNotes = useMemo(() => {
+  const filteredByArchivedOrTrashed = filterNotes(
+    filteredNotesInNotebook,
+    showArchived,
+    showTrashed
+  );
+  const filteredByTag = filteredNotesByTag(filteredByArchivedOrTrashed);
+  const filteredBySearch = filteredNotesBySearch(filteredByTag);
+  return filteredBySearch;
+}, [
+  activeNotebook,
+  notes,
+  showArchived,
+  showTrashed,
+  trashedNotes,
+  archivedNotes,
+  selectedTags,
+  searchQuery,
+  filteredNotesInNotebook,
+]);
+
+const uniqueTags = useMemo(() => {
+  const tagMap = new Map<string, { id: string; name: string; color: string }>();
+  filteredNotes?.forEach((note) => {
+    note.tags?.forEach((tagId) => {
+      const tagObj = tags.flat()?.find((t) => t.id === tagId);
+      if (tagObj && !tagMap.has(tagObj.id)) {
+        tagMap.set(tagObj.id, tagObj);
+      }
+    });
+  });
+  return Array.from(tagMap.values());
+}, [filteredNotes, tags]);
+
+
 
   const handleNoteClick = async (noteId: string) => {
     const updatedNotes = await fetchNotes();
     setNotes(updatedNotes);
 
-    const selectedNote = updatedNotes.find((n) => n.id === noteId) || null;
+    const selectedNote = updatedNotes?.find((n) => n.id === noteId) || null;
     setActiveNote(selectedNote);
   };
 
   const checkSelectedTags = (selectedTags: string[]) => {
-    const validTags = selectedTags.filter((tagId) =>
-      tags.flat().some((tag) => tag.id === tagId)
-    );
-    if (validTags.length !== selectedTags.length) {
+    const validTags =
+      selectedTags?.filter((tagId) =>
+        tags.flat().some((tag) => tag.id === tagId)
+      ) ?? [];
+    if (validTags?.length !== selectedTags?.length) {
       // Если есть недействительные теги, обновляем состояние
       setSelectedTags(validTags);
     }
@@ -170,7 +284,7 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
   const handleNoteSelection = (noteId: string) => {
     setSelectedNotesIds((prevSelectedIds) => {
       if (prevSelectedIds.includes(noteId)) {
-        return prevSelectedIds.filter((id) => id !== noteId);
+        return prevSelectedIds?.filter((id) => id !== noteId) ?? [];
       } else {
         return [...prevSelectedIds, noteId];
       }
@@ -188,11 +302,10 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
       {/* Поле для поиска */}
       <SearchField onChange={handleSearchChange} />
 
-      {/* Отображаем список тегов */}
       <div>
         {error && <ErrorMessage>{error}</ErrorMessage>}
         <TagListContainer>
-          {uniqueTags.length > 0 ? (
+          {uniqueTags?.length > 0 ? (
             uniqueTags.map((tag) => (
               <TagButton
                 key={tag.id}
@@ -209,10 +322,10 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
         </TagListContainer>
 
         <div>
-          {filteredNotesBySearch.length ? (
+          {filteredNotes?.length ? (
             <List>
               <MuiList>
-                {filteredNotesBySearch.map((note) => {
+                {filteredNotes.map((note) => {
                   const idx = notes.findIndex((n) => n.id === note.id);
                   const noteTagObjects = tags[idx] || [];
 
@@ -222,7 +335,7 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
                       note={note}
                       tags={noteTagObjects}
                       active={note.id === activeNote?.id}
-                      onClick={handleNoteClick}
+                      onClick={() => onSelectNote(note.id)}
                     />
                   );
                 })}

@@ -13,8 +13,8 @@ interface DialogProps {
   note: Note;
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  notebookIds: string[]; // Массив ID блокнотов
-  notebooks: { [key: string]: { name: string } }; // Записи блокнотов
+  notebookIds: string[]; 
+  notebooks: { [key: string]: { name: string } }; 
   onMove: (
     noteId: string,
     targetNotebookId: string,
@@ -61,7 +61,7 @@ const MoveNoteDialog = ({
       return;
     }
 
-    // Проверка на выбор текущего блокнота
+
     if (targetNotebookId === note.notebook_id) {
       setErrorMessage("You cannot move the note to the same notebook.");
       return;

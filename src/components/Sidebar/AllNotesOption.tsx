@@ -15,9 +15,7 @@ const AllNotesOption = () => {
   const handleClick = async () => {
     try {
       toggleSidebar();
-
       setActiveNotebook("");
-
       navigate("/");
     } catch (error) {
       console.error("Failed to load all notes:", error);

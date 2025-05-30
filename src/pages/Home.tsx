@@ -10,6 +10,7 @@ import { useToggleItem } from "../hooks/hooks";
 import Sidebar from "../components/Sidebar/Sidebar";
 import NoteList from "../components/NotesList/NotesList";
 import Editor from "../components/Editor/Editor";
+import { useNotesVisibility } from "../context/NotesVisibilityContext";
 
 export default function Home() {
   const {
@@ -33,7 +34,13 @@ export default function Home() {
   const handleTagSelect = (tag: string) => {
     setSelectedTag(tag); // Сохраняем выбранный тег
   };
-  
+
+  const { showArchived, setShowArchived, showTrashed, setShowTrashed } = useNotesVisibility(); // Получаем состояние из контекста
+
+  // Логика переключения отображения для архивных и удалённых заметок
+  const toggleArchived = () => setShowArchived((prev) => !prev); // Используем функцию обновления состояния
+  const toggleTrashed = () => setShowTrashed((prev) => !prev); //
+
   useEffect(() => {
     setLoading(true);
     fetchNotes()
@@ -73,7 +80,7 @@ export default function Home() {
 
   // Обработчик выбора заметки из списка
   const handleSelectNote = (id: string) => {
-    const note = notes.find((n) => n.id === id) || null;
+    const note = notes?.find((n) => n.id === id) || null;
     setActiveNote(note);
   };
 

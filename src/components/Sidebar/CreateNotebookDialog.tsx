@@ -10,6 +10,7 @@ import OutlinedButton from "../Shared/OutlinedButton";
 import Input from "../Shared/Input";
 import ErrorMessage from "../Shared/ErrorMessage";
 import { useNotebooks } from "../../context/NotebookContext";
+import { fetchNotebooks } from "../../services/notebooksApi";
 
 interface Props {
   open: boolean;
@@ -40,7 +41,9 @@ const CreateNotebookDialog = ({ open, setOpen }: Props) => {
     try {
       console.log(inputValue);
       // Используем addNotebook из контекста
-      await addNotebook(inputValue, inputValue); // Передаем имя и описание как inputValue      
+      await addNotebook(inputValue, inputValue); // Передаем имя и описание как inputValue
+      const notebooks = await fetchNotebooks();
+      setNotebooks(notebooks);
       handleClose(); // Закрыть форму после успешного добавления
     } catch (error) {
       // Обработка ошибки при добавлении книги

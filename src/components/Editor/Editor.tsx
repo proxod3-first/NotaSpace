@@ -13,6 +13,17 @@ import DriveFileMoveIcon from "@mui/icons-material/DriveFileMove";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import DeleteNoteDialog from "./DeleteNoteDialog";
 import DriveFileRenameOutlineIcon from "@mui/icons-material/DriveFileRenameOutline";
+
+import { CopyToClipboard } from "react-copy-to-clipboard";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import DoneIcon from "@mui/icons-material/Done";
+
+import ArchiveIcon from "@mui/icons-material/Archive";
+import UnarchiveIcon from "@mui/icons-material/Unarchive";
+
+import DeleteIcon from "@mui/icons-material/Delete";
+import RestoreFromTrashIcon from "@mui/icons-material/RestoreFromTrash";
+
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import MoveNoteDialog from "./MoveNoteDialog";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
@@ -24,6 +35,7 @@ import { UIContext } from "../../context/UIContext";
 import { createTag, updateTag, fetchTags } from "../../services/tagsApi";
 import {
   addTagToNote,
+  fetchArchivedNotes,
   fetchNotes,
   removeTagFromNote,
 } from "../../services/notesApi";
@@ -35,6 +47,7 @@ import { Note } from "../../types";
 import { useMainContext } from "../../context/NoteContext";
 import { updateNote } from "../../services/notesApi";
 import { useNotebooks } from "../../context/NotebookContext";
+import { useNotesVisibility } from "../../context/NotesVisibilityContext";
 
 interface EditorProps {
   note: Note;
@@ -140,7 +153,7 @@ const Editor = ({ note }: EditorProps) => {
         console.log("Теги активной заметки:", activeNote.tags);
 
         // Фильтруем только те теги, ID которых есть в activeNote.tags
-        const filteredTags = fetchedTags.filter((tag) =>
+        const filteredTags = fetchedTags?.filter((tag) =>
           activeNote.tags.includes(tag.id)
         );
 
@@ -202,7 +215,8 @@ const Editor = ({ note }: EditorProps) => {
 
   useEffect(() => {
     const saveNote = async () => {
-      if (!activeNote || activeNote.is_deleted) return;
+      if (!activeNote || activeNote.is_deleted || activeNote.is_archived)
+        return;
 
       try {
         console.log("useEffect Editor: ", activeNote, title, content);
@@ -282,7 +296,7 @@ const Editor = ({ note }: EditorProps) => {
   };
 
   const handleAddTag = async () => {
-    if (!newTag.trim() || newTag.length > 20) return; // Если новый тег пустой, выходим
+    if (!newTag.trim() || newTag?.length > 20) return; // Если новый тег пустой, выходим
 
     // Создаем новый тег
     const tagData = { name: newTag.trim(), color: "#ff6347" }; // Цвет по умолчанию
@@ -331,7 +345,7 @@ const Editor = ({ note }: EditorProps) => {
     // Обновляем состояние activeNote без этого тега
     setActiveNote({
       ...activeNote,
-      tags: activeNote?.tags.filter((tag) => tag !== tagId), // Убираем тег из activeNote
+      tags: activeNote?.tags?.filter((tag) => tag !== tagId), // Убираем тег из activeNote
     });
     setNotes(notes);
   };
@@ -372,7 +386,7 @@ const Editor = ({ note }: EditorProps) => {
       console.log("Получены все теги с сервера:", fetchedTags);
 
       // Фильтруем только те теги, ID которых есть в activeNote.tags
-      const filteredTags = fetchedTags.filter((tag) =>
+      const filteredTags = fetchedTags?.filter((tag) =>
         activeNote.tags.includes(tag.id)
       );
 
@@ -406,6 +420,73 @@ const Editor = ({ note }: EditorProps) => {
   };
 
   console.log("isNoteListOpen in Editor: ", activeNote, isNoteListOpen);
+
+  ////////////////////////////////////////////
+  const [isCopied, setIsCopied] = useState(false);
+
+  const handleCopy = () => {
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000); // Через 2 секунды иконка снова станет доступной
+  };
+
+  const { setShowArchived, setShowTrashed, showArchived, showTrashed } =
+    useNotesVisibility(); // Using the context
+
+  const {
+    moveNoteIntoTrash,
+    moveNoteIntoArchive,
+    restoreNoteTrash,
+    restoreNoteArchive,
+    fetchTrashAllNotes,
+    fetchArchiveAllNotes,
+    archivedNotes,
+    trashedNotes,
+  } = useMainContext();
+
+  const [isNoteInTrash, setIsNoteInTrash] = useState(activeNote?.is_deleted);
+  const [isNoteInArchive, setIsNoteInArchive] = useState(
+    activeNote?.is_archived
+  );
+
+  useEffect(() => {
+    // Обновляем состояние для корзины и архива
+    setIsNoteInTrash(activeNote?.is_deleted);
+    setIsNoteInArchive(activeNote?.is_archived);
+  }, [activeNote]);
+
+  const handleMoveToTrash = () => {
+    moveNoteIntoTrash(activeNote?.id || "");
+    fetchTrashAllNotes();
+    setActiveNote(null);
+    setActiveNoteId(null);
+    setIsNoteInTrash(true);
+    setShowTrashed(true); // Обновляем состояние контекста, когда заметка перемещена в корзину
+  };
+
+  const handleMoveToArchive = () => {
+    moveNoteIntoArchive(activeNote?.id || "");
+    fetchArchiveAllNotes();
+    setIsNoteInArchive(true);
+    setShowArchived(true); // Обновляем состояние контекста, когда заметка перемещена в архив
+  };
+
+  const handleRestoreFromTrash = () => {
+    restoreNoteTrash(activeNote?.id || "");
+    fetchTrashAllNotes();
+    setIsNoteInTrash(false);
+    setShowTrashed(false); // Обновляем состояние контекста, когда заметка восстановлена из корзины
+  };
+
+  const handleRestoreFromArchive = () => {
+    restoreNoteArchive(activeNote?.id || "");
+    fetchArchiveAllNotes();
+    setIsNoteInArchive(false);
+    setShowArchived(false); // Обновляем состояние контекста, когда заметка восстановлена из архива
+  };
+
+  const handleDelete = () => {
+    deleteNoteApi(activeNote?.id || "");
+  };
 
   return (
     <Container $isNoteListOpen={isNoteListOpen} $fullScreen={fullScreen}>
@@ -495,27 +576,71 @@ const Editor = ({ note }: EditorProps) => {
         renderHTML={(text: string) => mdParser.render(text)}
         onChange={handleEditorChange}
         placeholder="Начните печатать"
+        disabled={isNoteInTrash || isNoteInArchive}
       />
 
       <Footer ref={footerRef} style={{ height: "auto" }}>
-        {/* Статус синхронизации */}
-        <SyncStatus>
-          {syncStatus && (
+        {/* Управление заметкой: копирование, корзина, архив */}
+        {/* Отображаем кнопки для копирования, перемещения и восстановления */}
+        <div style={{ display: "flex", gap: "10px" }}>
+          {/* Копирование */}
+          <CopyToClipboard text={content} onCopy={handleCopy}>
+            <IconButton>
+              {isCopied ? <DoneIcon /> : <ContentCopyIcon />}
+            </IconButton>
+          </CopyToClipboard>
+
+          {/* Если не в корзине и не в архиве */}
+          {!isNoteInTrash && !isNoteInArchive && (
             <>
-              <span>{syncStatus}</span>
-              {syncStatus.includes("Сохраняется") && <span>🔄</span>}
-              {syncStatus.includes("Сохранено") && <span>✅</span>}
-              {syncStatus.includes("Ошибка") && <span>⚠️</span>}
+              <IconButton onClick={handleMoveToTrash}>
+                <DeleteIcon />
+              </IconButton>
+              <IconButton onClick={handleMoveToArchive}>
+                <ArchiveIcon />
+              </IconButton>
             </>
           )}
-        </SyncStatus>
+
+          {/* Если в корзине */}
+          {isNoteInTrash && (
+            <>
+              <IconButton onClick={handleRestoreFromTrash}>
+                <RestoreFromTrashIcon />
+              </IconButton>
+              <IconButton onClick={handleDelete}>
+                <DeleteForeverIcon />
+              </IconButton>
+            </>
+          )}
+
+          {/* Если в архиве */}
+          {isNoteInArchive && (
+            <IconButton onClick={handleRestoreFromArchive}>
+              <UnarchiveIcon />
+            </IconButton>
+          )}
+
+          {/* Статус синхронизации */}
+          <SyncStatus>
+            {syncStatus && (
+              <>
+                <span>{syncStatus}</span>
+                {syncStatus.includes("Сохраняется") && <span>🔄</span>}
+                {syncStatus.includes("Сохранено") && <span>✅</span>}
+                {syncStatus.includes("Ошибка") && <span>⚠️</span>}
+              </>
+            )}
+          </SyncStatus>
+        </div>
+
         {/* Отображаем текущие теги */}
         <TagContainer>
           {activeNote?.tags &&
           Array.isArray(activeNote?.tags) &&
-          activeNote?.tags.length > 0 ? (
+          activeNote?.tags?.length > 0 ? (
             activeNote?.tags.map((tagId) => {
-              const tag = tagObjects.find(
+              const tag = tagObjects?.find(
                 (tagObj) => String(tagObj.id) === String(tagId)
               );
 
@@ -541,7 +666,8 @@ const Editor = ({ note }: EditorProps) => {
               ) : null; // Если тег не найден, ничего не отображаем
             })
           ) : (
-            <span>No found tags</span> // Сообщение, если тегов нет
+            <></>
+            // <span>No found tags</span> // Сообщение, если тегов нет
           )}
         </TagContainer>
 
@@ -655,9 +781,9 @@ const SyncStatus = styled.div`
   color: #555;
   display: flex;
   align-items: center;
+  justify-content: flex-end;  /* <-- вот это выравнивает по правому краю */
   gap: 4px;
-  justify-content: flex-end;
-  width: 100%;
+  width: 100%; /* чтобы занять всю ширину контейнера */
 `;
 
 const CenteredDiv = styled.div<{

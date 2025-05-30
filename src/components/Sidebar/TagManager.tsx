@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import styled from "styled-components";
 import { DeleteOutline, Edit, Add } from "@mui/icons-material"; // Импортируем иконки из MUI
 import { useTags } from "../../context/TagContext"; // Используем хук из TagContext
@@ -34,23 +34,17 @@ const TagManager = () => {
   };
 
   useEffect(() => {
-    async function fetchData() {
-      const allNotes = await fetchNotes();
+    async function fetchInitialData() {
+      const [allNotes, allTags] = await Promise.all([
+        fetchNotes(),
+        fetchTags(),
+      ]);
       setNotes(allNotes);
-      console.log("Tags updated:", tags);
-    }
-
-    fetchData();
-  }, [tags]);
-
-  useEffect(() => {
-    async function fetchData() {
-      const allTags = await fetchTags();
       setTags(allTags);
-      console.log("Tags updated:", tags);
     }
-    fetchData();
-  }, [notes]);
+
+    fetchInitialData();
+  }, []);
 
   const handleSubmit = () => {
     if (!name.trim()) return;
@@ -99,7 +93,7 @@ const TagManager = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Ограничиваем количество символов
-    if (e.target.value.length <= 20) {
+    if (e.target.value?.length <= 20) {
       setName(e.target.value);
     }
   };
@@ -131,7 +125,7 @@ const TagManager = () => {
       {/* Если данные загружаются, показываем индикатор загрузки */}
       <TagListContainer>
         <TagList>
-          {Array.isArray(tags) && tags.length > 0 ? (
+          {Array.isArray(tags) && tags?.length > 0 ? (
             tags.map((tag) => (
               <TagItem key={tag.id} style={{ backgroundColor: tag.color }}>
                 <TagItemContent>
@@ -162,7 +156,8 @@ const TagManager = () => {
                 alignItems: "center",
               }}
             >
-              No found tags
+              <></>
+              {/* No found tags */}
             </Form>
           )}
         </TagList>

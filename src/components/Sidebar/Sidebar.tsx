@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, useCallback } from "react";
 import Drawer from "@mui/material/Drawer";
 import styled from "styled-components";
 import SellIcon from "@mui/icons-material/Sell";
@@ -28,6 +28,9 @@ import { useMainContext } from "../../context/NoteContext";
 import { deleteNote } from "../../services/notesApi";
 import { Note } from "../../types";
 import { fetchNotebooks } from "../../services/notebooksApi";
+import CopyToClipboard from "react-copy-to-clipboard";
+import NoteList from "../NotesList/NotesList";
+import { useNotesVisibility } from "../../context/NotesVisibilityContext"; // Путь к файлу контекста
 
 interface RotateIconProps {
   open: boolean;
@@ -43,31 +46,94 @@ const BaseSidebar = () => {
     addNotebook,
   } = useNotebooks(); // Используем контекст
 
-  const { archivedNotes } = useMainContext(); // Подключаем архивированные заметки
+  // Получаем данные и методы из контекста
+  const {
+    notes,
+    setNotes,
+    activeNote,
+    setActiveNote,
+    deleteNoteApi,
+    archivedNotes,
+    trashedNotes,
+    fetchArchiveAllNotes,
+    fetchTrashAllNotes,
+  } = useMainContext(); // Подключаем архивированные и удалённые заметки
 
-  const [archivedOpen, setArchivedOpen] = useState(false);
-  // const [deletedOpen, setDeletedOpen] = React.useState(false);
-
-  const { handleClick } = AllNotesOption();
+  const { showArchived, setShowArchived, showTrashed, setShowTrashed } =
+    useNotesVisibility(); // Use context here
 
   const [openDialog, setOpenDialog] = useState(false);
   const [notebooksOpen, setNotebooksOpen] = useState(false);
   const [tagsOpen, setTagsOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Логика для отображения активной книги
+  const notebook_id = activeNotebook?.id;
+
+  const ArchiveAndTrashedNotes = async () => {
+    try {
+      // Предполагаем, что эти функции делают побочные эффекты, но не возвращают данные
+      await Promise.all([fetchArchiveAllNotes(), fetchTrashAllNotes()]);
+    } catch (error) {
+      setError("Ошибка при загрузке заметок");
+    }
+  };
+
+  useEffect(() => {
+    ArchiveAndTrashedNotes();
+  }, []);
 
   useEffect(() => {
     console.log("Active notebook changed:", activeNotebook);
   }, [activeNotebook]);
 
-  // Логика для отображения активной книги
-  const notebook_id = activeNotebook?.id;
+  const fetchArchived = useCallback(async () => {
+    if (showArchived) {
+      await fetchArchiveAllNotes();
+    }
+  }, [showArchived, fetchArchiveAllNotes]);
+
+  const fetchTrashed = useCallback(async () => {
+    if (showTrashed) {
+      await fetchTrashAllNotes();
+    }
+  }, [showTrashed, fetchTrashAllNotes]);
+
+  useEffect(() => {
+    fetchArchived();
+    fetchTrashed();
+  }, []);
+
+  const { handleClick } = AllNotesOption();
+
+  const handleArchivedToggle = () => {
+    setShowArchived(true);
+    setShowTrashed(false);
+    toggleSidebar();
+    // Hide trashed notes when showing archived
+  };
+
+  const handleTrashedToggle = () => {
+    setShowTrashed(true);
+    setShowArchived(false); // Hide archived notes when showing trashed
+    toggleSidebar(); // Close the sidebar after toggle
+  };
+
+  useEffect(() => {
+    console.log("Active notebook changed:", activeNotebook);
+  }, [activeNotebook]);
 
   return (
     <Container>
       <List>
         <Heading>
           <HeadingLeft>
-            <ClickableSection onClick={handleClick}>
+            <ClickableSection
+              onClick={() => {
+                setShowArchived(false);
+                setShowTrashed(false);
+                handleClick();
+              }}
+            >
               <NotesIcon />
               <TextWrapper>All Notes</TextWrapper>
             </ClickableSection>
@@ -91,7 +157,7 @@ const BaseSidebar = () => {
         {error && <ErrorMessage>{error}</ErrorMessage>}
         <NotebooksContainer $isOpen={notebooksOpen}>
           {notebooksOpen &&
-            (Array.isArray(notebooks) && notebooks.length > 0 ? (
+            (Array.isArray(notebooks) && notebooks?.length > 0 ? (
               notebooks.map((notebook, index) => (
                 <NotebookOption
                   key={notebook.id || index}
@@ -101,65 +167,29 @@ const BaseSidebar = () => {
                 />
               ))
             ) : (
-              <EmptyMessage>Нет блокнотов</EmptyMessage>
+              <EmptyMessage>Создайте первую книгу!</EmptyMessage>
             ))}
         </NotebooksContainer>
-        {/* Раздел для Archiving */}
+        {/* Секция для Archived */}
         <Heading>
           <HeadingLeft>
-            <ClickableSection onClick={() => setArchivedOpen((prev) => !prev)}>
+            <ClickableSection onClick={handleArchivedToggle}>
               <ArchiveIcon />
               <TextWrapper>Archive</TextWrapper>
-              <RotateIcon open={archivedOpen} />
             </ClickableSection>
           </HeadingLeft>
         </Heading>
 
-        {/* // TODO: Должно отображаться в NoteList */}
-        {/* {archivedOpen && (
-          <div>
-            {archivedNotes.length > 0 ? (
-              archivedNotes.map((note: Note) => (
-                <div key={note.id}>
-                  <span>{note.name}</span>
-                  <button onClick={() => restoreNote(note.id)}>Restore</button>
-                  <button onClick={() => permanentlyDeleteNote(note.id)}>
-                    Delete Permanently
-                  </button>
-                </div>
-              ))
-            ) : (
-              <p>No archived notes</p>
-            )}
-          </div>
-        )} */}
-        {/* Раздел для Deleted */}
+        {/* Trashed Section */}
         <Heading>
           <HeadingLeft>
-            {/* <ClickableSection onClick={() => setDeletedOpen((prev) => !prev)}> */}
+            <ClickableSection onClick={handleTrashedToggle}>
               <DeleteIcon />
               <TextWrapper>Recently Deleted</TextWrapper>
-              {/* <RotateIcon open={deletedOpen} /> */}
-            {/* </ClickableSection> */}
+            </ClickableSection>
           </HeadingLeft>
         </Heading>
-        {/* {deletedOpen && (
-          <div>
-            {deletedNotes.length > 0 ? (
-              deletedNotes.map((note: Note) => (
-                <div key={note.id}>
-                  <span>{note.name}</span>
-                  <button onClick={() => restoreNote(note.id)}>Restore</button>
-                  <button onClick={() => permanentlyDeleteNote(note.id)}>
-                    Delete Permanently
-                  </button>
-                </div>
-              ))
-            ) : (
-              <p>No deleted notes</p>
-            )}
-          </div> */}
-        {/* )} */}
+
         <Heading>
           <HeadingLeft>
             <ClickableSection onClick={() => setTagsOpen((prev) => !prev)}>
@@ -192,6 +222,40 @@ const BaseSidebar = () => {
     </Container>
   );
 };
+
+const ActionButton = styled.button`
+  padding: 5px 10px;
+  margin: 0 5px;
+  border: none;
+  background-color: #4caf50;
+  color: white;
+  cursor: pointer;
+  border-radius: 5px;
+
+  &:hover {
+    background-color: #45a049;
+  }
+`;
+
+const NoteCard = styled.div`
+  padding: 10px;
+  margin: 5px;
+  background-color: #f1f1f1;
+  border-radius: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const NoteName = styled.span`
+  font-size: 16px;
+  font-weight: bold;
+`;
+
+const NoteActions = styled.div`
+  display: flex;
+  gap: 10px;
+`;
 
 const Sidebar = () => {
   const { isSidebarOpen, toggleSidebar } = useContext(UIContext);

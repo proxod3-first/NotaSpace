@@ -26,6 +26,7 @@ import {
 } from "../../services/notesApi";
 import { useNotebooks } from "../../context/NotebookContext";
 import { useMainContext } from "../../context/NoteContext";
+import { useNotesVisibility } from "../../context/NotesVisibilityContext";
 
 const Header = () => {
   const {
@@ -38,6 +39,8 @@ const Header = () => {
     setNotebooks,
     setLoading,
     deleteNoteApi,
+    archivedNotes,
+    trashedNotes,
     setError,
   } = useMainContext();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -52,16 +55,29 @@ const Header = () => {
   const [isDeleteNoteDialogOpen, setIsDeleteNoteDialogOpen] = useState(false);
   const [isTrashDialogOpen, setIsTrashDialogOpen] = useState(false);
 
+  useEffect(() => {
+    const saveNotes = async () => {
+      try {
+        const updatedNotes = await fetchNotes(); // Получаем обновленный список заметок
+        setNotes(updatedNotes);
+      } catch (error) {
+        console.error("Ошибка при сохранении:", error);
+      }
+    };
+
+    saveNotes();
+  }, [activeNote]);
 
   const handleCloseMenu = () => {
     setAnchorEl(null);
   };
 
   const handleCreateNoteClick = async () => {
-    const newNotes = notes.filter((note) => note.name.startsWith("New Note"));
+    const newNotes =
+      notes?.filter((note) => note.name.startsWith("New Note")) ?? [];
     const template_text = "# Привет, это документ в Markdown!";
     const newNoteData = {
-      name: `New Note ${newNotes.length + 1}`,
+      name: `New Note ${newNotes?.length + 1}`,
       text: template_text,
       color: "",
       order: 0,
@@ -73,7 +89,6 @@ const Header = () => {
       const updatedNotes = await fetchNotes();
       setNotes(updatedNotes);
 
-      
       if (activeNote) {
         setActiveNoteId(activeNote.id);
       } else {
@@ -99,7 +114,7 @@ const Header = () => {
     onError: (error: string) => void
   ) => {
     try {
-      const noteToUpdate = notes.find((note) => note.id === id);
+      const noteToUpdate = notes?.find((note) => note.id === id);
       if (!noteToUpdate) {
         onError("Заметка не найдена");
         return;
@@ -147,10 +162,29 @@ const Header = () => {
     }
   };
 
+  const { showArchived, setShowArchived, showTrashed, setShowTrashed } =
+    useNotesVisibility(); // Use context here
+
+  const handleViewArchivedNotes = () => {
+    setShowArchived(true);
+    setShowTrashed(false); // сбрасываем состояние для удалённых заметок
+  };
+
+  const handleViewTrashedNotes = () => {
+    setShowTrashed(true);
+    setShowArchived(false); // сбрасываем состояние для архивных заметок
+  };
+
+  const handleViewAllNotes = () => {
+    setShowArchived(false);
+    setShowTrashed(false); // сбрасываем состояние для архивных и удалённых
+  };
+
   const handleViewDeletedNotes = () => {
     setIsTrashDialogOpen(true);
     handleCloseMenu();
   };
+
   const { toggleSidebar } = useContext(UIContext);
 
   return (
@@ -161,7 +195,6 @@ const Header = () => {
         </HamburgerButton>
         <Heading>
           {activeNotebook ? (
-            // Когда есть активный блокнот, показываем его название и количество заметок в нем
             <>
               {activeNotebook.name}{" "}
               {Array.isArray(notes) &&
@@ -174,8 +207,19 @@ const Header = () => {
                   })`
                 : "(0)"}
             </>
+          ) : showArchived ? (
+            `Archive ${
+              Array.isArray(archivedNotes) && archivedNotes.length > 0
+                ? `(${archivedNotes.length})`
+                : "(0)"
+            }`
+          ) : showTrashed ? (
+            `Trash ${
+              Array.isArray(trashedNotes) && trashedNotes.length > 0
+                ? `(${trashedNotes.length})`
+                : "(0)"
+            }`
           ) : (
-            // Когда нет активного блокнота, показываем "All Notes" и количество всех заметок
             `All Notes ${
               Array.isArray(notes) && notes.length > 0
                 ? `(${notes.length})`
