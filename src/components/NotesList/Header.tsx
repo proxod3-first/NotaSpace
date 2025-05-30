@@ -273,22 +273,6 @@ const Header = () => {
     }
   };
 
-  const handleMoveNoteToTrash = async (
-    id: string,
-    onSuccess: () => void,
-    onError: (error: string) => void
-  ) => {
-    try {
-      await moveNoteToTrash(id);
-      const updatedNotes = await fetchNotes();
-      setNotes(updatedNotes);
-
-      onSuccess();
-    } catch (error) {
-      onError("Не удалось переместить заметку в корзину. Попробуйте снова.");
-    }
-  };
-
   const { showArchived, setShowArchived, showTrashed, setShowTrashed } =
     useNotesVisibility(); // Use contexts here
 

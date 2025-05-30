@@ -202,30 +202,6 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
     fetchNotess();
   }, [showArchived, showTrashed]);
 
-  // const filteredNotes = useMemo(() => {
-  //   const filteredByArchivedOrTrashed = filterNotes(
-  //     filteredNotesInNotebook,
-  //     showArchived,
-  //     showTrashed
-  //   );
-  //   const filteredByTag = filteredNotesByTag(filteredByArchivedOrTrashed);
-  //   const filteredBySearch = filteredNotesBySearch(filteredByTag);
-  //   return filteredBySearch;
-  // }, [
-  //   activeNotebook,
-  //   notes,
-  //   showArchived,
-  //   showTrashed,
-  //   trashedNotes,
-  //   archivedNotes,
-  //   selectedTags,
-  //   searchQuery,
-  //   filteredNotesInNotebook,
-  //   filterNotes,
-  //   filteredNotesByTag,
-  //   filteredNotesBySearch,
-  // ]);
-
   const filteredNotes = useMemo(() => {
     const filteredByArchivedOrTrashed = filterNotes(
       filteredNotesInNotebook,

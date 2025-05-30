@@ -9,12 +9,15 @@ import ErrorMessage from "../Shared/ErrorMessage";
 import { baseButton } from "../../styles/mixins";
 import styled from "styled-components";
 import { Notebook } from "../../types/index";
+import { useMainContext } from "../../contexts/NoteContext";
+import { deleteNote } from "../../services/notesApi";
 
 interface DeleteNotebookDialogProps {
   notebook: Notebook | null;
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  deleteNotebook: ( // <-- исправлено
+  deleteNotebook: (
+    // <-- исправлено
     id: string,
     onSuccess: () => void,
     onError: (error: string) => void
@@ -36,17 +39,33 @@ const DeleteNotebookDialog = ({
     setOpen(false);
   };
 
+  const { notes } = useMainContext();
+
   const handleDelete = async () => {
     if (!notebook) return;
 
-deleteNotebook(
-  notebook.id,
-  () => {
-    onSuccess();
-    handleClose();
-  },
-  setErrorMessage
-);
+    try {
+      // сначала удаляем все заметки этого блокнота
+      const notesToDelete = notes.filter(
+        (note) => note.notebook_id === notebook.id
+      );
+
+      for (const note of notesToDelete) {
+        await deleteNote(note.id); // <-- твой метод удаления заметки
+      }
+
+      // потом удаляем сам блокнот
+      deleteNotebook(
+        notebook.id,
+        () => {
+          onSuccess();
+          handleClose();
+        },
+        setErrorMessage
+      );
+    } catch (error) {
+      setErrorMessage("Не удалось удалить связанные заметки.");
+    }
   };
 
   if (!notebook) return null; // если блокнот не выбран — не рендерим вообще
