@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from "react";
 import styled from "styled-components";
 import { DeleteOutline, Edit, Add } from "@mui/icons-material"; // Импортируем иконки из MUI
-import { useTags } from "../../context/TagContext"; // Используем хук из TagContext
+import { useTags } from "../../contexts/TagContext"; // Используем хук из TagContext
 import { useNavigate } from "react-router-dom";
-import { useMainContext } from "../../context/NoteContext";
+import { useMainContext } from "../../contexts/NoteContext";
 import AddBoxIcon from "@mui/icons-material/AddBox";
 import {
   addTagToNote,

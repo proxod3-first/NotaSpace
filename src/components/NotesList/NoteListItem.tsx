@@ -2,13 +2,13 @@ import React, { useContext, useEffect, useState } from "react";
 import styled from "styled-components";
 import { Note } from "../../types";
 import { truncatedText } from "../../styles/mixins";
-import { UIContext } from "../../context/UIContext";
+import { UIContext } from "../../contexts/UIContext";
 import AutoUpdatingTimeAgo from "./AutoUpdatingTimeAgo";
-import { useMainContext } from "../../context/NoteContext";
+import { useMainContext } from "../../contexts/NoteContext";
 import { ContainerProps } from "@mui/material";
 import { getTag } from "../../services/tagsApi";
 import { Tag } from "../../types/index";
-import { useNotebooks } from "../../context/NotebookContext";
+import { useNotebooks } from "../../contexts/NotebookContext";
 
 interface ComponentProps {
   note: Note;

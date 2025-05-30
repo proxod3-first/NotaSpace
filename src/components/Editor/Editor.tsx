@@ -31,7 +31,7 @@ import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
 import NewLabelIcon from "@mui/icons-material/NewLabel";
 import ArrowTooltip from "../Shared/ArrowTooltip";
 import { baseIconButton, flexCenter, scrollable } from "../../styles/mixins";
-import { UIContext } from "../../context/UIContext";
+import { UIContext } from "../../contexts/UIContext";
 import { createTag, updateTag, fetchTags } from "../../services/tagsApi";
 import {
   addTagToNote,
@@ -44,10 +44,10 @@ import MarkdownIt from "markdown-it";
 import MdEditor from "react-markdown-editor-lite";
 import "react-markdown-editor-lite/lib/index.css";
 import { Note } from "../../types";
-import { useMainContext } from "../../context/NoteContext";
+import { useMainContext } from "../../contexts/NoteContext";
 import { updateNote } from "../../services/notesApi";
-import { useNotebooks } from "../../context/NotebookContext";
-import { useNotesVisibility } from "../../context/NotesVisibilityContext";
+import { useNotebooks } from "../../contexts/NotebookContext";
+import { useNotesVisibility } from "../../contexts/NotesVisibilityContext";
 
 interface EditorProps {
   note: Note;
@@ -104,7 +104,7 @@ const Editor = ({ note }: EditorProps) => {
   const [isDeleteNoteDialogOpen, setIsDeleteNoteDialogOpen] = useState(false);
   const [isMoveNoteDialogOpen, setIsMoveNoteDialogOpen] = useState(false);
 
-  // Responsive layout context
+  // Responsive layout contexts
   const { isNoteListOpen, toggleNoteList } = useContext(UIContext);
   const { isSidebarOpen, toggleSidebar } = useContext(UIContext);
 
@@ -430,7 +430,7 @@ const Editor = ({ note }: EditorProps) => {
   };
 
   const { setShowArchived, setShowTrashed, showArchived, showTrashed } =
-    useNotesVisibility(); // Using the context
+    useNotesVisibility(); // Using the contexts
 
   const {
     moveNoteIntoTrash,
@@ -765,13 +765,45 @@ const FullScreenButton = styled(IconButton)`
 `;
 
 const StyledMenu = styled(Menu)`
-  .MuiMenuItem-root {
-    font-size: 14px;
-    padding: 4px 16px;
+  .MuiPaper-root {
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    min-width: 220px;
+    background-color: #fff;
+  }
 
+  .MuiMenuItem-root {
+    font-size: 15px;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #444;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    border-radius: 6px;
+    border: 1px #ddd;
     & svg {
-      font-size: 18px;
-      margin-right: 6px;
+      font-size: 20px;
+      color: #888;
+      transition: color 0.3s ease;
+    }
+
+    &:hover {
+      background-color: #f0f4ff;
+      color: #3951b5;
+
+      & svg {
+        color: #3951b5;
+      }
+    }
+
+    &.active {
+      font-weight: 600;
+      color: #3951b5;
+
+      & svg {
+        color: #3951b5;
+      }
     }
   }
 `;
@@ -781,7 +813,7 @@ const SyncStatus = styled.div`
   color: #555;
   display: flex;
   align-items: center;
-  justify-content: flex-end;  /* <-- вот это выравнивает по правому краю */
+  justify-content: flex-end; /* <-- вот это выравнивает по правому краю */
   gap: 4px;
   width: 100%; /* чтобы занять всю ширину контейнера */
 `;

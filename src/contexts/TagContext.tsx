@@ -127,9 +127,9 @@ export const TagProvider: React.FC<TagProviderProps> = ({ children }) => {
 
 // Хук для использования контекста
 export const useTags = () => {
-  const context = useContext(TagContext);
-  if (!context) {
+  const contexts = useContext(TagContext);
+  if (!contexts) {
     throw new Error("useTags must be used within a TagProvider");
   }
-  return context;
+  return contexts;
 };

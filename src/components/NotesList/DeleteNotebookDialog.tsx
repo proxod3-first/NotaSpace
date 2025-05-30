@@ -8,13 +8,13 @@ import OutlinedButton from "../Shared/OutlinedButton";
 import ErrorMessage from "../Shared/ErrorMessage";
 import { baseButton } from "../../styles/mixins";
 import styled from "styled-components";
-import { Note } from "../../types/index";
+import { Notebook } from "../../types/index";
 
-interface DeleteNoteDialogProps {
-  note: Note;
+interface DeleteNotebookDialogProps {
+  notebook: Notebook | null;
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  deleteNoteDial: (
+  deleteNotebook: ( // <-- исправлено
     id: string,
     onSuccess: () => void,
     onError: (error: string) => void
@@ -22,50 +22,54 @@ interface DeleteNoteDialogProps {
   onSuccess: () => void;
 }
 
-const DeleteNoteDialog = ({
-  note,
+const DeleteNotebookDialog = ({
+  notebook,
   open,
   setOpen,
-  deleteNoteDial,
+  deleteNotebook, // <-- исправлено
   onSuccess,
-}: DeleteNoteDialogProps) => {
+}: DeleteNotebookDialogProps) => {
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleClose = () => {
     setErrorMessage("");
-    setOpen(false); // Закрываем диалог
+    setOpen(false);
   };
 
   const handleDelete = async () => {
-    deleteNoteDial(
-      note.id,
-      () => {
-        onSuccess(); // Если удалено успешно, вызываем onSuccess
-        handleClose(); // Закрываем диалог после успешного удаления
-      },
-      setErrorMessage
-    ); // В случае ошибки вызываем setErrorMessage
+    if (!notebook) return;
+
+deleteNotebook(
+  notebook.id,
+  () => {
+    onSuccess();
+    handleClose();
+  },
+  setErrorMessage
+);
   };
+
+  if (!notebook) return null; // если блокнот не выбран — не рендерим вообще
 
   return (
     <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>Удалить заметку</DialogTitle>
+      <DialogTitle>Удалить блокнот</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          Вы уверены, что хотите удалить эту заметку? Это действие нельзя
-          отменить.
+          Вы уверены, что хотите удалить блокнот <b>{notebook.name}</b>? Все
+          связанные заметки также будут удалены. Это действие нельзя отменить.
         </DialogContentText>
         {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
       </DialogContent>
       <DialogActions>
         <OutlinedButton onClick={handleClose}>Отмена</OutlinedButton>
-        <DeleteButton onClick={handleDelete}>Удалить</DeleteButton>
+        <DeleteButton onClick={handleDelete}>Удалить блокнот</DeleteButton>
       </DialogActions>
     </Dialog>
   );
 };
 
-export default DeleteNoteDialog;
+export default DeleteNotebookDialog;
 
 const Dialog = styled(MuiDialog)`
   user-select: none;

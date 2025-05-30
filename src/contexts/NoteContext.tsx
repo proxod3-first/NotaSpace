@@ -438,9 +438,9 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useMainContext() {
-  const context = useContext(NoteContext);
-  if (!context) {
+  const contexts = useContext(NoteContext);
+  if (!contexts) {
     throw new Error("useMainContext must be used within a MainProvider");
   }
-  return context;
+  return contexts;
 }

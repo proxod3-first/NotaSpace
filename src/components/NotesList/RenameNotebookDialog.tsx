@@ -8,13 +8,13 @@ import ContainedButton from "../Shared/ContainedButton";
 import OutlinedButton from "../Shared/OutlinedButton";
 import Input from "../Shared/Input";
 import ErrorMessage from "../Shared/ErrorMessage";
-import { Note } from "../../types";
+import { Note, Notebook } from "../../types";
 
-interface DialogProps {
-  note: Note;
+interface RenameNotebookDialogProps {
+  notebook: Notebook | null;
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  renameNote: (
+  renameNotebook: (
     id: string,
     newName: string,
     onSuccess: () => void,
@@ -22,13 +22,18 @@ interface DialogProps {
   ) => void;
 }
 
-const RenameNoteDialog = ({ note, open, setOpen, renameNote }: DialogProps) => {
+const RenameNotebookDialog = ({
+  notebook,
+  open,
+  setOpen,
+  renameNotebook, // <-- исправлено здесь
+}: RenameNotebookDialogProps) => {
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const [inputValue, setInputValue] = useState<string>(note.name);
+  const [inputValue, setInputValue] = useState<string>(notebook?.name || "");
 
   // Закрытие диалога
   const handleClose = () => {
-    setInputValue(note.name);
+    setInputValue(notebook?.name || "");
     setErrorMessage("");
     setOpen(false);
   };
@@ -41,14 +46,19 @@ const RenameNoteDialog = ({ note, open, setOpen, renameNote }: DialogProps) => {
   // Обработчик отправки формы
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (inputValue.trim() !== note.name) {
-      renameNote(note.id, inputValue, handleClose, setErrorMessage);
+    if (inputValue.trim() !== (notebook?.name || "")) {
+      renameNotebook(
+        notebook?.id || "",
+        inputValue,
+        handleClose,
+        setErrorMessage
+      );
     }
   };
 
   return (
     <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>Rename note</DialogTitle>
+      <DialogTitle>Rename notebook</DialogTitle>
       <DialogContent>
         <Input
           placeholder="Note name"
@@ -63,7 +73,7 @@ const RenameNoteDialog = ({ note, open, setOpen, renameNote }: DialogProps) => {
         </OutlinedButton>
         <ContainedButton
           type="submit"
-          disabled={inputValue === "" || inputValue === note.name}
+          disabled={inputValue === "" || inputValue === (notebook?.name || "")}
           onClick={handleSubmit}
         >
           Continue
@@ -73,7 +83,7 @@ const RenameNoteDialog = ({ note, open, setOpen, renameNote }: DialogProps) => {
   );
 };
 
-export default RenameNoteDialog;
+export default RenameNotebookDialog;
 
 const Dialog = styled(MuiDialog)`
   user-select: none;

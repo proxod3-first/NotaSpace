@@ -9,7 +9,7 @@ import ContainedButton from "../Shared/ContainedButton";
 import OutlinedButton from "../Shared/OutlinedButton";
 import Input from "../Shared/Input";
 import ErrorMessage from "../Shared/ErrorMessage";
-import { useNotebooks } from "../../context/NotebookContext";
+import { useNotebooks } from "../../contexts/NotebookContext";
 import { fetchNotebooks } from "../../services/notebooksApi";
 
 interface Props {

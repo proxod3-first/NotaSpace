@@ -162,9 +162,9 @@ export const NotebookProvider: React.FC<NotebookProviderProps> = ({
 
 // Хук для использования контекста
 export const useNotebooks = () => {
-  const context = useContext(NotebookContext);
-  if (!context) {
+  const contexts = useContext(NotebookContext);
+  if (!contexts) {
     throw new Error("useNotebooks must be used within a NotebookProvider");
   }
-  return context;
+  return contexts;
 };

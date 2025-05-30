@@ -13,8 +13,8 @@ interface DialogProps {
   note: Note;
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  notebookIds: string[]; 
-  notebooks: { [key: string]: { name: string } }; 
+  notebookIds: string[];
+  notebooks: { [key: string]: { name: string } };
   onMove: (
     noteId: string,
     targetNotebookId: string,
@@ -60,7 +60,6 @@ const MoveNoteDialog = ({
       setErrorMessage("Please select a valid notebook.");
       return;
     }
-
 
     if (targetNotebookId === note.notebook_id) {
       setErrorMessage("You cannot move the note to the same notebook.");
@@ -121,8 +120,8 @@ const Dialog = styled(MuiDialog)`
 `;
 
 const Select = styled.select`
-  width: 250px; /* Увеличим ширину для лучшего отображения длинных имен блокнотов */
-  height: 40px; /* Увеличим высоту, чтобы лучше смотрелось */
+  width: 250px;
+  height: 40px;
   margin-top: 6px;
   margin-bottom: 12px;
   padding: 12px 8px 10px 12px;
@@ -132,22 +131,15 @@ const Select = styled.select`
   font-size: 14px;
   font-family: "Arial", sans-serif;
   border-radius: 5px;
-  -webkit-appearance: none;
-  -moz-appearance: none;
   appearance: none;
   cursor: pointer;
-
-  /* Добавим плавную анимацию для переходов */
   transition: all 0.3s ease;
+  max-height: 300px;
+  overflow-y: auto;
 
-  /* Прокрутка при большом списке */
-  max-height: 300px; /* Ограничим высоту, чтобы добавить прокрутку */
-  overflow-y: auto; /* Появится вертикальная прокрутка, если элементов слишком много */
-
-  /* Стиль фокуса */
   &:focus {
     outline: none;
-    box-shadow: 0 0 5px 3px rgba(0, 123, 255, 0.5); /* Тень для фокуса */
+    box-shadow: 0 0 5px 3px rgba(38, 143, 255, 0.64);
   }
 
   /* Стрелка вниз */
@@ -157,35 +149,29 @@ const Select = styled.select`
   background-size: 5px 5px, 5px 5px;
   background-repeat: no-repeat;
 
-  /* Элементы option */
   option {
     padding: 10px;
     font-size: 14px;
     background-color: var(--notelist-background);
     color: var(--text-normal);
+    cursor: pointer;
 
-    /* Изменения цвета при наведении */
     &:hover {
       background-color: var(--highlight-color);
       color: white;
     }
 
-    /* Цвет текста при фокусе */
     &:focus {
       background-color: var(--highlight-color);
       color: white;
     }
 
-    /* Стили для деактивированных опций */
+    /* Стили для disabled */
     &:disabled {
-      background-color: lightgray;
-      color: darkgray;
+      background-color: var(--notelist-background);
+      color: lightgray;
+      font-style: italic;
+      cursor: not-allowed;
     }
-  }
-
-  /* Стилизация для старых браузеров */
-  &:-moz-focusring {
-    color: transparent;
-    text-shadow: 0 0 0 #000;
   }
 `;

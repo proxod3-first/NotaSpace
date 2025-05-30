@@ -12,11 +12,9 @@ import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import DensityMediumIcon from "@mui/icons-material/DensityMedium";
 import styled from "styled-components";
 import { baseIconButton, flexCenter, truncatedText } from "../../styles/mixins";
-import RenameNoteDialog from "./RenameNoteDialog";
-import DeleteNoteDialog from "./DeleteNoteDialog";
 import ArrowTooltip from "../Shared/ArrowTooltip";
 import { Note } from "../../types";
-import { UIContext } from "../../context/UIContext";
+import { UIContext } from "../../contexts/UIContext";
 import {
   createNote,
   deleteNote,
@@ -24,9 +22,18 @@ import {
   moveNoteToTrash,
   updateNote,
 } from "../../services/notesApi";
-import { useNotebooks } from "../../context/NotebookContext";
-import { useMainContext } from "../../context/NoteContext";
-import { useNotesVisibility } from "../../context/NotesVisibilityContext";
+import { useNotebooks } from "../../contexts/NotebookContext";
+import { useMainContext } from "../../contexts/NoteContext";
+import { useNotesVisibility } from "../../contexts/NotesVisibilityContext";
+import {
+  deleteNotebook,
+  fetchNotebooks,
+  getNotebook,
+  updateNotebook,
+} from "../../services/notebooksApi";
+import DeactivateNotebookDialog from "./DeactivateNotebookDialog";
+import RenameNotebookDialog from "./RenameNotebookDialog";
+import DeleteNotebookDialog from "./DeleteNotebookDialog";
 
 const Header = () => {
   const {
@@ -35,8 +42,6 @@ const Header = () => {
     activeNote,
     setActiveNote,
     setActiveNoteId,
-    notebooks,
-    setNotebooks,
     setLoading,
     deleteNoteApi,
     archivedNotes,
@@ -49,8 +54,11 @@ const Header = () => {
     setAnchorEl(event.currentTarget);
   };
 
-  const { activeNotebook, setActiveNotebook } = useNotebooks();
+  const [isDeactivateNoteDialogOpen, setIsDeactivateNoteDialogOpen] =
+    useState(false);
 
+  const { activeNotebook, setActiveNotebook } = useNotebooks();
+  const { notebooks, setNotebooks } = useNotebooks();
   const [isRenameNoteDialogOpen, setIsRenameNoteDialogOpen] = useState(false);
   const [isDeleteNoteDialogOpen, setIsDeleteNoteDialogOpen] = useState(false);
   const [isTrashDialogOpen, setIsTrashDialogOpen] = useState(false);
@@ -67,6 +75,66 @@ const Header = () => {
 
     saveNotes();
   }, [activeNote]);
+
+  useEffect(() => {
+    if (!activeNotebook) return;
+
+    const refreshActiveNotebook = async () => {
+      try {
+        const freshNotebook = await getNotebook(activeNotebook.id);
+        console.log("FreshNotebook: ", freshNotebook);
+
+        if (freshNotebook) {
+          const updatedNotebooks = notebooks.map((nb) =>
+            nb.id === freshNotebook.id ? freshNotebook : nb
+          );
+          setNotebooks(updatedNotebooks);
+
+          setActiveNotebook(freshNotebook.id); // <- передаём объект
+        } else {
+          setActiveNotebook(""); // если не найден, сбрасываем
+        }
+      } catch (error) {
+        console.error("Ошибка при обновлении activeNotebook:", error);
+      }
+    };
+
+    refreshActiveNotebook();
+  }, [activeNotebook]);
+
+  useEffect(() => {
+    const loadNotebooks = async () => {
+      try {
+        const updatedNotebooks = await fetchNotebooks();
+        setNotebooks(updatedNotebooks);
+      } catch (error) {
+        console.error("Ошибка при загрузке блокнотов:", error);
+      }
+    };
+
+    loadNotebooks();
+  }, [
+    isDeleteNoteDialogOpen,
+    isRenameNoteDialogOpen,
+    isDeactivateNoteDialogOpen,
+  ]);
+
+  const refreshNotebooks = async () => {
+    try {
+      const updatedNotebooks = await fetchNotebooks();
+      console.log("updatedNotebooks: ", updatedNotebooks);
+      setNotebooks(updatedNotebooks);
+
+      if (activeNotebook) {
+        const stillExists = updatedNotebooks.find(
+          (nb) => nb.id === activeNotebook.id
+        );
+        setActiveNotebook(stillExists ? stillExists.id : "");
+      }
+    } catch (error) {
+      console.error("Ошибка при обновлении блокнотов с сервера:", error);
+    }
+  };
 
   const handleCloseMenu = () => {
     setAnchorEl(null);
@@ -107,27 +175,70 @@ const Header = () => {
     setIsRenameNoteDialogOpen(true);
   };
 
-  const handleRenameNote = async (
+  const handleRenameNotebook = async (
     id: string,
     newName: string,
     onSuccess: () => void,
     onError: (error: string) => void
   ) => {
     try {
-      const noteToUpdate = notes?.find((note) => note.id === id);
-      if (!noteToUpdate) {
-        onError("Заметка не найдена");
+      const notebookToUpdate = notebooks.find((nb) => nb.id === id);
+      if (!notebookToUpdate) {
+        onError("Блокнот не найден");
         return;
       }
 
-      const updatedNote = { ...noteToUpdate, name: newName };
-      await updateNote(id, updatedNote);
+      console.log("beforee: ", notebookToUpdate);
+      const updatedNotebook = { ...notebookToUpdate, name: newName };
+      await updateNotebook(id, updatedNotebook); // предполагаем, что у тебя есть API для этого
+      console.log("afterr: ", updatedNotebook);
+      await refreshNotebooks(); // тянем с сервера свежие данные
+
       const updatedNotes = await fetchNotes();
       setNotes(updatedNotes);
 
       onSuccess();
     } catch (error) {
-      onError("Не удалось переименовать заметку. Попробуйте снова.");
+      onError("Не удалось переименовать блокнот. Попробуйте снова.");
+    }
+  };
+
+  useEffect(() => {
+    console.log("notebooks updated: ", notebooks);
+  }, [notebooks]);
+
+  const handleDeactivateNotebook = async (
+    id: string,
+    onSuccess: () => void,
+    onError: (error: string) => void
+  ) => {
+    try {
+      if (!activeNotebook || activeNotebook.id !== id) {
+        onError("Нет активного блокнота для удаления");
+        return;
+      }
+
+      // Удаляем блокнот
+      await deleteNotebook(id);
+
+      // Удаляем все заметки, которые были в этом блокноте
+      const notesInNotebook = notes.filter((note) => note.notebook_id === id);
+      for (const note of notesInNotebook) {
+        await deleteNote(note.id); // предполагаем, что есть API для полного удаления заметки
+      }
+
+      // Обновляем данные с сервера
+      await refreshNotebooks();
+
+      const updatedNotes = await fetchNotes();
+      setNotes(updatedNotes);
+
+      // Сбрасываем активный блокнот
+      setActiveNotebook("");
+
+      onSuccess();
+    } catch (error) {
+      onError("Ошибка при удалении блокнота и его заметок");
     }
   };
 
@@ -136,13 +247,29 @@ const Header = () => {
     setIsDeleteNoteDialogOpen(true);
   };
 
-  const handleDeleteNote = async () => {
+  const handleDeleteNotebook = async (
+    id: string,
+    onSuccess: () => void,
+    onError: (error: string) => void
+  ) => {
     try {
-      await deleteNoteApi(activeNote?.id || "");
-      const updatedNotes = await fetchNotes(); // Получаем обновленный список заметок
+      if (!activeNotebook || activeNotebook.id !== id) {
+        onError("Нет активного блокнота для удаления");
+        return;
+      }
+
+      await deleteNotebook(id);
+
+      const updatedNotes = await fetchNotes();
       setNotes(updatedNotes);
-    } catch {
-      setError("Ошибка удаления заметки");
+
+      await refreshNotebooks();
+
+      setActiveNotebook("");
+
+      onSuccess();
+    } catch (error) {
+      onError("Ошибка при деактивации блокнота");
     }
   };
 
@@ -163,29 +290,28 @@ const Header = () => {
   };
 
   const { showArchived, setShowArchived, showTrashed, setShowTrashed } =
-    useNotesVisibility(); // Use context here
-
-  const handleViewArchivedNotes = () => {
-    setShowArchived(true);
-    setShowTrashed(false); // сбрасываем состояние для удалённых заметок
-  };
-
-  const handleViewTrashedNotes = () => {
-    setShowTrashed(true);
-    setShowArchived(false); // сбрасываем состояние для архивных заметок
-  };
-
-  const handleViewAllNotes = () => {
-    setShowArchived(false);
-    setShowTrashed(false); // сбрасываем состояние для архивных и удалённых
-  };
-
-  const handleViewDeletedNotes = () => {
-    setIsTrashDialogOpen(true);
-    handleCloseMenu();
-  };
+    useNotesVisibility(); // Use contexts here
 
   const { toggleSidebar } = useContext(UIContext);
+
+  let headingText = "All Notes (0)";
+
+  if (showArchived) {
+    headingText = `Archive (${
+      Array.isArray(archivedNotes) ? archivedNotes.length : 0
+    })`;
+  } else if (showTrashed) {
+    headingText = `Trash (${
+      Array.isArray(trashedNotes) ? trashedNotes.length : 0
+    })`;
+  } else if (activeNotebook) {
+    const count = Array.isArray(notes)
+      ? notes.filter((note) => note.notebook_id === activeNotebook.id).length
+      : 0;
+    headingText = `${activeNotebook.name} (${count})`;
+  } else {
+    headingText = `All Notes (${Array.isArray(notes) ? notes.length : 0})`;
+  }
 
   return (
     <Container>
@@ -193,40 +319,7 @@ const Header = () => {
         <HamburgerButton onClick={toggleSidebar}>
           <DensityMediumIcon />
         </HamburgerButton>
-        <Heading>
-          {activeNotebook ? (
-            <>
-              {activeNotebook.name}{" "}
-              {Array.isArray(notes) &&
-              notes.filter((note) => note.notebook_id === activeNotebook.id)
-                .length > 0
-                ? `(${
-                    notes.filter(
-                      (note) => note.notebook_id === activeNotebook.id
-                    ).length
-                  })`
-                : "(0)"}
-            </>
-          ) : showArchived ? (
-            `Archive ${
-              Array.isArray(archivedNotes) && archivedNotes.length > 0
-                ? `(${archivedNotes.length})`
-                : "(0)"
-            }`
-          ) : showTrashed ? (
-            `Trash ${
-              Array.isArray(trashedNotes) && trashedNotes.length > 0
-                ? `(${trashedNotes.length})`
-                : "(0)"
-            }`
-          ) : (
-            `All Notes ${
-              Array.isArray(notes) && notes.length > 0
-                ? `(${notes.length})`
-                : "(0)"
-            }`
-          )}
-        </Heading>
+        <Heading>{headingText}</Heading>
       </HeaderLeft>
       <ButtonGroup>
         <ArrowTooltip title="Add new note" placement="bottom">
@@ -234,7 +327,7 @@ const Header = () => {
             <NoteAddIcon />
           </IconButton>
         </ArrowTooltip>
-        {activeNote?.id && (
+        {activeNotebook?.id && (
           <ArrowTooltip title="More actions" placement="bottom">
             <IconButton onClick={handleClick}>
               <MoreHorizIcon />
@@ -250,48 +343,54 @@ const Header = () => {
         onClose={handleCloseMenu}
         TransitionComponent={Fade}
       >
-        {activeNote && (
+        {activeNotebook && (
           <div>
             <MenuItem onClick={handleRenameNoteClick} disableRipple>
               <DriveFileRenameOutlineIcon />
-              Rename note
+              Rename notebook
             </MenuItem>
+
+            <MenuItem
+              onClick={() => {
+                handleCloseMenu();
+                setIsDeactivateNoteDialogOpen(true);
+              }}
+              disableRipple
+            >
+              <DeleteForeverIcon />
+              Deactivate notebook
+            </MenuItem>
+
             <MenuItem onClick={handleDeleteNoteClick} disableRipple>
               <DeleteForeverIcon />
-              Delete note
-            </MenuItem>
-            <MenuItem onClick={handleViewDeletedNotes} disableRipple>
-              <DeleteForeverIcon />
-              View deleted notes
+              Delete notebook
             </MenuItem>
           </div>
         )}
       </StyledMenu>
-      {activeNote && (
+      {activeNotebook && (
         <>
-          <RenameNoteDialog
-            note={activeNote!}
+          <RenameNotebookDialog
+            notebook={activeNotebook}
             open={isRenameNoteDialogOpen}
             setOpen={setIsRenameNoteDialogOpen}
-            renameNote={handleRenameNote}
+            renameNotebook={handleRenameNotebook}
           />
 
-          <DeleteNoteDialog
-            note={activeNote}
+          <DeactivateNotebookDialog
+            notebook={activeNotebook}
+            open={isDeactivateNoteDialogOpen}
+            setOpen={setIsDeactivateNoteDialogOpen}
+            deactivateNotebook={handleDeactivateNotebook}
+          />
+
+          <DeleteNotebookDialog
+            notebook={activeNotebook}
             open={isDeleteNoteDialogOpen}
             setOpen={setIsDeleteNoteDialogOpen}
-            deleteNoteDial={handleDeleteNote}
-            onSuccess={function (): void {
-              throw new Error("Function not implemented.");
-            }}
-          />
-          <DeleteNoteDialog
-            note={activeNote!}
-            open={isTrashDialogOpen}
-            setOpen={setIsTrashDialogOpen}
-            deleteNoteDial={handleMoveNoteToTrash}
-            onSuccess={function (): void {
-              throw new Error("Function not implemented.");
+            deleteNotebook={handleDeleteNotebook}
+            onSuccess={() => {
+              /* что-то */
             }}
           />
         </>
@@ -347,16 +446,45 @@ const HamburgerButton = styled(IconButton)`
 `;
 
 const StyledMenu = styled(Menu)`
-  .MuiMenuItem-root {
-    font-size: 14px;
-    padding: 4px 16px;
+  .MuiPaper-root {
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    min-width: 220px;
+    background-color: #fff;
+  }
 
+  .MuiMenuItem-root {
+    font-size: 15px;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #444;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    border-radius: 6px;
+    border: 1px #ddd;
     & svg {
-      font-size: 18px;
-      margin-right: 6px;
+      font-size: 20px;
+      color: #888;
+      transition: color 0.3s ease;
     }
+
+    &:hover {
+      background-color: #f0f4ff;
+      color: #3951b5;
+
+      & svg {
+        color: #3951b5;
+      }
+    }
+
     &.active {
-      color: #647dc1;
+      font-weight: 600;
+      color: #3951b5;
+
+      & svg {
+        color: #3951b5;
+      }
     }
   }
 `;

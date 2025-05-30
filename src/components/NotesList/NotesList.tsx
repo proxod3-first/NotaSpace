@@ -6,11 +6,11 @@ import NoNotesMessage from "./NoNotesMessage";
 import { Note } from "../../types/index";
 import { Container, List as MuiList } from "@mui/material";
 import { getTag } from "../../services/tagsApi";
-import { useNotebooks } from "../../context/NotebookContext";
-import { useMainContext } from "../../context/NoteContext";
+import { useNotebooks } from "../../contexts/NotebookContext";
+import { useMainContext } from "../../contexts/NoteContext";
 import { fetchNotes } from "../../services/notesApi";
 import SearchField from "./SearchField";
-import { useNotesVisibility } from "../../context/NotesVisibilityContext";
+import { useNotesVisibility } from "../../contexts/NotesVisibilityContext";
 
 export interface NoteListProps {
   notes: Note[];
@@ -43,7 +43,7 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
   } = useMainContext();
 
   const [selectedNotesIds, setSelectedNotesIds] = useState<string[]>([]);
-  const { activeNotebook, setActiveNotebook } = useNotebooks(); 
+  const { activeNotebook, setActiveNotebook } = useNotebooks();
   const [tags, setTags] = useState<
     { id: string; name: string; color: string }[][]
   >([]);
@@ -54,11 +54,11 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
   const { showArchived, setShowArchived, showTrashed, setShowTrashed } =
     useNotesVisibility(); // Получаем состояние из контекста
 
-  // useEffect(() => {
-  //   if (activeNotebook) {
-  //     setActiveNotebook(activeNotebook.id);
-  //   }
-  // }, [activeNotebook]);
+  useEffect(() => {
+    if (activeNotebook) {
+      setActiveNotebook(activeNotebook?.id);
+    }
+  }, [activeNotebook]);
 
   useEffect(() => {
     const loadTags = async () => {
@@ -227,40 +227,41 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
   // ]);
 
   const filteredNotes = useMemo(() => {
-  const filteredByArchivedOrTrashed = filterNotes(
-    filteredNotesInNotebook,
+    const filteredByArchivedOrTrashed = filterNotes(
+      filteredNotesInNotebook,
+      showArchived,
+      showTrashed
+    );
+    const filteredByTag = filteredNotesByTag(filteredByArchivedOrTrashed);
+    const filteredBySearch = filteredNotesBySearch(filteredByTag);
+    return filteredBySearch;
+  }, [
+    activeNotebook,
+    notes,
     showArchived,
-    showTrashed
-  );
-  const filteredByTag = filteredNotesByTag(filteredByArchivedOrTrashed);
-  const filteredBySearch = filteredNotesBySearch(filteredByTag);
-  return filteredBySearch;
-}, [
-  activeNotebook,
-  notes,
-  showArchived,
-  showTrashed,
-  trashedNotes,
-  archivedNotes,
-  selectedTags,
-  searchQuery,
-  filteredNotesInNotebook,
-]);
+    showTrashed,
+    trashedNotes,
+    archivedNotes,
+    selectedTags,
+    searchQuery,
+    filteredNotesInNotebook,
+  ]);
 
-const uniqueTags = useMemo(() => {
-  const tagMap = new Map<string, { id: string; name: string; color: string }>();
-  filteredNotes?.forEach((note) => {
-    note.tags?.forEach((tagId) => {
-      const tagObj = tags.flat()?.find((t) => t.id === tagId);
-      if (tagObj && !tagMap.has(tagObj.id)) {
-        tagMap.set(tagObj.id, tagObj);
-      }
+  const uniqueTags = useMemo(() => {
+    const tagMap = new Map<
+      string,
+      { id: string; name: string; color: string }
+    >();
+    filteredNotes?.forEach((note) => {
+      note.tags?.forEach((tagId) => {
+        const tagObj = tags.flat()?.find((t) => t.id === tagId);
+        if (tagObj && !tagMap.has(tagObj.id)) {
+          tagMap.set(tagObj.id, tagObj);
+        }
+      });
     });
-  });
-  return Array.from(tagMap.values());
-}, [filteredNotes, tags]);
-
-
+    return Array.from(tagMap.values());
+  }, [filteredNotes, tags]);
 
   const handleNoteClick = async (noteId: string) => {
     const updatedNotes = await fetchNotes();

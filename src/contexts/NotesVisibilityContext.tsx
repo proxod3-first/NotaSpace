@@ -27,11 +27,11 @@ export const NotesVisibilityProvider: React.FC<{ children: ReactNode }> = ({
 };
 
 export const useNotesVisibility = (): NotesVisibilityContextType => {
-  const context = useContext(NotesVisibilityContext);
-  if (!context) {
+  const contexts = useContext(NotesVisibilityContext);
+  if (!contexts) {
     throw new Error(
       "useNotesVisibility must be used within a NotesVisibilityProvider"
     );
   }
-  return context;
+  return contexts;
 };

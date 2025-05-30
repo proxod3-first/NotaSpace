@@ -15,22 +15,22 @@ import {
   DeleteForever,
 } from "@mui/icons-material"; // Используем иконки MUI
 import CreateNotebookDialog from "./CreateNotebookDialog";
-import { UIContext } from "../../context/UIContext";
+import { UIContext } from "../../contexts/UIContext";
 import TagManager from "./TagManager";
 import ThemeToggle from "./ThemeToggle";
 import ArrowTooltip from "../Shared/ArrowTooltip";
-import { useNotebooks } from "../../context/NotebookContext"; // Используем хук из NotebookContext
+import { useNotebooks } from "../../contexts/NotebookContext"; // Используем хук из NotebookContext
 import { baseIconButton, flexCenter, scrollable } from "../../styles/mixins";
 import NotebookOption from "./NotebookOption";
 import ErrorMessage from "../Shared/ErrorMessage";
 import AllNotesOption from "./AllNotesOption";
-import { useMainContext } from "../../context/NoteContext";
+import { useMainContext } from "../../contexts/NoteContext";
 import { deleteNote } from "../../services/notesApi";
 import { Note } from "../../types";
 import { fetchNotebooks } from "../../services/notebooksApi";
 import CopyToClipboard from "react-copy-to-clipboard";
 import NoteList from "../NotesList/NotesList";
-import { useNotesVisibility } from "../../context/NotesVisibilityContext"; // Путь к файлу контекста
+import { useNotesVisibility } from "../../contexts/NotesVisibilityContext"; // Путь к файлу контекста
 
 interface RotateIconProps {
   open: boolean;
@@ -60,7 +60,7 @@ const BaseSidebar = () => {
   } = useMainContext(); // Подключаем архивированные и удалённые заметки
 
   const { showArchived, setShowArchived, showTrashed, setShowTrashed } =
-    useNotesVisibility(); // Use context here
+    useNotesVisibility(); // Use contexts here
 
   const [openDialog, setOpenDialog] = useState(false);
   const [notebooksOpen, setNotebooksOpen] = useState(false);
@@ -163,7 +163,10 @@ const BaseSidebar = () => {
                   key={notebook.id || index}
                   notebook={notebook}
                   $active={notebook_id === notebook?.id}
-                  onClick={() => setActiveNotebook(notebook.id)}
+                  onClick={() => {
+                    toggleSidebar();
+                    setActiveNotebook(notebook.id);
+                  }}
                 />
               ))
             ) : (

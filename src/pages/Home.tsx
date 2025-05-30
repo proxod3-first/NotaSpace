@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { useMainContext } from "../context/NoteContext";
+import { useMainContext } from "../contexts/NoteContext";
 
 import { fetchNotes, createNote, deleteNote } from "../services/notesApi";
 
 import PreLoader from "../components/Shared/PreLoader";
 import styled from "styled-components";
-import { UIContext } from "../context/UIContext";
+import { UIContext } from "../contexts/UIContext";
 import { useToggleItem } from "../hooks/hooks";
 import Sidebar from "../components/Sidebar/Sidebar";
 import NoteList from "../components/NotesList/NotesList";
 import Editor from "../components/Editor/Editor";
-import { useNotesVisibility } from "../context/NotesVisibilityContext";
+import { useNotesVisibility } from "../contexts/NotesVisibilityContext";
 
 export default function Home() {
   const {
@@ -59,7 +59,7 @@ export default function Home() {
     setLoading(true);
 
     try {
-      // Call the deleteNoteApi from context
+      // Call the deleteNoteApi from contexts
       await deleteNoteApi(id);
 
       // Optionally, reset active note if the deleted note was the active one

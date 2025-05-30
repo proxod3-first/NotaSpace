@@ -1,9 +1,9 @@
 import React, { useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { UIContext } from "../../context/UIContext";
-import { useMainContext } from "../../context/NoteContext";
+import { UIContext } from "../../contexts/UIContext";
+import { useMainContext } from "../../contexts/NoteContext";
 import { fetchNotes } from "../../services/notesApi";
-import { useNotebooks } from "../../context/NotebookContext";
+import { useNotebooks } from "../../contexts/NotebookContext";
 
 const AllNotesOption = () => {
   const { toggleSidebar } = useContext(UIContext);

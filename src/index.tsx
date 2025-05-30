@@ -4,9 +4,9 @@ import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
-import { MainProvider } from "./context/NoteContext";
-import { TagProvider } from "./context/TagContext";
-import { NotebookProvider } from "./context/NotebookContext";
+import { MainProvider } from "./contexts/NoteContext";
+import { TagProvider } from "./contexts/TagContext";
+import { NotebookProvider } from "./contexts/NotebookContext";
 import store from "./store/store";
 import { Provider } from "react-redux";
 

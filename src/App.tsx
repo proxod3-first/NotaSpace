@@ -1,10 +1,10 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
-import { MainProvider } from "./context/NoteContext";
-import { TagProvider } from "./context/TagContext";
-import { NotebookProvider } from "./context/NotebookContext";
+import { MainProvider } from "./contexts/NoteContext";
+import { TagProvider } from "./contexts/TagContext";
+import { NotebookProvider } from "./contexts/NotebookContext";
 import GlobalStyle from "./styles/global";
-import { NotesVisibilityProvider } from "./context/NotesVisibilityContext";
+import { NotesVisibilityProvider } from "./contexts/NotesVisibilityContext";
 
 export default function App() {
   return (

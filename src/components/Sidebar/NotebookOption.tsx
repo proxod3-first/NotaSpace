@@ -3,10 +3,10 @@ import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { flexCenter } from "../../styles/mixins";
 import { Notebook } from "../../types";
-import { UIContext } from "../../context/UIContext";
+import { UIContext } from "../../contexts/UIContext";
 import { fetchNotesByNotebook } from "../../services/notesApi"; 
-import { useNotebooks } from "../../context/NotebookContext";
-import { useMainContext } from "../../context/NoteContext";
+import { useNotebooks } from "../../contexts/NotebookContext";
+import { useMainContext } from "../../contexts/NoteContext";
 
 interface ContainerProps {
   $active: boolean;
