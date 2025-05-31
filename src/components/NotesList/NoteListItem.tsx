@@ -32,24 +32,41 @@ const NoteListItem = ({ note, tags, onClick, active }: ComponentProps) => {
 
   const { notebooks, activeNotebook } = useNotebooks();
 
-  
   const handleClick = () => {
     if (toggleNoteList) toggleNoteList();
     onClick(note.id);
+  };
+
+  const getPriorityLabel = (order: number): string => {
+    switch (order) {
+      case 3:
+        return "Высокий";
+      case 2:
+        return "Средний";
+      case 1:
+        return "Низкий";
+      case 0:
+        return ""; // На случай, если порядок не соответствует одному из известных значений
+      default:
+        return "";
+      }
   };
 
   const notebook = notebooks?.find((nb) => nb.id === note.notebook_id);
   console.log("NOTEBOOK in NoteListItem: ", notebook);
 
   return (
-    <Container onClick={handleClick} $active={active}>
+    <Container onClick={handleClick} $active={active} $bgColor={note.color}>
       <Title>
         {note.name ? note.name : "Untitled"}{" "}
         <NotebookTitleNote>
           {notebook && activeNotebook?.id !== notebook.id
-            ? `| ${notebook.name}`
+            ? `| ${notebook.name} `
             : ""}
-        </NotebookTitleNote>{" "}
+        </NotebookTitleNote>
+        <NotebookTitleNote>
+          {note.order > 0 ? `| ${getPriorityLabel(note.order)}` : " "}
+        </NotebookTitleNote>
       </Title>
       <Content>{formatText(note.text)}</Content>
       <Tags>
@@ -88,17 +105,17 @@ const formatText = (text: string) => {
   ));
 };
 
-const Container = styled.div<{ $active: boolean }>`
+const Container = styled.div<{ $active: boolean; $bgColor: string }>`
   font-size: 15px;
   padding: 16px 25px;
-  margin-right: 10px;
+  margin-right: 5px;
   margin-bottom: 10px;
   height: auto;
   border-radius: 8px;
-  background-color: ${({ $active }) =>
+  background-color: ${({ $active, $bgColor }) =>
     $active
       ? "#e4f0f9"
-      : "#f9fafb"}; /* Мягкий голубой для активного, светло-серый для неактивного */
+      : $bgColor}; /* Мягкий голубой для активного, светло-серый для неактивного */
   border: 1px solid ${({ $active }) => ($active ? "#a3c4d7" : "#d1d9e6")}; /* Легкий серо-голубой для активного, светло-серый для неактивного */
   position: relative;
   box-shadow: ${({ $active }) =>
@@ -109,10 +126,10 @@ const Container = styled.div<{ $active: boolean }>`
 
   &:hover {
     cursor: pointer;
-    background-color: ${({ $active }) =>
+    background-color: ${({ $active, $bgColor }) =>
       !$active
         ? "#f0f4f8"
-        : "#d1e3f0"}; /* Плавный переход для фона при наведении */
+        : $bgColor || "#d1e3f0"}; /* Плавный переход для фона при наведении */
     box-shadow: 0 4px 8px rgba(50, 100, 150, 0.2); /* Мягкая тень при наведении */
   }
 

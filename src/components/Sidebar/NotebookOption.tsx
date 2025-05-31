@@ -43,7 +43,7 @@ const NotebookOption = ({ notebook, $active, onClick }: ComponentProps) => {
 
   useEffect(() => {
     fetchNotesForNotebook(notebook.id); // Загружаем заметки для блокнота
-  }, notes);
+  }, [notes]);
 
   // Для изменения активного блокнота
   const handleClick = () => {

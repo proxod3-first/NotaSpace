@@ -11,10 +11,12 @@ import NoteAddIcon from "@mui/icons-material/NoteAdd";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import DensityMediumIcon from "@mui/icons-material/DensityMedium";
 import styled from "styled-components";
+import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import { baseIconButton, flexCenter, truncatedText } from "../../styles/mixins";
 import ArrowTooltip from "../Shared/ArrowTooltip";
 import { Note } from "../../types";
 import { UIContext } from "../../contexts/UIContext";
+import ArchiveIcon from "@mui/icons-material/Archive";
 import {
   createNote,
   deleteNote,
@@ -62,6 +64,7 @@ const Header = () => {
   const [isRenameNoteDialogOpen, setIsRenameNoteDialogOpen] = useState(false);
   const [isDeleteNoteDialogOpen, setIsDeleteNoteDialogOpen] = useState(false);
   const [isTrashDialogOpen, setIsTrashDialogOpen] = useState(false);
+  const { isNoteListOpen, toggleNoteList } = useContext(UIContext);
 
   useEffect(() => {
     const saveNotes = async () => {
@@ -142,25 +145,40 @@ const Header = () => {
 
   const handleCreateNoteClick = async () => {
     const newNotes =
-      notes?.filter((note) => note.name.startsWith("New Note")) ?? [];
+      notes?.filter((note) => note.name.startsWith("Заметка")) ?? [];
     const template_text = "# Привет, это документ в Markdown!";
+
+    // Данные для новой заметки
     const newNoteData = {
-      name: `New Note ${newNotes?.length + 1}`,
+      name: `Заметка ${newNotes?.length + 1}`,
       text: template_text,
       color: "",
       order: 0,
       notebook_id: activeNotebook?.id || "",
       tags: [],
     };
+
     try {
+      // Создаем новую заметку
       await createNote(newNoteData);
+
+      // Получаем обновленный список заметок
       const updatedNotes = await fetchNotes();
       setNotes(updatedNotes);
 
-      if (activeNote) {
-        setActiveNoteId(activeNote.id);
+      // Находим только что созданную заметку
+      const newNote = updatedNotes.find(
+        (note) => note.name === newNoteData.name
+      );
+
+      // Устанавливаем её как активную
+      if (newNote) {
+        toggleNoteList();
+        setActiveNoteId(null);
+        setActiveNote(newNote); // Обновляем объект активной заметки
       } else {
         setActiveNoteId(null);
+        setActiveNote(null);
       }
     } catch (error) {
       setError(
@@ -278,14 +296,14 @@ const Header = () => {
 
   const { toggleSidebar } = useContext(UIContext);
 
-  let headingText = "All Notes (0)";
+  let headingText = "Все заметки (0)";
 
   if (showArchived) {
-    headingText = `Archive (${
+    headingText = `Архив (${
       Array.isArray(archivedNotes) ? archivedNotes.length : 0
     })`;
   } else if (showTrashed) {
-    headingText = `Trash (${
+    headingText = `Недавно удаленные (${
       Array.isArray(trashedNotes) ? trashedNotes.length : 0
     })`;
   } else if (activeNotebook) {
@@ -294,7 +312,7 @@ const Header = () => {
       : 0;
     headingText = `${activeNotebook.name} (${count})`;
   } else {
-    headingText = `All Notes (${Array.isArray(notes) ? notes.length : 0})`;
+    headingText = `Все заметки (${Array.isArray(notes) ? notes.length : 0})`;
   }
 
   return (
@@ -306,13 +324,13 @@ const Header = () => {
         <Heading>{headingText}</Heading>
       </HeaderLeft>
       <ButtonGroup>
-        <ArrowTooltip title="Add new note" placement="bottom">
+        <ArrowTooltip title="Новая заметка" placement="bottom">
           <IconButton onClick={handleCreateNoteClick}>
             <NoteAddIcon />
           </IconButton>
         </ArrowTooltip>
         {activeNotebook?.id && (
-          <ArrowTooltip title="More actions" placement="bottom">
+          <ArrowTooltip title="Ещё" placement="bottom">
             <IconButton onClick={handleClick}>
               <MoreHorizIcon />
             </IconButton>
@@ -331,7 +349,7 @@ const Header = () => {
           <div>
             <MenuItem onClick={handleRenameNoteClick} disableRipple>
               <DriveFileRenameOutlineIcon />
-              Rename notebook
+              Переименовать книгу
             </MenuItem>
 
             <MenuItem
@@ -341,13 +359,13 @@ const Header = () => {
               }}
               disableRipple
             >
-              <DeleteForeverIcon />
-              Deactivate notebook
+              <ArchiveIcon />
+              Переместить в архив
             </MenuItem>
 
             <MenuItem onClick={handleDeleteNoteClick} disableRipple>
               <DeleteForeverIcon />
-              Delete notebook
+              Удалить книгу
             </MenuItem>
           </div>
         )}
@@ -386,7 +404,7 @@ const Header = () => {
 export default Header;
 
 const Container = styled.div`
-  padding: 0 16px;
+  padding: 0 14px;
   height: 60px;
   display: flex;
   justify-content: space-between;
@@ -435,8 +453,8 @@ const StyledMenu = styled(Menu)`
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     min-width: 220px;
     background-color: #fff;
+    border: 1px #ddd;
   }
-
   .MuiMenuItem-root {
     font-size: 15px;
     padding: 10px 20px;

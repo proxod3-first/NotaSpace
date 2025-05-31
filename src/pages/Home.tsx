@@ -79,10 +79,10 @@ export default function Home() {
   };
 
   // Обработчик выбора заметки из списка
-  const handleSelectNote = (id: string) => {
-    const note = notes?.find((n) => n.id === id) || null;
-    setActiveNote(note);
-  };
+  // const handleSelectNote = (id: string) => {
+  //   const note = notes?.find((n) => n.id === id) || null;
+  //   setActiveNote(note);
+  // };
 
   if (loading) return <PreLoader />;
   if (error) return <div className="p-4 text-red-500">{error}</div>;
@@ -101,7 +101,6 @@ export default function Home() {
         <NoteList
           notes={notes}
           activeNoteId={activeNote?.id || ""}
-          onSelectNote={handleSelectNote}
           onDeleteNote={handleDelete}
         />
 

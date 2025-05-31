@@ -76,11 +76,11 @@ const MoveNoteDialog = ({
 
   return (
     <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>Move note</DialogTitle>
+      <DialogTitle>Переместить заметку</DialogTitle>
       <DialogContent>
         <Select id="notebook" value={targetNotebookId} onChange={handleChange}>
           <option value={defaultValue} disabled>
-            Choose a location...
+            Выберите назначение...
           </option>
           {notebookIds.map((id) => (
             <option key={id} value={id} disabled={id === note.notebook_id}>
@@ -92,7 +92,7 @@ const MoveNoteDialog = ({
       </DialogContent>
       <DialogActions>
         <OutlinedButton type="button" onClick={handleClose}>
-          Cancel
+          Назад
         </OutlinedButton>
         <ContainedButton
           type="submit"
@@ -102,7 +102,7 @@ const MoveNoteDialog = ({
             targetNotebookId === note.notebook_id
           }
         >
-          Move
+          Перенести
         </ContainedButton>
       </DialogActions>
     </Dialog>

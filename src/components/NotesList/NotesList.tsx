@@ -4,19 +4,22 @@ import Header from "./Header";
 import NoteListItem from "./NoteListItem";
 import NoNotesMessage from "./NoNotesMessage";
 import { Note } from "../../types/index";
-import { Container, List as MuiList } from "@mui/material";
+import { Container, Menu, MenuItem, List as MuiList } from "@mui/material";
 import { getTag } from "../../services/tagsApi";
 import { useNotebooks } from "../../contexts/NotebookContext";
 import { useMainContext } from "../../contexts/NoteContext";
-import { fetchNotes } from "../../services/notesApi";
+import { fetchNotes, getNote } from "../../services/notesApi";
 import SearchField from "./SearchField";
 import { useNotesVisibility } from "../../contexts/NotesVisibilityContext";
+import ArrowTooltip from "../Shared/ArrowTooltip";
+import FilterAltIcon from "@mui/icons-material/FilterAlt";
+import { baseIconButton } from "../../styles/mixins";
 
 export interface NoteListProps {
   notes: Note[];
   activeNoteId: string | null;
-  onSelectNote: (id: string) => void;
-  OnRenameNote?: (id: string) => void;
+  // onSelectNote: (id: string) => void;
+  // OnRenameNote?: (id: string) => void;
   onDeleteNote?: (id: string) => void | Promise<void>;
 }
 
@@ -25,7 +28,7 @@ interface TagButtonProps {
   style?: React.CSSProperties;
 }
 
-const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
+const NoteList: React.FC<NoteListProps> = ({ onDeleteNote }) => {
   const {
     notes,
     setNotes,
@@ -49,7 +52,11 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
   >([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]); // Массив для хранения выбранных тегов
   const [error, setError] = useState<string | null>(null);
+
+  const [sortOrder, setSortOrder] = useState<string | null>(null); // Состояние для выбранного типа сортировки
+
   const [searchQuery, setSearchQuery] = useState<string>(""); // Состояние для поискового запроса
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const { showArchived, setShowArchived, showTrashed, setShowTrashed } =
     useNotesVisibility(); // Получаем состояние из контекста
@@ -75,9 +82,40 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
     loadTags(); // Вызов асинхронной функции
   }, [notes, selectedTags]);
 
+  const checkSelectedTags = (selectedTags: string[]) => {
+    const validTags =
+      selectedTags?.filter((tagId) =>
+        tags.flat().some((tag) => tag.id === tagId)
+      ) ?? [];
+    if (validTags?.length !== selectedTags?.length) {
+      // Если есть недействительные теги, обновляем состояние
+      setSelectedTags(validTags);
+    }
+  };
+
   useEffect(() => {
     checkSelectedTags(selectedTags);
   }, [selectedTags, tags]);
+
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null); // Закрываем меню при выборе или клике за пределами
+  };
+  const handleSortChange = (order: string) => {
+    setSortOrder(order);
+    handleClose(); // Закрываем меню после выбора
+  };
+
+  const sortNotesByPriority = (notes: Note[]) => {
+    return notes.sort((a, b) => {
+      if (sortOrder === "asc") {
+        return a.order - b.order; // По возрастанию
+      }
+      return b.order - a.order; // По убыванию
+    });
+  };
 
   const handleTagClick = (tagId: string) => {
     setSelectedTags((prevTags) => {
@@ -210,7 +248,7 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
     );
     const filteredByTag = filteredNotesByTag(filteredByArchivedOrTrashed);
     const filteredBySearch = filteredNotesBySearch(filteredByTag);
-    return filteredBySearch;
+    return sortNotesByPriority(filteredBySearch);
   }, [
     activeNotebook,
     notes,
@@ -220,6 +258,7 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
     archivedNotes,
     selectedTags,
     searchQuery,
+    sortOrder,
     filteredNotesInNotebook,
   ]);
 
@@ -243,18 +282,11 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
     const updatedNotes = await fetchNotes();
     setNotes(updatedNotes);
 
-    const selectedNote = updatedNotes?.find((n) => n.id === noteId) || null;
-    setActiveNote(selectedNote);
-  };
+    const selectedNote = await getNote(noteId);
 
-  const checkSelectedTags = (selectedTags: string[]) => {
-    const validTags =
-      selectedTags?.filter((tagId) =>
-        tags.flat().some((tag) => tag.id === tagId)
-      ) ?? [];
-    if (validTags?.length !== selectedTags?.length) {
-      // Если есть недействительные теги, обновляем состояние
-      setSelectedTags(validTags);
+    if (selectedNote) {
+      setActiveNote(selectedNote);
+      console.log("Активная заметка обновлена:", selectedNote, activeNote);
     }
   };
 
@@ -273,57 +305,74 @@ const NoteList: React.FC<NoteListProps> = ({ onSelectNote, onDeleteNote }) => {
   };
 
   return (
-    <Container>
-      <Header />
+    <div>
+      <Container>
+        <Header />
 
-      {/* Поле для поиска */}
-      <SearchField onChange={handleSearchChange} />
-
-      <div>
-        {error && <ErrorMessage>{error}</ErrorMessage>}
-        <TagListContainer>
-          {uniqueTags?.length > 0 ? (
-            uniqueTags.map((tag) => (
-              <TagButton
-                key={tag.id}
-                selected={selectedTags.includes(tag.id)} // Проверяем, выбран ли тег
-                onClick={() => handleTagClick(tag.id)}
-                style={{ backgroundColor: tag.color }}
-              >
-                {tag.name}
-              </TagButton>
-            ))
-          ) : (
-            <NoTagsMessage>{}</NoTagsMessage>
-          )}
-        </TagListContainer>
-
+        {/* Поле для поиска */}
+        <SearchField onChange={handleSearchChange}>
+          <IconButton onClick={handleClick}>
+            <FilterAltIcon />
+          </IconButton>
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleClose}
+          >
+            <MenuItem onClick={() => handleSortChange("asc")}>
+              По возрастанию
+            </MenuItem>
+            <MenuItem onClick={() => handleSortChange("desc")}>
+              По убыванию
+            </MenuItem>
+          </Menu>
+        </SearchField>
         <div>
-          {filteredNotes?.length ? (
-            <List>
-              <MuiList>
-                {filteredNotes.map((note) => {
-                  const idx = notes.findIndex((n) => n.id === note.id);
-                  const noteTagObjects = tags[idx] || [];
+          {error && <ErrorMessage>{error}</ErrorMessage>}
+          <TagListContainer>
+            {uniqueTags?.length > 0 ? (
+              uniqueTags.map((tag) => (
+                <TagButton
+                  key={tag.id}
+                  selected={selectedTags.includes(tag.id)} // Проверяем, выбран ли тег
+                  onClick={() => handleTagClick(tag.id)}
+                  style={{ backgroundColor: tag.color }}
+                >
+                  {tag.name}
+                </TagButton>
+              ))
+            ) : (
+              <NoTagsMessage>{}</NoTagsMessage>
+            )}
+          </TagListContainer>
 
-                  return (
-                    <NoteListItem
-                      key={note.id}
-                      note={note}
-                      tags={noteTagObjects}
-                      active={note.id === activeNote?.id}
-                      onClick={() => onSelectNote(note.id)}
-                    />
-                  );
-                })}
-              </MuiList>
-            </List>
-          ) : (
-            <NoNotesMessage />
-          )}
+          <div>
+            {filteredNotes?.length ? (
+              <List>
+                <MuiList>
+                  {filteredNotes.map((note) => {
+                    const idx = notes.findIndex((n) => n.id === note.id);
+                    const noteTagObjects = tags[idx] || [];
+
+                    return (
+                      <NoteListItem
+                        key={note.id}
+                        note={note}
+                        tags={noteTagObjects}
+                        active={note.id === activeNote?.id}
+                        onClick={handleNoteClick}
+                      />
+                    );
+                  })}
+                </MuiList>
+              </List>
+            ) : (
+              <NoNotesMessage />
+            )}
+          </div>
         </div>
-      </div>
-    </Container>
+      </Container>
+    </div>
   );
 };
 
@@ -333,6 +382,17 @@ export default NoteList;
 const ErrorMessage = styled.div`
   color: red;
   margin: 0px 0;
+`;
+
+const IconButton = styled.button`
+  ${baseIconButton}
+  font-size: 28px;
+  margin-left: -10px;
+  color: var(--sidebar-text-muted);
+  flex-shrink: 0;
+  &:hover {
+    background-color: rgb(229, 229, 229);
+  }
 `;
 
 const List = styled(MuiList)`

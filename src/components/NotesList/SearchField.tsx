@@ -8,7 +8,7 @@ const SearchWrapper = styled.div`
   background-color: var(--sidebar-background-hover);
   border-radius: 8px;
   padding: 6px 12px;
-  width: 100%;
+  width: 99%;
   box-sizing: border-box;
   margin: 12px 0;
   cursor: text; /* Добавлен курсор ввода текста */
@@ -35,7 +35,6 @@ const SearchInput = styled.input`
   margin-left: 10px;
   caret-color: rgb(165, 188, 222);
   cursor: text;
-
   &::placeholder {
     color: var(--sidebar-text-muted);
   }
@@ -43,8 +42,10 @@ const SearchInput = styled.input`
 
 export default function SearchField({
   onChange,
+  children, // передаем children
 }: {
   onChange: (val: string) => void;
+  children?: React.ReactNode; // поддержка детей
 }) {
   const [value, setValue] = useState("");
 
@@ -58,11 +59,12 @@ export default function SearchField({
       <SearchIcon />
       <SearchInput
         type="text"
-        placeholder="Search name and text"
+        placeholder="Найти нужное"
         value={value}
         onChange={handleChange}
         spellCheck={false}
       />
+      {children} {/* Рендерим children */}
     </SearchWrapper>
   );
 }

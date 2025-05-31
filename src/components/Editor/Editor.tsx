@@ -37,6 +37,7 @@ import {
   addTagToNote,
   fetchArchivedNotes,
   fetchNotes,
+  getNote,
   removeTagFromNote,
 } from "../../services/notesApi";
 import { Tag } from "../../types";
@@ -48,6 +49,8 @@ import { useMainContext } from "../../contexts/NoteContext";
 import { updateNote } from "../../services/notesApi";
 import { useNotebooks } from "../../contexts/NotebookContext";
 import { useNotesVisibility } from "../../contexts/NotesVisibilityContext";
+import PrioritySelector from "./PrioritySelector";
+import TodoPlugin from "../Editor/ToDoMarkdown";
 
 interface EditorProps {
   note: Note;
@@ -69,6 +72,7 @@ interface PrevNoteState {
 
 const mdParser = new MarkdownIt();
 const AUTOSAVE_INTERVAL = 10000;
+MdEditor.use(TodoPlugin);
 
 const Editor = ({ note }: EditorProps) => {
   const {
@@ -84,10 +88,13 @@ const Editor = ({ note }: EditorProps) => {
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [color, setColor] = useState(""); // Стейт для хранения текущего цвета активной заметки
+  const [order, setOrder] = useState(0);
+
   const [syncStatus, setSyncStatus] = useState("Сохранено");
   const [isFirstRun, setIsFirstRun] = useState(true);
 
-  const [tags, setTags] = useState<string[]>(activeNote?.tags || []); // Массив только ID тегов
+  const [tags, setTags] = useState<string[]>([]); // Массив только ID тегов
   const [tagObjects, setTagObjects] = useState<Tag[]>([]); // Массив объектов тегов для отображения
   const [newTag, setNewTag] = useState<string>(""); // Новое название тега
   const [editTagId, setEditTagId] = useState<string | null>(null); // ID тега для редактирования
@@ -110,16 +117,19 @@ const Editor = ({ note }: EditorProps) => {
 
   const { moveNoteToNewNotebook } = useMainContext();
 
+  // TODO
   useEffect(() => {
     if (!activeNote) return;
 
     // Сбрасываем форму под новую заметку
     setTitle(activeNote.name || "");
     setContent(activeNote.text || "");
+    setColor(activeNote?.color);
+    setOrder(activeNote?.order);
     setTags(activeNote.tags || []);
     setEditTagId(null);
     setNewTag("");
-  }, [activeNote?.id]);
+  }, [activeNote]);
 
   const footerRef = useRef<HTMLDivElement>(null);
   const [editorHeight, setEditorHeight] = useState("100vh");
@@ -143,7 +153,7 @@ const Editor = ({ note }: EditorProps) => {
   }, []);
 
   useEffect(() => {
-    if (!activeNote?.id || !Array.isArray(activeNote.tags)) return; // Если нет активной заметки или тегов, не выполняем запрос.
+    if (!activeNote || !Array.isArray(activeNote.tags)) return; // Если нет активной заметки или тегов, не выполняем запрос.
 
     const loadTagsForActiveNote = async () => {
       try {
@@ -213,67 +223,128 @@ const Editor = ({ note }: EditorProps) => {
   // }
   // });
 
-  useEffect(() => {
-    const saveNote = async () => {
-      if (!activeNote || activeNote.is_deleted || activeNote.is_archived)
-        return;
+  // useEffect(() => {
+  //   const saveNote = async () => {
+  //     if (!activeNote || activeNote.is_deleted || activeNote.is_archived)
+  //       return;
 
-      try {
-        console.log("useEffect Editor: ", activeNote, title, content);
-        await updateNote(activeNote.id || "", {
-          name: title || "",
-          text: content || "",
-          tags: tags,
-          order: 0,
-          color: "",
-        });
+  //     try {
+  //       console.log("useEffect Editor: ", activeNote, title, content);
+  //       await updateNote(activeNote.id, {
+  //         name: title,
+  //         text: content,
+  //         color: color,
+  //         order: order,
+  //         tags: tags,
+  //       });
 
-        const updatedNotes = await fetchNotes();
-        setNotes(updatedNotes);
+  //       const updatedNotes = await fetchNotes();
+  //       setNotes(updatedNotes);
+  //       const updatedActiveNote = updatedNotes.find(
+  //         (note) => note.id === activeNote.id
+  //       );
 
-        setSyncStatus("Сохранено");
-        console.log("Заметка успешно сохранена!");
-      } catch (error) {
-        console.error("Ошибка при сохранении:", error);
-        setSyncStatus("Ошибка");
-      }
-    };
+  //       // Если такая заметка существует, обновляем activeNote
+  //       if (updatedActiveNote) {
+  //         setActiveNote(updatedActiveNote);
+  //       } else {
+  //         console.error("Заметка не найдена в обновлённом списке");
+  //       }
+  //       console.log(
+  //         "useEffect Editor: ",
+  //         notes,
+  //         updatedNotes,
+  //         activeNote,
+  //         title,
+  //         content
+  //       );
+  //       setSyncStatus("Сохранено");
+  //       console.log("Заметка успешно сохранена!");
+  //     } catch (error) {
+  //       console.error("Ошибка при сохранении:", error);
+  //       setSyncStatus("Ошибка");
+  //     }
+  //   };
 
-    saveNote();
-  }, [title, content, tags, activeNote]);
+  //   saveNote();
+  // }, []);
 
   const handleCloseMenu = () => setAnchorEl(null);
   const handleClickMenu = (e: React.MouseEvent<HTMLElement>) =>
     setAnchorEl(e.currentTarget);
 
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleNameChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const updatedName = e.currentTarget.value;
     setTitle(updatedName); // Обновляем локальное состояние title
+
     if (activeNote) {
-      // Обновляем title внутри activeNote
-      setActiveNote({
-        ...activeNote,
-        name: updatedName, // Обновляем name для activeNote
+      // Отправляем изменения на сервер
+      const updatedCount = await updateNote(activeNote.id, {
+        name: updatedName, // Новое название
+        text: content, // Текущий текст
+        color: color, // Текущий цвет
+        order: order, // Текущий порядок
+        tags: tags, // Текущие теги
       });
+
+      const count = typeof updatedCount === "number" ? updatedCount : 0;
+
+      if (count > 0) {
+        // Запрашиваем обновленные данные заметки с сервера
+        const refreshedNote = await getNote(activeNote.id);
+
+        // Обновляем состояние активной заметки с новыми данными
+        setActiveNote(refreshedNote);
+        setNotes(notes);
+        setSyncStatus("Сохранено");
+
+        console.log("Заметка успешно обновлена на сервере:", refreshedNote);
+      }
     }
   };
 
-  const handleEditorChange = ({ text }: { text: string }) => {
+  const handleEditorChange = async ({ text }: { text: string }) => {
+    // Обновляем текст в локальном состоянии редактора
     setContent(text);
+
     if (activeNote) {
-      const updatedNote = {
-        ...activeNote,
-        text,
-      };
+      try {
+        // Отправляем изменения на сервер
+        const updatedCount = await updateNote(activeNote.id, {
+          name: title, // Сохраняем название
+          text: text, // Сохраняем новый текст
+          color: color, // Сохраняем цвет
+          order: order, // Сохраняем порядок
+          tags: tags, // Сохраняем теги
+        });
+        const count = typeof updatedCount === "number" ? updatedCount : 0;
+        // Проверяем, что количество обновленных заметок больше 0 (если сервер возвращает именно количество)
+        if (count > 0) {
+          // Здесь можно отправить запрос на сервер для получения обновленных данных заметки
+          const refreshedNote = await getNote(activeNote.id);
+          console.log("updatedCount", updatedCount, count, refreshedNote);
+
+          // Обновляем состояние активной заметки с новыми данными
+          setActiveNote(refreshedNote);
+          setNotes(notes);
+          console.log("updatedCountaaa", activeNote);
+
+          console.log("Заметка успешно обновлена на сервере");
+        }
+      } catch (error) {
+        console.error("Ошибка при обновлении заметки на сервере", error);
+      }
     }
   };
 
-  useEffect(() => {
-    if (activeNote) {
-      setTitle(activeNote.name); // Устанавливаем название заметки
-      setContent(activeNote.text); // Устанавливаем текст заметки
-    }
-  }, [activeNote]);
+  // useEffect(() => {
+  //   if (activeNote) {
+  //     setTitle(activeNote.name); // Устанавливаем название заметки
+  //     setContent(activeNote.text); // Устанавливаем текст заметки
+  //     setColor(activeNote.color);
+  //     setOrder(activeNote.order);
+  //   }
+  // }, [activeNote]);
 
   const handleDeleteNote = async () => {
     try {
@@ -422,6 +493,78 @@ const Editor = ({ note }: EditorProps) => {
   console.log("isNoteListOpen in Editor: ", activeNote, isNoteListOpen);
 
   ////////////////////////////////////////////
+
+  const colorPalette = [
+    "#f28b82",
+    "#fbbc04",
+    "#fff475",
+    "#ccff90",
+    "#a7ffeb",
+    "#aecbfa",
+    "#d7aefb",
+    "#fdcfe8",
+    "#e8eaed",
+    "#ffffff",
+  ];
+
+  const handleColorChange = async (newColor: string) => {
+    setColor(newColor); // Обновляем локальное состояние цвета
+
+    if (activeNote) {
+      // Отправляем изменения на сервер
+      const updatedCount = await updateNote(activeNote.id, {
+        name: title, // Название заметки
+        text: content, // Текущий текст
+        color: newColor, // Новый цвет
+        order: order, // Текущий порядок
+        tags: tags, // Текущие теги
+      });
+
+      const count = typeof updatedCount === "number" ? updatedCount : 0;
+
+      if (count > 0) {
+        // Запрашиваем обновленные данные заметки с сервера
+        const refreshedNote = await getNote(activeNote.id);
+
+        // Обновляем состояние активной заметки с новыми данными
+        setActiveNote(refreshedNote);
+        setNotes(notes);
+        console.log("Цвет заметки успешно обновлен на сервере:", refreshedNote);
+      }
+    }
+  };
+
+  // Обработчик для изменения приоритета
+  const handleOrderChange = async (newOrder: number) => {
+    setOrder(newOrder); // Обновляем локальное состояние порядка
+
+    if (activeNote) {
+      // Отправляем изменения на сервер
+      const updatedCount = await updateNote(activeNote.id, {
+        name: title, // Название заметки
+        text: content, // Текущий текст
+        color: color, // Текущий цвет
+        order: newOrder, // Новый порядок
+        tags: tags, // Текущие теги
+      });
+
+      const count = typeof updatedCount === "number" ? updatedCount : 0;
+
+      if (count > 0) {
+        // Запрашиваем обновленные данные заметки с сервера
+        const refreshedNote = await getNote(activeNote.id);
+
+        // Обновляем состояние активной заметки с новыми данными
+        setActiveNote(refreshedNote);
+        setNotes(notes);
+        console.log(
+          "Порядок заметки успешно обновлен на сервере:",
+          refreshedNote
+        );
+      }
+    }
+  };
+
   const [isCopied, setIsCopied] = useState(false);
 
   const handleCopy = () => {
@@ -497,7 +640,7 @@ const Editor = ({ note }: EditorProps) => {
           </IconButton>
         </CenteredDiv>
         <CenteredDiv $showInDesktop>
-          <ArrowTooltip title={fullScreen ? "Collapse note" : "Expand note"}>
+          <ArrowTooltip title={fullScreen ? "Уменьшить" : "Расширить"}>
             <FullScreenButton onClick={toggleFullScreen}>
               {fullScreen ? <FullscreenIcon /> : <FullscreenExitIcon />}
             </FullScreenButton>
@@ -505,14 +648,13 @@ const Editor = ({ note }: EditorProps) => {
         </CenteredDiv>
         <TitleInput
           type="text"
-          placeholder="Title"
+          placeholder="Название"
           value={title}
           onChange={handleNameChange}
           maxLength={30}
         />
-
         <CenteredDiv>
-          <ArrowTooltip title="More actions">
+          <ArrowTooltip title="Ещё">
             <IconButton onClick={handleClickMenu}>
               <MoreVertIcon />
             </IconButton>
@@ -535,7 +677,7 @@ const Editor = ({ note }: EditorProps) => {
             disableRipple
           >
             <DriveFileMoveIcon />
-            Move note
+            Переместить заметку
           </MenuItem>
           <MenuItem
             onClick={() => {
@@ -545,7 +687,7 @@ const Editor = ({ note }: EditorProps) => {
             disableRipple
           >
             <DeleteForeverIcon />
-            Delete note
+            Удалить заметку
           </MenuItem>
         </StyledMenu>
 
@@ -571,12 +713,34 @@ const Editor = ({ note }: EditorProps) => {
 
       <StyledMdEditor
         // style={{ flex: 1 }}
-        style={{ height: editorHeight }}
+        style={{ height: editorHeight, backgroundColor: activeNote?.color }}
         value={content}
         renderHTML={(text: string) => mdParser.render(text)}
         onChange={handleEditorChange}
         placeholder="Начните печатать"
         disabled={isNoteInTrash || isNoteInArchive}
+        plugins={[
+          "header",
+          "font-bold",
+          "font-italic",
+          "font-underline",
+          "font-strikethrough",
+          "list-unordered",
+          "list-ordered",
+          "todo",
+          "block-quote",
+          "block-wrap",
+          "block-code-inline",
+          "block-code-block",
+          "table",
+          "image",
+          "link",
+          "clear",
+          "logger",
+          "mode-toggle",
+          "full-screen",
+          "tab-insert",
+        ]}
       />
 
       <Footer ref={footerRef} style={{ height: "auto" }}>
@@ -621,6 +785,12 @@ const Editor = ({ note }: EditorProps) => {
             </IconButton>
           )}
 
+          {/* Приоритет заметки */}
+          <PrioritySelector
+            priority={order}
+            onPriorityChange={handleOrderChange}
+          />
+
           {/* Статус синхронизации */}
           <SyncStatus>
             {syncStatus && (
@@ -633,7 +803,16 @@ const Editor = ({ note }: EditorProps) => {
             )}
           </SyncStatus>
         </div>
-
+        <ColorPalette>
+          {colorPalette.map((colorOption, index) => (
+            <ColorButton
+              key={index}
+              color={colorOption}
+              onClick={() => handleColorChange(colorOption)} // Обновление фона
+              active={color === colorOption}
+            />
+          ))}
+        </ColorPalette>
         {/* Отображаем текущие теги */}
         <TagContainer>
           {activeNote?.tags &&
@@ -648,7 +827,7 @@ const Editor = ({ note }: EditorProps) => {
 
               return tag ? (
                 <TagStyle key={tag.id} style={{ backgroundColor: tag.color }}>
-                  <span>{tag.name}</span>
+                  <span style={{ marginBottom: "5px" }}>{tag.name}</span>
                   {/* Кнопка для удаления */}
                   <TagButton onClick={() => handleDeleteTagFromNote(tag.id)}>
                     <CloseIcon />
@@ -676,7 +855,7 @@ const Editor = ({ note }: EditorProps) => {
           <AddTagWrapper>
             <input
               type="text"
-              placeholder="New tag"
+              placeholder="Введите тег"
               value={newTag}
               onChange={(e) => setNewTag(e.currentTarget.value)}
               style={{
@@ -752,6 +931,16 @@ const IconButton = styled.button`
   font-size: 28px;
   padding: 2px;
   color: rgb(255, 131, 104);
+  @media (max-width: 480px) {
+    width: 8vw; /* Увеличиваем размер для мобильных устройств */
+    height: 8vw;
+    max-width: 50px; /* Ограничиваем максимальный размер */
+    max-height: 50px;
+  }
+  width: 5vw; /* 5% от ширины экрана */
+  height: 5vw; /* 5% от ширины экрана */
+  max-width: 40px; /* Ограничиваем максимальный размер */
+  max-height: 40px;
 
   &:hover {
     background-color: #e9e9e7;
@@ -868,6 +1057,40 @@ const Footer = styled.div`
   border-top: 1px solid #ddd;
 `;
 
+const ColorPalette = styled.div`
+  display: flex;
+  gap: 4px;
+  /* Добавляем адаптивность для отступов и пространства между элементами */
+  margin-top: 1vh;
+  margin-bottom: 1vh;
+`;
+
+const ColorButton = styled.button<{ color: string; active: boolean }>`
+  width: 5vw; /* 5% от ширины экрана */
+  height: 5vw; /* 5% от ширины экрана */
+  max-width: 40px; /* Ограничиваем максимальный размер */
+  max-height: 40px; /* Ограничиваем максимальный размер */
+  border: none;
+  background-color: ${(props) => props.color};
+  border-radius: 50%; /* Делаем кнопки круглые */
+  cursor: pointer;
+  outline: none;
+  box-shadow: ${(props) => (props.active ? "0 0 0 2px #000" : "none")};
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: scale(1.1);
+  }
+
+  /* Для мобильных устройств (например, когда экран шире, чем 600px) */
+  @media (max-width: 480px) {
+    width: 8vw; /* Увеличиваем размер для мобильных устройств */
+    height: 8vw;
+    max-width: 50px; /* Ограничиваем максимальный размер */
+    max-height: 50px;
+  }
+`;
+
 const TagContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
@@ -878,7 +1101,7 @@ const TagContainer = styled.div`
 const TagStyle = styled.div`
   background-color: #efefef;
   border-radius: 20px;
-  padding: 5px 15px;
+  padding: 1px 15px;
   font-size: 14px;
   display: flex;
   align-items: center;

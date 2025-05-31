@@ -6,6 +6,7 @@ import ArchiveIcon from "@mui/icons-material/Archive";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import NotesIcon from "@mui/icons-material/Notes";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import {
   Search,
   AddCircleOutline,
@@ -135,7 +136,7 @@ const BaseSidebar = () => {
               }}
             >
               <NotesIcon />
-              <TextWrapper>All Notes</TextWrapper>
+              <TextWrapper>Все заметки</TextWrapper>
             </ClickableSection>
           </HeadingLeft>
         </Heading>
@@ -143,12 +144,12 @@ const BaseSidebar = () => {
           <HeadingLeft>
             <ClickableSection onClick={() => setNotebooksOpen((prev) => !prev)}>
               <Book />
-              <TextWrapper>Notebooks</TextWrapper>
+              <TextWrapper>Книги</TextWrapper>
               <RotateIcon open={notebooksOpen} />
             </ClickableSection>
           </HeadingLeft>
 
-          <ArrowTooltip title="Create notebook" placement="right">
+          <ArrowTooltip title="Новая книга" placement="right">
             <IconButton onClick={() => setOpenDialog(true)}>
               <AddCircleIcon />
             </IconButton>
@@ -178,7 +179,7 @@ const BaseSidebar = () => {
           <HeadingLeft>
             <ClickableSection onClick={handleArchivedToggle}>
               <ArchiveIcon />
-              <TextWrapper>Archive</TextWrapper>
+              <TextWrapper>Архив</TextWrapper>
             </ClickableSection>
           </HeadingLeft>
         </Heading>
@@ -188,7 +189,7 @@ const BaseSidebar = () => {
           <HeadingLeft>
             <ClickableSection onClick={handleTrashedToggle}>
               <DeleteIcon />
-              <TextWrapper>Recently Deleted</TextWrapper>
+              <TextWrapper>Недавно удаленные</TextWrapper>
             </ClickableSection>
           </HeadingLeft>
         </Heading>
@@ -197,7 +198,7 @@ const BaseSidebar = () => {
           <HeadingLeft>
             <ClickableSection onClick={() => setTagsOpen((prev) => !prev)}>
               <SellIcon />
-              <TextWrapper>Tags</TextWrapper>
+              <TextWrapper>Теги</TextWrapper>
               <RotateIcon open={tagsOpen} />
             </ClickableSection>
           </HeadingLeft>
@@ -210,11 +211,13 @@ const BaseSidebar = () => {
       </List>
 
       <Footer>
-        <span>{activeNotebook?.name || "All Notes"}</span>
-        <ArrowTooltip title="ThemeToggle" placement="right">
-          <ThemeToggle />
+        <ArrowTooltip title="Аккаунт" placement="right">
+          <AccountCircleIcon />
         </ArrowTooltip>
-        <ArrowTooltip title="Logout" placement="right">
+        {/* <ArrowTooltip title="Тема" placement="right">
+          <ThemeToggle />
+        </ArrowTooltip> */}
+        <ArrowTooltip title="Выйти" placement="right">
           <IconButton onClick={() => console.log("Logout clicked")}>
             <ExitToApp />
           </IconButton>

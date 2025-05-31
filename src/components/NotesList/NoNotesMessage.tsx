@@ -5,7 +5,7 @@ import { flexCenter } from "../../styles/mixins";
 const NoNotesMessage = () => {
   return (
     <Wrapper>
-      <Message>No Notes</Message>
+      <Message>Нет заметок</Message>
     </Wrapper>
   );
 };

@@ -105,7 +105,7 @@ const TagManager = () => {
       <Form>
         <input
           type="text"
-          placeholder="Tag name"
+          placeholder="Введите тег"
           value={name}
           onChange={handleChange}
         />
@@ -118,7 +118,7 @@ const TagManager = () => {
           />
           <StyledButton onClick={handleSubmit}>
             <Add />
-            {editingId ? "Update" : "Add"}
+            {editingId ? "Обновить" : "Добавить"}
           </StyledButton>
         </ColorAndButtonWrapper>
       </Form>

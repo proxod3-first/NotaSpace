@@ -15,6 +15,8 @@ const AllNotesOption = () => {
   const handleClick = async () => {
     try {
       toggleSidebar();
+      setActiveNote(null);
+      setActiveNoteId(null);
       setActiveNotebook("");
       navigate("/");
     } catch (error) {

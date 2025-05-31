@@ -58,7 +58,7 @@ const RenameNotebookDialog = ({
 
   return (
     <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>Rename notebook</DialogTitle>
+      <DialogTitle>Переименование книги</DialogTitle>
       <DialogContent>
         <Input
           placeholder="Note name"
@@ -69,14 +69,14 @@ const RenameNotebookDialog = ({
       </DialogContent>
       <DialogActions>
         <OutlinedButton type="button" onClick={handleClose}>
-          Cancel
+          Назад
         </OutlinedButton>
         <ContainedButton
           type="submit"
           disabled={inputValue === "" || inputValue === (notebook?.name || "")}
           onClick={handleSubmit}
         >
-          Continue
+          Продолжить
         </ContainedButton>
       </DialogActions>
     </Dialog>

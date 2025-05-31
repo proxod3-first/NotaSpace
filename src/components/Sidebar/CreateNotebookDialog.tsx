@@ -53,14 +53,14 @@ const CreateNotebookDialog = ({ open, setOpen }: Props) => {
 
   return (
     <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>Create new notebook</DialogTitle>
+      <DialogTitle>Создание новой книги</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          Notebooks are useful for grouping notes around a common topic.
+          Книги полезны для группировки заметок по общей теме.{" "}
         </DialogContentText>
         <form onSubmit={handleSubmit}>
           <Input
-            placeholder="Notebook name"
+            placeholder="Введите книгу"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
           />
@@ -68,10 +68,10 @@ const CreateNotebookDialog = ({ open, setOpen }: Props) => {
 
           <DialogActions>
             <OutlinedButton type="button" onClick={handleClose}>
-              Cancel
+              Назад
             </OutlinedButton>
             <ContainedButton type="submit" disabled={inputValue === ""}>
-              Create
+              Создать
             </ContainedButton>
           </DialogActions>
         </form>

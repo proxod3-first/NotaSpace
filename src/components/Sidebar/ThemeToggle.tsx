@@ -20,13 +20,12 @@ const ThemeToggle = () => {
   // Сохраняем тему в localStorage и применяем стиль
   useEffect(() => {
     localStorage.setItem("theme", isDarkMode ? "dark" : "light");
-    document.body.classList.toggle("dark-theme", isDarkMode);
+    document.body.classList.toggle("dark-theme", isDarkMode); // Меняем класс на body
   }, [isDarkMode]);
 
   return (
     <button onClick={toggleTheme} style={themeToggleButtonStyle}>
       {isDarkMode ? <Brightness4 /> : <Brightness7 />}
-      {/* size={20} */}
     </button>
   );
 };

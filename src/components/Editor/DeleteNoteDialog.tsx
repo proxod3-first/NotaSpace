@@ -38,19 +38,19 @@ const DeleteNoteDialog = ({ note, open, setOpen, onDelete }: DialogProps) => {
 
   return (
     <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>Delete note</DialogTitle>
+      <DialogTitle>Удалить заметку</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          The note will be removed permanently. This cannot be undone.
+          Заметка будет удалена безвозвратно. Это невозможно отменить.
         </DialogContentText>
         {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
       </DialogContent>
       <DialogActions>
         <OutlinedButton type="button" onClick={handleClose}>
-          Cancel
+          Назад
         </OutlinedButton>
         <DeleteButton type="submit" onClick={handleSubmit}>
-          Delete
+          Удалить
         </DeleteButton>
       </DialogActions>
     </Dialog>

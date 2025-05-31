@@ -39,17 +39,17 @@ const DeactivateNotebookDialog = ({
 
   return (
     <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>Deactivate notebook</DialogTitle>
+      <DialogTitle>Перемещение в архив</DialogTitle>
       <DialogContent>
-        Are you sure you want to deactivate the notebook <b>{notebook?.name}</b>
-        ?{errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
+        Все заметки <b>{notebook?.name}</b> переместить в архив?
+        {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
       </DialogContent>
       <DialogActions>
         <OutlinedButton type="button" onClick={handleClose}>
-          Cancel
+          Назад
         </OutlinedButton>
         <ContainedButton type="button" onClick={handleDeactivate}>
-          Confirm
+          Подтвердить
         </ContainedButton>
       </DialogActions>
     </Dialog>

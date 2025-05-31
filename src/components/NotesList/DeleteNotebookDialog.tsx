@@ -72,17 +72,17 @@ const DeleteNotebookDialog = ({
 
   return (
     <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>Удалить блокнот</DialogTitle>
+      <DialogTitle>Удаление книги</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          Вы уверены, что хотите удалить блокнот <b>{notebook.name}</b>? Все
-          связанные заметки также будут удалены. Это действие нельзя отменить.
+          Вы уверены, что хотите удалить книгу <b>{notebook.name}</b>? Все
+          связанные заметки также будут полностью удалены. Это действие нельзя вернуть.
         </DialogContentText>
         {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
       </DialogContent>
       <DialogActions>
-        <OutlinedButton onClick={handleClose}>Отмена</OutlinedButton>
-        <DeleteButton onClick={handleDelete}>Удалить блокнот</DeleteButton>
+        <OutlinedButton onClick={handleClose}>Назад</OutlinedButton>
+        <DeleteButton onClick={handleDelete}>Удалить</DeleteButton>
       </DialogActions>
     </Dialog>
   );
