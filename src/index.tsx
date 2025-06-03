@@ -7,7 +7,6 @@ import reportWebVitals from "./reportWebVitals";
 import { MainProvider } from "./contexts/NoteContext";
 import { TagProvider } from "./contexts/TagContext";
 import { NotebookProvider } from "./contexts/NotebookContext";
-import store from "./store/store";
 import { Provider } from "react-redux";
 
 const root = ReactDOM.createRoot(
@@ -20,9 +19,7 @@ root.render(
       <MainProvider>
         <TagProvider>
           <NotebookProvider>
-            <Provider store={store}>
               <App />
-            </Provider>
           </NotebookProvider>
         </TagProvider>
       </MainProvider>
