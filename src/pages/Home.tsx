@@ -148,7 +148,7 @@ const EditorWrapper = styled.div<{
 
   @media (max-width: 810px) {
     display: ${({ $hasActiveNote }) => ($hasActiveNote ? "block" : "none")};
-    z-index: ${({ $isNoteListOpen }) => ($isNoteListOpen ? "-1" : "100")};
+    z-index: ${({ $isNoteListOpen }) => ($isNoteListOpen ? "10" : "100")};
     position: ${({ $isNoteListOpen }) => ($isNoteListOpen ? "block" : "fixed")};
     top: 0;
     left: 0;

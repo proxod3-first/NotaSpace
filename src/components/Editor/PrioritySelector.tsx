@@ -39,10 +39,10 @@ const PrioritySelector = ({
         value={priority}
         onChange={(e) => onPriorityChange(Number(e.target.value))} // Обновление приоритета при изменении значения
       >
-        <option value={3}>Высокий</option>
-        <option value={2}>Средний</option>
-        <option value={1}>Низкий</option>
-        <option value={0}>Нет приоритета</option>
+        <option value={4}>Высокий</option>
+        <option value={3}>Средний</option>
+        <option value={2}>Низкий</option>
+        <option value={1}>Нет приоритета</option>
       </SmallSelect>
     </SmallSelectWrapper>
   );

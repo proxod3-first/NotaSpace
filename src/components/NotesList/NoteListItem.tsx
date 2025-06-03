@@ -39,14 +39,14 @@ const NoteListItem = ({ note, tags, onClick, active }: ComponentProps) => {
 
   const getPriorityLabel = (order: number): string => {
     switch (order) {
-      case 3:
+      case 4:
         return "Высокий";
-      case 2:
+      case 3:
         return "Средний";
-      case 1:
+      case 2:
         return "Низкий";
-      case 0:
-        return ""; // На случай, если порядок не соответствует одному из известных значений
+      case 1:
+        return "Нет приоритета"; // На случай, если порядок не соответствует одному из известных значений
       default:
         return "";
       }
@@ -65,7 +65,7 @@ const NoteListItem = ({ note, tags, onClick, active }: ComponentProps) => {
             : ""}
         </NotebookTitleNote>
         <NotebookTitleNote>
-          {note.order > 0 ? `| ${getPriorityLabel(note.order)}` : " "}
+          {note.order >= 2 ? `| ${getPriorityLabel(note.order)}` : " "}
         </NotebookTitleNote>
       </Title>
       <Content>{formatText(note.text)}</Content>

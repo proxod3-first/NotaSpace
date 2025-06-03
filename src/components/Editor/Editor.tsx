@@ -642,7 +642,7 @@ const Editor = ({ note }: EditorProps) => {
         <CenteredDiv $showInDesktop>
           <ArrowTooltip title={fullScreen ? "Уменьшить" : "Расширить"}>
             <FullScreenButton onClick={toggleFullScreen}>
-              {fullScreen ? <FullscreenIcon /> : <FullscreenExitIcon />}
+              {fullScreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
             </FullScreenButton>
           </ArrowTooltip>
         </CenteredDiv>
@@ -907,6 +907,7 @@ const Container = styled.div<{
         left: 0;
       `}
   }
+
 `;
 
 const Header = styled.div`
