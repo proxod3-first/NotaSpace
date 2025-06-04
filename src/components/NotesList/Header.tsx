@@ -36,6 +36,7 @@ import {
 import DeactivateNotebookDialog from "./DeactivateNotebookDialog";
 import RenameNotebookDialog from "./RenameNotebookDialog";
 import DeleteNotebookDialog from "./DeleteNotebookDialog";
+import { Description } from "@mui/icons-material";
 
 const Header = () => {
   const {
@@ -153,7 +154,7 @@ const Header = () => {
       name: `Заметка ${newNotes?.length + 1}`,
       text: template_text,
       color: "",
-      order: 0,
+      order: 1,
       notebook_id: activeNotebook?.id || "",
       tags: [],
     };
@@ -196,6 +197,7 @@ const Header = () => {
   const handleRenameNotebook = async (
     id: string,
     newName: string,
+    newDesc: string,
     onSuccess: () => void,
     onError: (error: string) => void
   ) => {
@@ -207,13 +209,32 @@ const Header = () => {
       }
 
       console.log("beforee: ", notebookToUpdate);
-      const updatedNotebook = { ...notebookToUpdate, name: newName };
-      await updateNotebook(id, updatedNotebook); // предполагаем, что у тебя есть API для этого
+      const updatedNotebook = {
+        ...notebookToUpdate,
+        name: newName,
+        description: newDesc,
+      };
+      const updatedActiveNotebook = await updateNotebook(id, updatedNotebook); // предполагаем, что у тебя есть API для этого
       console.log("afterr: ", updatedNotebook);
       await refreshNotebooks(); // тянем с сервера свежие данные
 
       const updatedNotes = await fetchNotes();
       setNotes(updatedNotes);
+
+      const count =
+        typeof updatedActiveNotebook === "number" ? updatedActiveNotebook : 0;
+
+      if (count > 0) {
+        // Запрашиваем обновленные данные заметки с сервера
+        const refreshedNotebook = await getNotebook(notebookToUpdate.id);
+
+        // Обновляем состояние активной заметки с новыми данными
+        setActiveNotebook(refreshedNotebook?.id || "");
+        console.log(
+          "Цвет заметки успешно обновлен на сервере: ",
+          refreshedNotebook
+        );
+      }
 
       onSuccess();
     } catch (error) {
@@ -324,19 +345,25 @@ const Header = () => {
         <Heading>{headingText}</Heading>
       </HeaderLeft>
       <ButtonGroup>
-        <ArrowTooltip title="Новая заметка" placement="bottom">
-          <IconButton onClick={handleCreateNoteClick}>
-            <NoteAddIcon />
-          </IconButton>
-        </ArrowTooltip>
-        {activeNotebook?.id && (
-          <ArrowTooltip title="Ещё" placement="bottom">
-            <IconButton onClick={handleClick}>
-              <MoreHorizIcon />
-            </IconButton>
-          </ArrowTooltip>
+        {!showArchived && !showTrashed && (
+          <>
+            <ArrowTooltip title="Новая заметка" placement="bottom">
+              <IconButton onClick={handleCreateNoteClick}>
+                <NoteAddIcon />
+              </IconButton>
+            </ArrowTooltip>
+
+            {activeNotebook?.id && (
+              <ArrowTooltip title="Ещё" placement="bottom">
+                <IconButton onClick={handleClick}>
+                  <MoreHorizIcon />
+                </IconButton>
+              </ArrowTooltip>
+            )}
+          </>
         )}
       </ButtonGroup>
+
       <StyledMenu
         id="fade-menu"
         MenuListProps={{ "aria-labelledby": "fade-button" }}
@@ -420,6 +447,10 @@ const HeaderLeft = styled.div`
 const Heading = styled.h2`
   font-weight: 400;
   font-size: 22px;
+  @media (max-width: 1200px) {
+    font-size: 18px;
+  }
+
   ${truncatedText}
 `;
 

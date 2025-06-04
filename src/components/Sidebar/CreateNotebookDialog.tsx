@@ -22,9 +22,11 @@ const CreateNotebookDialog = ({ open, setOpen }: Props) => {
 
   const [errorMessage, setErrorMessage] = useState("");
   const [inputValue, setInputValue] = useState("");
+  const [inputValueDesc, setInputValueDesc] = useState("");
 
   const handleClose = () => {
     setInputValue("");
+    setInputValueDesc("");
     setErrorMessage("");
     setOpen(false);
   };
@@ -34,22 +36,35 @@ const CreateNotebookDialog = ({ open, setOpen }: Props) => {
 
     // Проверка на пустое имя книги или на наличие только пробелов
     if (!inputValue.trim()) {
-      setErrorMessage("Please provide a name for the notebook.");
+      setErrorMessage("Пожайлуйства, введите название книги");
       return;
     }
 
     try {
       console.log(inputValue);
       // Используем addNotebook из контекста
-      await addNotebook(inputValue, inputValue); // Передаем имя и описание как inputValue
+      await addNotebook(inputValue, inputValueDesc); // Передаем имя и описание как inputValue
       const notebooks = await fetchNotebooks();
       setNotebooks(notebooks);
       handleClose(); // Закрыть форму после успешного добавления
     } catch (error) {
       // Обработка ошибки при добавлении книги
-      setErrorMessage("An error occurred while creating the notebook.");
+      setErrorMessage("Ошибка при создании книги.");
     }
   };
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.value?.length <= 15) {
+      setInputValue(event.target.value);
+    }
+  };
+
+  const handleChangeDesc = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.value?.length <= 15) {
+      setInputValueDesc(event.target.value);
+    }
+  };
+
 
   return (
     <Dialog open={open} onClose={handleClose}>
@@ -60,9 +75,14 @@ const CreateNotebookDialog = ({ open, setOpen }: Props) => {
         </DialogContentText>
         <form onSubmit={handleSubmit}>
           <Input
-            placeholder="Введите книгу"
+            placeholder="Введите название"
             value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
+            onChange={handleChange}
+          />
+          <Input
+            placeholder="Введите описание"
+            value={inputValueDesc}
+            onChange={handleChangeDesc}
           />
           {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
 

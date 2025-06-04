@@ -23,7 +23,7 @@ interface DialogProps {
   ) => void;
 }
 
-const defaultValue = "Choose a location...";
+const defaultValue = "Выбери назначение...";
 
 const MoveNoteDialog = ({
   note,

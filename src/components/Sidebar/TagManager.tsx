@@ -9,6 +9,7 @@ import {
   addTagToNote,
   fetchNotes,
   getNote,
+  removeTagFromNote,
   updateNote,
 } from "../../services/notesApi";
 import { Tag } from "../../types";
@@ -44,19 +45,24 @@ const TagManager = () => {
     }
 
     fetchInitialData();
-  }, []);
+  }, [name, color]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!name.trim()) return;
     if (editingId) {
       console.log("NAME1:", tags);
       console.log("NAME2:", editingId);
-      updateTag(editingId, name, color); // Используем функцию из контекста для обновления тега
+      await updateTag(editingId, name, color); // Используем функцию из контекста для обновления тега
+      // Обновляем заметку с сервера
+      if (activeNote) {
+        const updatedFromServer = await getNote(activeNote.id);
+        setActiveNote(updatedFromServer);
+      }
       setEditingId(null);
       setName("");
       setColor("#ff6347");
     } else {
-      addTag(name, color); // Используем функцию из контекста для добавления нового тега
+      await addTag(name, color); // Используем функцию из контекста для добавления нового тега
       setName("");
       setColor("#ff6347");
     }
@@ -85,10 +91,31 @@ const TagManager = () => {
     console.log("NOOTES2: ", allNotes);
   };
 
-  const handleEdit = (tag: any) => {
+  const handleEdit = async (tag: any) => {
     setEditingId(tag.id);
     setName(tag.name);
     setColor(tag.color);
+  };
+
+  const handleDelete = async (tag: Tag) => {
+    if (!activeNote) return;
+    const noteTagIds = activeNote.tags || [];
+    // Только если тег присутствует у заметки — удаляем его
+    if (noteTagIds.includes(tag.id)) {
+      await removeTagFromNote(activeNote.id, tag.id);
+    }
+    // Удаляем тег из контекста сразу (локально)
+    removeTag(tag.id);
+    // Обновляем данные заметки с сервера
+    const updatedFromServer = await getNote(activeNote.id);
+    setActiveNote(updatedFromServer);
+    // Обновляем весь список заметок
+    const allNotes = await fetchNotes();
+    setNotes(allNotes);
+    // Сброс данных формы
+    setEditingId(null);
+    setName("");
+    setColor("#ff6347");
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -138,12 +165,7 @@ const TagManager = () => {
                     <Edit onClick={() => handleEdit(tag)} />
                   )}
                   {editingId !== tag.id && (
-                    <DeleteOutline
-                      onClick={async () => {
-                        console.log("Deleting tag:", tag);
-                        removeTag(tag.id); // Используем функцию удаления из контекста
-                      }}
-                    />
+                    <DeleteOutline onClick={() => handleDelete(tag)} />
                   )}
                 </IconGroup>
               </TagItem>

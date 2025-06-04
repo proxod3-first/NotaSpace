@@ -51,6 +51,8 @@ import { useNotebooks } from "../../contexts/NotebookContext";
 import { useNotesVisibility } from "../../contexts/NotesVisibilityContext";
 import PrioritySelector from "./PrioritySelector";
 import TodoPlugin from "../Editor/ToDoMarkdown";
+import { Snackbar } from "@mui/material";
+import MuiAlert from "@mui/material/Alert";
 
 interface EditorProps {
   note: Note;
@@ -115,6 +117,8 @@ const Editor = ({ note }: EditorProps) => {
   const { isNoteListOpen, toggleNoteList } = useContext(UIContext);
   const { isSidebarOpen, toggleSidebar } = useContext(UIContext);
 
+  const [showEditBlockedMsg, setShowEditBlockedMsg] = useState(false);
+
   const { moveNoteToNewNotebook } = useMainContext();
 
   // TODO
@@ -129,6 +133,8 @@ const Editor = ({ note }: EditorProps) => {
     setTags(activeNote.tags || []);
     setEditTagId(null);
     setNewTag("");
+    setIsNoteInTrash(!!activeNote.is_deleted);
+    setIsNoteInArchive(!!activeNote.is_archived);
   }, [activeNote]);
 
   const footerRef = useRef<HTMLDivElement>(null);
@@ -303,7 +309,13 @@ const Editor = ({ note }: EditorProps) => {
     }
   };
 
+  const handleBlockedInteraction = (e: { preventDefault: () => void }) => {
+    e.preventDefault();
+    setShowEditBlockedMsg(true);
+  };
+
   const handleEditorChange = async ({ text }: { text: string }) => {
+    if (isNoteInTrash) return;
     // Обновляем текст в локальном состоянии редактора
     setContent(text);
 
@@ -439,7 +451,7 @@ const Editor = ({ note }: EditorProps) => {
       console.log("Обновляем тег на сервере...");
       await updateTag(editTagId, {
         name: newTag.trim(),
-        color: !activeNote.color ? "#ff6347" : activeNote.color,
+        color: !activeNote.color ? "#ff6347" : "",
       });
       console.log("Тег обновлён на сервере:", {
         id: editTagId,
@@ -583,7 +595,9 @@ const Editor = ({ note }: EditorProps) => {
     fetchTrashAllNotes,
     fetchArchiveAllNotes,
     archivedNotes,
+    setArchivedNotes,
     trashedNotes,
+    setTrashedNotes,
   } = useMainContext();
 
   const [isNoteInTrash, setIsNoteInTrash] = useState(activeNote?.is_deleted);
@@ -591,40 +605,29 @@ const Editor = ({ note }: EditorProps) => {
     activeNote?.is_archived
   );
 
-  useEffect(() => {
-    // Обновляем состояние для корзины и архива
-    setIsNoteInTrash(activeNote?.is_deleted);
-    setIsNoteInArchive(activeNote?.is_archived);
-  }, [activeNote]);
-
   const handleMoveToTrash = () => {
+    if (!activeNote) return;
     moveNoteIntoTrash(activeNote?.id || "");
     fetchTrashAllNotes();
-    setActiveNote(null);
-    setActiveNoteId(null);
-    setIsNoteInTrash(true);
-    setShowTrashed(true); // Обновляем состояние контекста, когда заметка перемещена в корзину
+    setActiveNote(null); // Clear active note
   };
-
   const handleMoveToArchive = () => {
+    if (!activeNote) return;
     moveNoteIntoArchive(activeNote?.id || "");
     fetchArchiveAllNotes();
-    setIsNoteInArchive(true);
-    setShowArchived(true); // Обновляем состояние контекста, когда заметка перемещена в архив
+    setActiveNote(null); // Clear active note
   };
-
   const handleRestoreFromTrash = () => {
+    if (!activeNote) return;
     restoreNoteTrash(activeNote?.id || "");
     fetchTrashAllNotes();
-    setIsNoteInTrash(false);
-    setShowTrashed(false); // Обновляем состояние контекста, когда заметка восстановлена из корзины
+    setActiveNote(null); // Clear active note
   };
-
   const handleRestoreFromArchive = () => {
+    if (!activeNote) return;
     restoreNoteArchive(activeNote?.id || "");
     fetchArchiveAllNotes();
-    setIsNoteInArchive(false);
-    setShowArchived(false); // Обновляем состояние контекста, когда заметка восстановлена из архива
+    setActiveNote(null); // Clear active note
   };
 
   const handleDelete = () => {
@@ -632,254 +635,296 @@ const Editor = ({ note }: EditorProps) => {
   };
 
   return (
-    <Container $isNoteListOpen={isNoteListOpen} $fullScreen={fullScreen}>
-      <Header>
-        <CenteredDiv $hideInDesktop>
-          <IconButton onClick={toggleNoteList}>
-            <ArrowBackIosNewIcon />
-          </IconButton>
-        </CenteredDiv>
-        <CenteredDiv $showInDesktop>
-          <ArrowTooltip title={fullScreen ? "Уменьшить" : "Расширить"}>
-            <FullScreenButton onClick={toggleFullScreen}>
-              {fullScreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
-            </FullScreenButton>
-          </ArrowTooltip>
-        </CenteredDiv>
-        <TitleInput
-          type="text"
-          placeholder="Название"
-          value={title}
-          onChange={handleNameChange}
-          maxLength={30}
-        />
-        <CenteredDiv>
-          <ArrowTooltip title="Ещё">
-            <IconButton onClick={handleClickMenu}>
-              <MoreVertIcon />
+    <>
+      <Container $isNoteListOpen={isNoteListOpen} $fullScreen={fullScreen}>
+        <Header>
+          <CenteredDiv $hideInDesktop>
+            <IconButton onClick={toggleNoteList}>
+              <ArrowBackIosNewIcon />
             </IconButton>
-          </ArrowTooltip>
-        </CenteredDiv>
-
-        <StyledMenu
-          id="fade-menu"
-          anchorEl={anchorEl}
-          open={isMenuOpen}
-          onClose={handleCloseMenu}
-          TransitionComponent={Fade}
-          MenuListProps={{ "aria-labelledby": "fade-button" }}
-        >
-          <MenuItem
-            onClick={() => {
-              handleCloseMenu();
-              setIsMoveNoteDialogOpen(true);
-            }}
-            disableRipple
-          >
-            <DriveFileMoveIcon />
-            Переместить заметку
-          </MenuItem>
-          <MenuItem
-            onClick={() => {
-              handleCloseMenu();
-              setIsDeleteNoteDialogOpen(true);
-            }}
-            disableRipple
-          >
-            <DeleteForeverIcon />
-            Удалить заметку
-          </MenuItem>
-        </StyledMenu>
-
-        <InvisibleDiv>
-          <DeleteNoteDialog
-            note={note}
-            open={isDeleteNoteDialogOpen}
-            setOpen={setIsDeleteNoteDialogOpen}
-            onDelete={handleDeleteNote}
+          </CenteredDiv>
+          <CenteredDiv $showInDesktop>
+            <ArrowTooltip title={fullScreen ? "Уменьшить" : "Расширить"}>
+              <FullScreenButton onClick={toggleFullScreen}>
+                {fullScreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
+              </FullScreenButton>
+            </ArrowTooltip>
+          </CenteredDiv>
+          <TitleInput
+            type="text"
+            placeholder="Название"
+            value={title}
+            onChange={handleNameChange}
+            maxLength={30}
+            disabled={isNoteInTrash} // title input disabled only for trash
           />
-          <MoveNoteDialog
-            note={note}
-            notebookIds={notebooks.map((nb) => nb.id)}
-            open={isMoveNoteDialogOpen}
-            setOpen={setIsMoveNoteDialogOpen}
-            notebooks={Object.fromEntries(
-              notebooks.map((nb) => [nb.id, { name: nb.name }])
-            )}
-            onMove={handleMoveNote}
+          <CenteredDiv>
+            <ArrowTooltip title="Ещё">
+              <IconButton onClick={handleClickMenu}>
+                <MoreVertIcon />
+              </IconButton>
+            </ArrowTooltip>
+          </CenteredDiv>
+
+          <StyledMenu
+            id="fade-menu"
+            anchorEl={anchorEl}
+            open={isMenuOpen}
+            onClose={handleCloseMenu}
+            TransitionComponent={Fade}
+            MenuListProps={{ "aria-labelledby": "fade-button" }}
+          >
+            <MenuItem
+              onClick={() => {
+                handleCloseMenu();
+                setIsMoveNoteDialogOpen(true);
+              }}
+              disableRipple
+            >
+              <DriveFileMoveIcon />
+              Переместить заметку
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                handleCloseMenu();
+                setIsDeleteNoteDialogOpen(true);
+              }}
+              disableRipple
+            >
+              <DeleteForeverIcon />
+              Удалить заметку
+            </MenuItem>
+          </StyledMenu>
+
+          <InvisibleDiv>
+            <DeleteNoteDialog
+              note={note}
+              open={isDeleteNoteDialogOpen}
+              setOpen={setIsDeleteNoteDialogOpen}
+              onDelete={handleDeleteNote}
+            />
+            <MoveNoteDialog
+              note={note}
+              notebookIds={notebooks.map((nb) => nb.id)}
+              open={isMoveNoteDialogOpen}
+              setOpen={setIsMoveNoteDialogOpen}
+              notebooks={Object.fromEntries(
+                notebooks.map((nb) => [nb.id, { name: nb.name }])
+              )}
+              onMove={handleMoveNote} // Pass the updated handleMoveNote function
+            />
+          </InvisibleDiv>
+        </Header>
+
+        <EditorWrapper>
+          <StyledMdEditor
+            style={{ height: editorHeight, backgroundColor: activeNote?.color }}
+            value={content}
+            renderHTML={(text: string) => mdParser.render(text)}
+            onChange={handleEditorChange}
+            placeholder="Начните печатать"
+            plugins={[
+              "header",
+              "font-bold",
+              "font-italic",
+              "font-underline",
+              "font-strikethrough",
+              "list-unordered",
+              "list-ordered",
+              "todo",
+              "block-quote",
+              "block-wrap",
+              "block-code-inline",
+              "block-code-block",
+              "table",
+              "image",
+              "link",
+              "clear",
+              "logger",
+              "mode-toggle",
+              "full-screen",
+              "tab-insert",
+            ]}
           />
-        </InvisibleDiv>
-      </Header>
-
-      <StyledMdEditor
-        // style={{ flex: 1 }}
-        style={{ height: editorHeight, backgroundColor: activeNote?.color }}
-        value={content}
-        renderHTML={(text: string) => mdParser.render(text)}
-        onChange={handleEditorChange}
-        placeholder="Начните печатать"
-        disabled={isNoteInTrash || isNoteInArchive}
-        plugins={[
-          "header",
-          "font-bold",
-          "font-italic",
-          "font-underline",
-          "font-strikethrough",
-          "list-unordered",
-          "list-ordered",
-          "todo",
-          "block-quote",
-          "block-wrap",
-          "block-code-inline",
-          "block-code-block",
-          "table",
-          "image",
-          "link",
-          "clear",
-          "logger",
-          "mode-toggle",
-          "full-screen",
-          "tab-insert",
-        ]}
-      />
-
-      <Footer ref={footerRef} style={{ height: "auto" }}>
-        {/* Управление заметкой: копирование, корзина, архив */}
-        {/* Отображаем кнопки для копирования, перемещения и восстановления */}
-        <div style={{ display: "flex", gap: "10px" }}>
-          {/* Копирование */}
-          <CopyToClipboard text={content} onCopy={handleCopy}>
-            <IconButton>
-              {isCopied ? <DoneIcon /> : <ContentCopyIcon />}
-            </IconButton>
-          </CopyToClipboard>
-
-          {/* Если не в корзине и не в архиве */}
-          {!isNoteInTrash && !isNoteInArchive && (
-            <>
-              <IconButton onClick={handleMoveToTrash}>
-                <DeleteIcon />
-              </IconButton>
-              <IconButton onClick={handleMoveToArchive}>
-                <ArchiveIcon />
-              </IconButton>
-            </>
-          )}
-
-          {/* Если в корзине */}
           {isNoteInTrash && (
-            <>
-              <IconButton onClick={handleRestoreFromTrash}>
-                <RestoreFromTrashIcon />
-              </IconButton>
-              <IconButton onClick={handleDelete}>
-                <DeleteForeverIcon />
-              </IconButton>
-            </>
+            <Overlay
+              onMouseDown={handleBlockedInteraction}
+              onKeyDown={handleBlockedInteraction}
+              tabIndex={0}
+              role="button"
+              aria-label="Редактирование заблокировано, заметка в корзине"
+            >
+              <BlockedMessage>
+                Редактирование заблокировано. Заметка находится в корзине.
+              </BlockedMessage>
+            </Overlay>
           )}
+        </EditorWrapper>
 
-          {/* Если в архиве */}
-          {isNoteInArchive && (
-            <IconButton onClick={handleRestoreFromArchive}>
-              <UnarchiveIcon />
-            </IconButton>
-          )}
+        <Footer ref={footerRef} style={{ height: "auto" }}>
+          <div style={{ display: "flex", gap: "10px" }}>
+            <CopyToClipboard text={content} onCopy={handleCopy}>
+              <IconButton>
+                {isCopied ? <DoneIcon /> : <ContentCopyIcon />}
+              </IconButton>
+            </CopyToClipboard>
 
-          {/* Приоритет заметки */}
-          <PrioritySelector
-            priority={order}
-            onPriorityChange={handleOrderChange}
-          />
-
-          {/* Статус синхронизации */}
-          <SyncStatus>
-            {syncStatus && (
+            {!isNoteInTrash && !isNoteInArchive && (
               <>
-                <span>{syncStatus}</span>
-                {syncStatus.includes("Сохраняется") && <span>🔄</span>}
-                {syncStatus.includes("Сохранено") && <span>✅</span>}
-                {syncStatus.includes("Ошибка") && <span>⚠️</span>}
+                <IconButton
+                  onClick={handleMoveToTrash}
+                  title="Переместить в корзину"
+                >
+                  <DeleteIcon />
+                </IconButton>
+                <IconButton
+                  onClick={handleMoveToArchive}
+                  title="Переместить в архив"
+                >
+                  <ArchiveIcon />
+                </IconButton>
               </>
             )}
-          </SyncStatus>
-        </div>
-        <ColorPalette>
-          {colorPalette.map((colorOption, index) => (
-            <ColorButton
-              key={index}
-              color={colorOption}
-              onClick={() => handleColorChange(colorOption)} // Обновление фона
-              active={color === colorOption}
-            />
-          ))}
-        </ColorPalette>
-        {/* Отображаем текущие теги */}
-        <TagContainer>
-          {activeNote?.tags &&
-          Array.isArray(activeNote?.tags) &&
-          activeNote?.tags?.length > 0 ? (
-            activeNote?.tags.map((tagId) => {
-              const tag = tagObjects?.find(
-                (tagObj) => String(tagObj.id) === String(tagId)
-              );
 
-              console.log("tagId:", tagId, "foundTag:", tag); // Логируем информацию о теге
+            {isNoteInTrash && (
+              <>
+                <IconButton
+                  onClick={handleRestoreFromTrash}
+                  title="Восстановить из корзины"
+                >
+                  <RestoreFromTrashIcon />
+                </IconButton>
+                <IconButton onClick={handleDelete} title="Удалить навсегда">
+                  <DeleteForeverIcon />
+                </IconButton>
+              </>
+            )}
 
-              return tag ? (
-                <TagStyle key={tag.id} style={{ backgroundColor: tag.color }}>
-                  <span style={{ marginBottom: "5px" }}>{tag.name}</span>
-                  {/* Кнопка для удаления */}
-                  <TagButton onClick={() => handleDeleteTagFromNote(tag.id)}>
-                    <CloseIcon />
-                  </TagButton>
-                  {/* Кнопка для редактирования */}
-                  <TagButton
-                    onClick={() => {
-                      setEditTagId(tag.id);
-                      setNewTag(tag.name);
+            {isNoteInArchive && (
+              <IconButton
+                onClick={handleRestoreFromArchive}
+                title="Восстановить из архива"
+              >
+                <UnarchiveIcon />
+              </IconButton>
+            )}
+            {!isNoteInTrash && (
+              <>
+                <PrioritySelector
+                  priority={order}
+                  onPriorityChange={handleOrderChange}
+                />
+
+                <SyncStatus>
+                  {syncStatus && (
+                    <>
+                      <span>{syncStatus}</span>
+                      {syncStatus.includes("Сохраняется") && <span>🔄</span>}
+                      {syncStatus.includes("Сохранено") && <span>✅</span>}
+                      {syncStatus.includes("Ошибка") && <span>⚠️</span>}
+                    </>
+                  )}
+                </SyncStatus>
+              </>
+            )}
+          </div>
+          {!isNoteInTrash && (
+            <>
+              <ColorPalette>
+                {colorPalette.map((colorOption, index) => (
+                  <ColorButton
+                    key={index}
+                    color={colorOption}
+                    onClick={() => handleColorChange(colorOption)}
+                    active={color === colorOption}
+                  />
+                ))}
+              </ColorPalette>
+
+              <TagContainer>
+                {activeNote?.tags &&
+                Array.isArray(activeNote?.tags) &&
+                activeNote.tags.length > 0 ? (
+                  activeNote.tags.map((tagId) => {
+                    const tag = tagObjects?.find(
+                      (tagObj) => String(tagObj.id) === String(tagId)
+                    );
+
+                    return tag ? (
+                      <TagStyle
+                        key={tag.id}
+                        style={{ backgroundColor: tag.color }}
+                      >
+                        <span style={{ marginBottom: "5px" }}>{tag.name}</span>
+                        <TagButton
+                          onClick={() => handleDeleteTagFromNote(tag.id)}
+                        >
+                          <CloseIcon />
+                        </TagButton>
+                        <TagButton
+                          onClick={() => {
+                            setEditTagId(tag.id);
+                            setNewTag(tag.name);
+                          }}
+                        >
+                          <DriveFileRenameOutlineIcon />
+                        </TagButton>
+                      </TagStyle>
+                    ) : null;
+                  })
+                ) : (
+                  <></>
+                )}
+              </TagContainer>
+
+              <ButtonsContainer>
+                <AddTagWrapper>
+                  <input
+                    type="text"
+                    placeholder="Введите тег"
+                    value={newTag}
+                    onChange={(e) => setNewTag(e.currentTarget.value)}
+                    style={{
+                      padding: "12px",
+                      borderRadius: "20px",
+                      border: "1px solid #ccc",
+                      marginRight: "1px",
                     }}
-                  >
-                    <DriveFileRenameOutlineIcon />
-                  </TagButton>
-                </TagStyle>
-              ) : null; // Если тег не найден, ничего не отображаем
-            })
-          ) : (
-            <></>
-            // <span>No found tags</span> // Сообщение, если тегов нет
+                    maxLength={20}
+                  />
+
+                  <ButtonAddTag onClick={handleAddTag}>
+                    <NewLabelIcon />
+                  </ButtonAddTag>
+
+                  {editTagId ? (
+                    <ButtonEditTag onClick={handleEditTag}>
+                      <DriveFileRenameOutlineIcon />
+                    </ButtonEditTag>
+                  ) : null}
+                </AddTagWrapper>
+              </ButtonsContainer>
+            </>
           )}
-        </TagContainer>
+        </Footer>
 
-        {/* Добавление нового тега */}
-        <ButtonsContainer>
-          <AddTagWrapper>
-            <input
-              type="text"
-              placeholder="Введите тег"
-              value={newTag}
-              onChange={(e) => setNewTag(e.currentTarget.value)}
-              style={{
-                padding: "12px",
-                borderRadius: "20px",
-                border: "1px solid #ccc",
-                marginRight: "1px",
-              }}
-              maxLength={20}
-            />
-
-            <ButtonAddTag onClick={handleAddTag}>
-              <NewLabelIcon />
-            </ButtonAddTag>
-            {/* Кнопка редактирования тега */}
-            {editTagId ? (
-              <ButtonEditTag onClick={handleEditTag}>
-                <DriveFileRenameOutlineIcon />
-              </ButtonEditTag>
-            ) : null}
-          </AddTagWrapper>
-        </ButtonsContainer>
-      </Footer>
-    </Container>
+        <Snackbar
+          open={showEditBlockedMsg}
+          autoHideDuration={2000}
+          onClose={() => setShowEditBlockedMsg(false)}
+          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        >
+          <MuiAlert
+            elevation={6}
+            variant="filled"
+            severity="warning"
+            sx={{ width: "100%" }}
+          >
+            Редактирование невозможно. Заметка находится в корзине.
+          </MuiAlert>
+        </Snackbar>
+      </Container>
+    </>
   );
 };
 
@@ -907,7 +952,6 @@ const Container = styled.div<{
         left: 0;
       `}
   }
-
 `;
 
 const Header = styled.div`
@@ -996,6 +1040,34 @@ const StyledMenu = styled(Menu)`
       }
     }
   }
+`;
+
+const EditorWrapper = styled.div`
+  position: relative;
+  flex: 1;
+`;
+
+const Overlay = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: transparent;
+  cursor: not-allowed;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+const BlockedMessage = styled.div`
+  background: rgba(255, 255, 255, 0.9);
+  color: #d32f2f;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-weight: 600;
+  user-select: none;
+  pointer-events: none;
 `;
 
 const SyncStatus = styled.div`

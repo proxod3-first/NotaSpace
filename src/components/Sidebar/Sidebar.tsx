@@ -109,14 +109,22 @@ const BaseSidebar = () => {
   const handleArchivedToggle = () => {
     setShowArchived(true);
     setShowTrashed(false);
+    setActiveNotebook(""); // Reset active notebook when showing archived notes
     toggleSidebar();
-    // Hide trashed notes when showing archived
   };
 
   const handleTrashedToggle = () => {
     setShowTrashed(true);
-    setShowArchived(false); // Hide archived notes when showing trashed
-    toggleSidebar(); // Close the sidebar after toggle
+    setShowArchived(false);
+    setActiveNotebook(""); // Reset active notebook when showing trashed notes
+    toggleSidebar();
+  };
+  
+  const handleNotebookClick = (notebookId: string) => {
+    setActiveNotebook(notebookId);
+    setShowArchived(false); // Hide archived notes
+    setShowTrashed(false); // Hide trashed notes
+    toggleSidebar(); // Close the sidebar after selecting a notebook
   };
 
   useEffect(() => {
@@ -132,6 +140,7 @@ const BaseSidebar = () => {
               onClick={() => {
                 setShowArchived(false);
                 setShowTrashed(false);
+                setActiveNotebook("");
                 handleClick();
               }}
             >
@@ -158,16 +167,13 @@ const BaseSidebar = () => {
         {error && <ErrorMessage>{error}</ErrorMessage>}
         <NotebooksContainer $isOpen={notebooksOpen}>
           {notebooksOpen &&
-            (Array.isArray(notebooks) && notebooks?.length > 0 ? (
-              notebooks.map((notebook, index) => (
+            (Array.isArray(notebooks) && notebooks.length > 0 ? (
+              notebooks.map((notebook) => (
                 <NotebookOption
-                  key={notebook.id || index}
+                  key={notebook.id}
                   notebook={notebook}
-                  $active={notebook_id === notebook?.id}
-                  onClick={() => {
-                    toggleSidebar();
-                    setActiveNotebook(notebook.id);
-                  }}
+                  $active={activeNotebook?.id === notebook.id}
+                  onClick={() => handleNotebookClick(notebook.id)} // Use the new click handler
                 />
               ))
             ) : (

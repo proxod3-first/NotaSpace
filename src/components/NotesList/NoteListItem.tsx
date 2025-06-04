@@ -46,10 +46,10 @@ const NoteListItem = ({ note, tags, onClick, active }: ComponentProps) => {
       case 2:
         return "Низкий";
       case 1:
-        return "Нет приоритета"; // На случай, если порядок не соответствует одному из известных значений
+        return "Нет приоритета";
       default:
-        return "";
-      }
+        return "Нет приоритета"; // На случай, если порядок не соответствует одному из известных значений
+    }
   };
 
   const notebook = notebooks?.find((nb) => nb.id === note.notebook_id);
@@ -58,16 +58,17 @@ const NoteListItem = ({ note, tags, onClick, active }: ComponentProps) => {
   return (
     <Container onClick={handleClick} $active={active} $bgColor={note.color}>
       <Title>
-        {note.name ? note.name : "Untitled"}{" "}
+        {note.name ? note.name : "Untitled"}
         <NotebookTitleNote>
           {notebook && activeNotebook?.id !== notebook.id
-            ? `| ${notebook.name} `
+            ? ` | ${notebook.name} `
             : ""}
         </NotebookTitleNote>
-        <NotebookTitleNote>
-          {note.order >= 2 ? `| ${getPriorityLabel(note.order)}` : " "}
-        </NotebookTitleNote>
+        <OrderNoteField order={note.order}>
+          {note.order >= 2 ? getPriorityLabel(note.order) : ""}
+        </OrderNoteField>
       </Title>
+
       <Content>{formatText(note.text)}</Content>
       <Tags>
         {(() => {
@@ -161,7 +162,10 @@ const Title = styled.div`
   font-weight: 500;
   color: #282a2c;
   margin-bottom: 8px;
-  ${truncatedText}
+  display: flex; /* Используем flex для выравнивания элементов */
+  flex-wrap: wrap; /* Разрешаем перенос элементов на новую строку */
+  align-items: center; /* Центрируем элементы по вертикали */
+  gap: 8px; /* Отступы между элементами */
 `;
 
 const Content = styled.div`
@@ -198,4 +202,47 @@ const Tagg = styled.div<{ color: string }>`
 const NotebookTitleNote = styled.span`
   font-size: 14px;
   color: gray;
+  flex-shrink: 0; /* Не позволяем сжиматься */
+`;
+
+const getPriorityColor = (order: any) => {
+  switch (order) {
+    case 4:
+      return "#ef4444";
+    case 3:
+      return "#3b82f6";
+    case 2:
+      return "#8378ff";
+    case 1:
+      return "transparent"; // Прозрачный для 0 и 1
+    default:
+      return "transparent"; // Прозрачный по умолчанию
+  }
+};
+
+interface OrderNoteFieldProps {
+  order: number;
+}
+
+const OrderNoteField = styled.span<OrderNoteFieldProps>`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  min-width: 40px;
+  padding: 0 12px;
+  border-radius: 9999px;
+  background-color: ${({ order }) => getPriorityColor(order)};
+  color: white;
+  font-weight: 600;
+  font-size: 13px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  user-select: none;
+  cursor: default;
+  transition: background-color 0.3s ease;
+  &:hover {
+    filter: brightness(1.1);
+  }
+  /* Скрыть элемент, если цвет фона прозрачный */
+  ${({ order }) => (order === 0 || order === 1 ? "display: none;" : "")}
 `;
