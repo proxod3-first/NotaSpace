@@ -121,7 +121,7 @@ const Editor = ({ note }: EditorProps) => {
 
   const { moveNoteToNewNotebook } = useMainContext();
 
-  // TODO
+
   useEffect(() => {
     if (!activeNote) return;
 
@@ -280,17 +280,21 @@ const Editor = ({ note }: EditorProps) => {
     setAnchorEl(e.currentTarget);
 
   const handleNameChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const updatedName = e.currentTarget.value;
-    setTitle(updatedName); // Обновляем локальное состояние title
+    let updatedName = e.currentTarget.value || "";
+    setTitle(updatedName);
+
+    updatedName = updatedName.trim();
+    if (updatedName === "") {
+      updatedName = "\u200B"; // zero-width space
+    }
 
     if (activeNote) {
-      // Отправляем изменения на сервер
       const updatedCount = await updateNote(activeNote.id, {
-        name: updatedName, // Новое название
-        text: content, // Текущий текст
-        color: color, // Текущий цвет
-        order: order, // Текущий порядок
-        tags: tags, // Текущие теги
+        name: updatedName,
+        text: content,
+        color: color,
+        order: order,
+        tags: tags,
       });
 
       const count = typeof updatedCount === "number" ? updatedCount : 0;
@@ -363,6 +367,7 @@ const Editor = ({ note }: EditorProps) => {
       await deleteNoteApi(activeNote?.id || "");
       const updatedNotes = await fetchNotes(); // Получаем обновленный список заметок
       setNotes(updatedNotes);
+      setActiveNote(null);
       toggleNoteList();
     } catch {
       setError("Ошибка удаления заметки");

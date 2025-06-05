@@ -1,11 +1,10 @@
 import { Tag } from "../types";
 
-const BASE_URL = "http://localhost:8085/api/v1";
-
+const BASE_URL = `${process.env.REACT_APP_BASE_URL}/tags`;
 // Получить тэг по ID
 export async function getTag(id: string): Promise<Tag | null> {
   try {
-    const res = await fetch(`${BASE_URL}/tags/${id}`);
+    const res = await fetch(`${BASE_URL}/${id}`);
     if (!res.ok) {
       throw new Error(`Ошибка при получении тега: ${res.statusText}`);
     }
@@ -20,7 +19,7 @@ export async function getTag(id: string): Promise<Tag | null> {
 // Получить все тэги
 export async function fetchTags(): Promise<Tag[]> {
   try {
-    const res = await fetch(`${BASE_URL}/tags`);
+    const res = await fetch(`${BASE_URL}`);
     if (!res.ok) {
       throw new Error(`Ошибка при получении тегов: ${res.statusText}`);
     }
@@ -35,7 +34,7 @@ export async function fetchTags(): Promise<Tag[]> {
 // Создать тэг
 export async function createTag(tag: Omit<Tag, "id">): Promise<string | null> {
   try {
-    const res = await fetch(`${BASE_URL}/tags`, {
+    const res = await fetch(`${BASE_URL}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(tag),
@@ -64,7 +63,7 @@ export async function updateTag(
   tag: Omit<Tag, "id">
 ): Promise<Tag | null> {
   try {
-    const res = await fetch(`${BASE_URL}/tags/${id}`, {
+    const res = await fetch(`${BASE_URL}/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(tag),
@@ -85,7 +84,7 @@ export async function updateTag(
 // Удалить тэг
 export async function deleteTag(id: string): Promise<number> {
   try {
-    const res = await fetch(`${BASE_URL}/tags/${id}`, {
+    const res = await fetch(`${BASE_URL}/${id}`, {
       method: "DELETE",
     });
 

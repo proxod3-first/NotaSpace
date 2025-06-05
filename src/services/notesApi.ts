@@ -1,11 +1,11 @@
 import { Note } from "../types/index";
 
-const BASE_URL = "http://localhost:8085/api/v1";
+const BASE_URL = `${process.env.REACT_APP_BASE_URL}/notes`;
 
 // Получить заметку по id
 export async function getNote(id: string): Promise<Note | null> {
   try {
-    const res = await fetch(`${BASE_URL}/notes/${id}`);
+    const res = await fetch(`${BASE_URL}/${id}`);
     const json = await res.json();
     if (json.error) throw new Error(json.error);
     return json.data;
@@ -18,7 +18,7 @@ export async function getNote(id: string): Promise<Note | null> {
 // Получить все заметки
 export async function fetchNotes(): Promise<Note[]> {
   try {
-    const res = await fetch(`${BASE_URL}/notes`);
+    const res = await fetch(`${BASE_URL}`);
     const json = await res.json();
     if (json.error) throw new Error(json.error);
     return json.data;
@@ -31,7 +31,7 @@ export async function fetchNotes(): Promise<Note[]> {
 // Получить все заметки из корзины (is_deleted: true)
 export async function fetchTrashNotes(): Promise<Note[]> {
   try {
-    const res = await fetch(`${BASE_URL}/notes/trash`);
+    const res = await fetch(`${BASE_URL}/trash`);
     const json = await res.json();
     if (json.error) throw new Error(json.error);
     return json.data;
@@ -44,7 +44,7 @@ export async function fetchTrashNotes(): Promise<Note[]> {
 // Восстановить заметку из корзины (is_deleted: false)
 export async function restoreNoteFromTrash(id: string): Promise<string | null> {
   try {
-    const res = await fetch(`${BASE_URL}/notes/trash/${id}`);
+    const res = await fetch(`${BASE_URL}/trash/${id}`);
     const json = await res.json();
     if (json.error) throw new Error(json.error);
     return json.data;
@@ -60,7 +60,7 @@ export async function restoreNoteFromTrash(id: string): Promise<string | null> {
 // Получить все заметки из архива
 export async function fetchArchivedNotes(): Promise<Note[]> {
   try {
-    const res = await fetch(`${BASE_URL}/notes/archive`);
+    const res = await fetch(`${BASE_URL}/archive`);
     const json = await res.json();
     if (json.error) throw new Error(json.error);
     return json.data;
@@ -75,7 +75,7 @@ export async function restoreNoteFromArchive(
   id: string
 ): Promise<string | null> {
   try {
-    const res = await fetch(`${BASE_URL}/notes/archive/${id}`, {
+    const res = await fetch(`${BASE_URL}/archive/${id}`, {
       method: "GET",
     });
     const json = await res.json();
@@ -95,7 +95,7 @@ export async function fetchNotesByNotebook(
   notebookId: string
 ): Promise<Note[]> {
   try {
-    const res = await fetch(`${BASE_URL}/notes/group/${notebookId}`);
+    const res = await fetch(`${BASE_URL}/group/${notebookId}`);
     const json = await res.json();
     if (json.error) throw new Error(json.error);
     return json.data;
@@ -108,7 +108,7 @@ export async function fetchNotesByNotebook(
 // Получить заметки по тегам (POST /notes/tag)
 export async function fetchNotesByTags(tagIds: string[]): Promise<Note[]> {
   try {
-    const res = await fetch(`${BASE_URL}/notes/tag`, {
+    const res = await fetch(`${BASE_URL}/tag`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ tags: tagIds }),
@@ -127,7 +127,7 @@ export async function createNote(
   note: Omit<Note, "id" | "is_deleted" | "is_archived">
 ): Promise<Note | null> {
   try {
-    const res = await fetch(`${BASE_URL}/notes`, {
+    const res = await fetch(`${BASE_URL}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -151,7 +151,7 @@ export async function updateNote(
   note: Pick<Note, "name" | "text" | "color" | "order" | "tags">
 ): Promise<Note | null> {
   try {
-    const res = await fetch(`${BASE_URL}/notes/${id}`, {
+    const res = await fetch(`${BASE_URL}/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(note),
@@ -171,7 +171,7 @@ export async function changeNoteNotebook(
   notebook_id: string
 ): Promise<Note | null> {
   try {
-    const res = await fetch(`${BASE_URL}/notes/notebook/${id}`, {
+    const res = await fetch(`${BASE_URL}/notebook/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ notebook_id }),
@@ -191,7 +191,7 @@ export async function addTagToNote(
   tagId: string
 ): Promise<Note | null> {
   try {
-    const res = await fetch(`${BASE_URL}/notes/tag/${noteId}`, {
+    const res = await fetch(`${BASE_URL}/tag/${noteId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ tag_id: tagId }),
@@ -211,7 +211,7 @@ export async function removeTagFromNote(
   tagId: string
 ): Promise<Note | null> {
   try {
-    const res = await fetch(`${BASE_URL}/notes/tag/${noteId}`, {
+    const res = await fetch(`${BASE_URL}/tag/${noteId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ tag_id: tagId }),
@@ -228,7 +228,7 @@ export async function removeTagFromNote(
 // Удалить заметку по id
 export async function deleteNote(id: string): Promise<number | null> {
   try {
-    const res = await fetch(`${BASE_URL}/notes/${id}`, {
+    const res = await fetch(`${BASE_URL}/${id}`, {
       method: "DELETE",
     });
     const json = await res.json();
@@ -243,7 +243,7 @@ export async function deleteNote(id: string): Promise<number | null> {
 // Переместить заметку в корзину (is_deleted: true)
 export async function moveNoteToTrash(id: string): Promise<number | null> {
   try {
-    const res = await fetch(`${BASE_URL}/notes/trash/${id}`, {
+    const res = await fetch(`${BASE_URL}/trash/${id}`, {
       method: "DELETE",
     });
     const json = await res.json();
@@ -258,7 +258,7 @@ export async function moveNoteToTrash(id: string): Promise<number | null> {
 // Переместить заметку в архив (изменить значение поля is_archived на true)
 export async function moveNoteToArchive(id: string): Promise<string | null> {
   try {
-    const res = await fetch(`${BASE_URL}/notes/archive/${id}`, {
+    const res = await fetch(`${BASE_URL}/archive/${id}`, {
       method: "DELETE",
     });
     const json = await res.json();

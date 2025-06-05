@@ -58,7 +58,7 @@ const NoteListItem = ({ note, tags, onClick, active }: ComponentProps) => {
   return (
     <Container onClick={handleClick} $active={active} $bgColor={note.color}>
       <Title>
-        {note.name ? note.name : "Untitled"}
+        {note.name ? note.name : " "}
         <NotebookTitleNote>
           {notebook && activeNotebook?.id !== notebook.id
             ? ` | ${notebook.name} `

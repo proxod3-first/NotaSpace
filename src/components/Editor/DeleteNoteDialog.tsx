@@ -16,10 +16,10 @@ interface DialogProps {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   onDelete: () => Promise<void>; // Добавляем проп onDelete
 }
-
+  
 const DeleteNoteDialog = ({ note, open, setOpen, onDelete }: DialogProps) => {
   const [errorMessage, setErrorMessage] = useState("");
-
+  
   const handleClose = () => {
     setErrorMessage("");
     setOpen(false);
@@ -81,3 +81,7 @@ const DeleteButton = styled.button`
     cursor: pointer;
   }
 `;
+function useNotes(): [any] {
+  throw new Error("Function not implemented.");
+}
+
