@@ -65,7 +65,6 @@ const CreateNotebookDialog = ({ open, setOpen }: Props) => {
     }
   };
 
-
   return (
     <Dialog open={open} onClose={handleClose}>
       <DialogTitle>Создание новой книги</DialogTitle>

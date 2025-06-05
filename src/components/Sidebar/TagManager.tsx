@@ -49,9 +49,17 @@ const TagManager = () => {
 
   const handleSubmit = async () => {
     if (!name.trim()) return;
+
+    const existingTags = await fetchTags(); // Предполагаем, что у вас есть функция для получения всех тегов
+    const tagExists = existingTags.some((tag) => tag.name === name.trim());
+    if (tagExists) {
+      // console.log("Tag with this name already exists.");
+      return; // Если тег с таким именем уже существует и мы не редактируем, выходим
+    }
+
     if (editingId) {
-      console.log("NAME1:", tags);
-      console.log("NAME2:", editingId);
+      // console.log("NAME1:", tags);
+      // console.log("NAME2:", editingId);
       await updateTag(editingId, name, color); // Используем функцию из контекста для обновления тега
       // Обновляем заметку с сервера
       if (activeNote) {
@@ -73,22 +81,22 @@ const TagManager = () => {
 
     const noteTagIds = activeNote.tags || [];
 
-    if (noteTagIds.includes(tag.id)) {
-      console.log("Tag already added to active note.");
+    if (noteTagIds?.includes(tag.id)) {
+      // console.log("Tag already added to active note.");
       return;
     }
 
     await addTagToNote(activeNote.id, tag.id);
 
     const updatedFromServer = await getNote(activeNote.id);
-    console.log("NOOTES1: ", updatedFromServer);
+    // console.log("NOOTES1: ", updatedFromServer);
 
     setActiveNote(updatedFromServer);
 
     const allNotes = await fetchNotes();
     setNotes(allNotes);
 
-    console.log("NOOTES2: ", allNotes);
+    // console.log("NOOTES2: ", allNotes);
   };
 
   const handleEdit = async (tag: any) => {
@@ -101,7 +109,7 @@ const TagManager = () => {
     if (!activeNote) return;
     const noteTagIds = activeNote.tags || [];
     // Только если тег присутствует у заметки — удаляем его
-    if (noteTagIds.includes(tag.id)) {
+    if (noteTagIds?.includes(tag.id)) {
       await removeTagFromNote(activeNote.id, tag.id);
     }
     // Удаляем тег из контекста сразу (локально)
@@ -153,7 +161,7 @@ const TagManager = () => {
       <TagListContainer>
         <TagList>
           {Array.isArray(tags) && tags?.length > 0 ? (
-            tags.map((tag) => (
+            tags?.map((tag) => (
               <TagItem key={tag.id} style={{ backgroundColor: tag.color }}>
                 <TagItemContent>
                   {/* <ColorDot style={{ backgroundColor: tag.color }} /> */}

@@ -51,11 +51,11 @@ export const TagProvider: React.FC<TagProviderProps> = ({ children }) => {
   const addTag = async (name: string, color: string): Promise<void> => {
     try {
       const newTagId = await createTag({ name, color });
-      console.log("New tag ID from createTag:", newTagId);
+      // console.log("New tag ID from createTag:", newTagId);
 
       if (newTagId) {
         const newTag = await getTag(newTagId);
-        console.log("Full new tag object:", newTag);
+        // console.log("Full new tag object:", newTag);
 
         if (newTag) {
           setTags((prevTags) => {
@@ -85,7 +85,7 @@ export const TagProvider: React.FC<TagProviderProps> = ({ children }) => {
 
       // Обновляем только тот тег, который был изменен
       setTags((prevTags) =>
-        prevTags.map(
+        prevTags?.map(
           (tag) => (tag.id === id ? { ...tag, name, color } : tag) // Обновляем только тег с id === id
         )
       );

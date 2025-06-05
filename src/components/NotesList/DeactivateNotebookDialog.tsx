@@ -8,6 +8,7 @@ import ContainedButton from "../Shared/ContainedButton";
 import OutlinedButton from "../Shared/OutlinedButton";
 import ErrorMessage from "../Shared/ErrorMessage";
 import { Note, Notebook } from "../../types";
+import { useMainContext } from "../../contexts/NoteContext";
 
 interface DeactivateNotebookDialogProps {
   notebook: Notebook | null;

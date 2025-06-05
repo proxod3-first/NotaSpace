@@ -4,9 +4,10 @@ import styled from "styled-components";
 import { flexCenter } from "../../styles/mixins";
 import { Notebook } from "../../types";
 import { UIContext } from "../../contexts/UIContext";
-import { fetchNotesByNotebook } from "../../services/notesApi"; 
+import { fetchNotesByNotebook } from "../../services/notesApi";
 import { useNotebooks } from "../../contexts/NotebookContext";
 import { useMainContext } from "../../contexts/NoteContext";
+import ArrowTooltip from "../Shared/ArrowTooltip";
 
 interface ContainerProps {
   $active: boolean;
@@ -34,7 +35,10 @@ const NotebookOption = ({ notebook, $active, onClick }: ComponentProps) => {
     try {
       const notes = await fetchNotesByNotebook(notebookId);
       if (Array.isArray(notes)) {
-        setNoteCount(notes?.length); // Обновляем количество заметок
+        const temp_notes =
+          notes?.filter((note) => !note.is_archived && !note.is_deleted) ?? [];
+
+        setNoteCount(temp_notes?.length); // Обновляем количество заметок
       }
     } catch (error) {
       console.error("Ошибка при загрузке данных:", error);
@@ -57,12 +61,14 @@ const NotebookOption = ({ notebook, $active, onClick }: ComponentProps) => {
       to={`/`} // Переход на нужный путь
       onClick={handleClick} // Обработчик клика на блокнот
     >
-      <Container $active={$active}>
-        <TextWrapper>
-          {notebook.name} <NoteCount>({noteCount})</NoteCount>{" "}
-          {/* Показываем количество заметок */}
-        </TextWrapper>
-      </Container>
+      <ArrowTooltip title={notebook?.description || ""} placement="right">
+        <Container $active={$active}>
+          <TextWrapper>
+            {notebook.name} <NoteCount>({noteCount})</NoteCount>
+            {/* Показываем количество заметок */}
+          </TextWrapper>
+        </Container>
+      </ArrowTooltip>
     </Link>
   );
 };

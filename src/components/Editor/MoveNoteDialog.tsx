@@ -82,7 +82,7 @@ const MoveNoteDialog = ({
           <option value={defaultValue} disabled>
             Выберите назначение...
           </option>
-          {notebookIds.map((id) => (
+          {notebookIds?.map((id) => (
             <option key={id} value={id} disabled={id === note.notebook_id}>
               {notebooks[id]?.name || "Unnamed Notebook"}
             </option>

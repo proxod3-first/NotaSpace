@@ -16,7 +16,7 @@ export const NotesVisibilityProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const [showArchived, setShowArchived] = useState(false);
   const [showTrashed, setShowTrashed] = useState(false);
-    
+
   return (
     <NotesVisibilityContext.Provider
       value={{ showArchived, setShowArchived, showTrashed, setShowTrashed }}

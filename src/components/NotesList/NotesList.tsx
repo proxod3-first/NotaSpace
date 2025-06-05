@@ -80,12 +80,12 @@ const NoteList: React.FC<NoteListProps> = ({ onDeleteNote }) => {
     };
 
     loadTags(); // Вызов асинхронной функции
-  }, [notes, selectedTags]);
+  }, [notes, showArchived, showTrashed, selectedTags]);
 
   const checkSelectedTags = (selectedTags: string[]) => {
     const validTags =
       selectedTags?.filter((tagId) =>
-        tags.flat().some((tag) => tag.id === tagId)
+        tags?.flat()?.some((tag) => tag.id === tagId)
       ) ?? [];
     if (validTags?.length !== selectedTags?.length) {
       // Если есть недействительные теги, обновляем состояние
@@ -100,9 +100,11 @@ const NoteList: React.FC<NoteListProps> = ({ onDeleteNote }) => {
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
+
   const handleClose = () => {
     setAnchorEl(null); // Закрываем меню при выборе или клике за пределами
   };
+
   const handleSortChange = (order: string) => {
     setSortOrder(order);
     handleClose(); // Закрываем меню после выбора
@@ -119,7 +121,7 @@ const NoteList: React.FC<NoteListProps> = ({ onDeleteNote }) => {
 
   const handleTagClick = (tagId: string) => {
     setSelectedTags((prevTags) => {
-      const updatedTags = prevTags.includes(tagId)
+      const updatedTags = prevTags?.includes(tagId)
         ? prevTags.filter((id) => id !== tagId)
         : [...prevTags, tagId];
 
@@ -129,18 +131,25 @@ const NoteList: React.FC<NoteListProps> = ({ onDeleteNote }) => {
   };
 
   const fetchTags = async () => {
-    if (!notes || !Array.isArray(notes)) {
-      setNotes(notes || []);
-      console.log(notes);
+    // Объединяем все заметки: обычные, архивированные и удаленные
+    const allNotes = [
+      ...(notes || []),
+      ...(archivedNotes || []),
+      ...(trashedNotes || []),
+    ];
+
+    if (!allNotes || !Array.isArray(allNotes)) {
+      setNotes(allNotes || []);
+      // console.log(allNotes);
       throw new Error("Некорректный формат данных заметок");
     }
 
     try {
       const tagsForNotes = await Promise.all(
-        notes.map(async (note) => {
-          if (note.tags) {
+        allNotes?.map(async (note) => {
+          if (note?.tags) {
             const noteTags = await Promise.all(
-              note.tags.map(async (tagId) => {
+              note.tags?.map(async (tagId) => {
                 const tag = await getTag(tagId);
                 if (tag) {
                   return { id: tag.id, name: tag.name, color: tag.color };
@@ -148,6 +157,8 @@ const NoteList: React.FC<NoteListProps> = ({ onDeleteNote }) => {
                 return null;
               })
             );
+            // console.log("TAGS FOR NOTES: ", noteTags);
+
             return (
               (noteTags?.filter(Boolean) as {
                 id: string;
@@ -168,7 +179,7 @@ const NoteList: React.FC<NoteListProps> = ({ onDeleteNote }) => {
 
   const filteredNotesInNotebook = useMemo(() => {
     if (activeNotebook) {
-      console.log("NOTES: ");
+      // console.log("NOTES: ");
       return (
         notes?.filter((note) => note.notebook_id === activeNotebook.id) ?? []
       );
@@ -180,7 +191,7 @@ const NoteList: React.FC<NoteListProps> = ({ onDeleteNote }) => {
     if (selectedTags?.length > 0) {
       return (
         notes?.filter((note) =>
-          note.tags?.some((tagId) => selectedTags.includes(tagId))
+          note.tags?.some((tagId) => selectedTags?.includes(tagId))
         ) ?? []
       );
     }
@@ -193,8 +204,8 @@ const NoteList: React.FC<NoteListProps> = ({ onDeleteNote }) => {
       return (
         notes?.filter(
           (note) =>
-            note.text?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            note.name?.toLowerCase().includes(searchQuery.toLowerCase())
+            note.text?.toLowerCase()?.includes(searchQuery.toLowerCase()) ||
+            note.name?.toLowerCase()?.includes(searchQuery.toLowerCase())
         ) ?? []
       );
     }
@@ -202,11 +213,11 @@ const NoteList: React.FC<NoteListProps> = ({ onDeleteNote }) => {
   };
 
   useEffect(() => {
-    console.log("Archived notes: ", archivedNotes);
+    // console.log("Archived notes: ", archivedNotes);
   }, [archivedNotes]);
 
   useEffect(() => {
-    console.log("Trashed notes: ", trashedNotes);
+    // console.log("Trashed notes: ", trashedNotes);
   }, [trashedNotes]);
 
   const filterNotes = (
@@ -214,8 +225,6 @@ const NoteList: React.FC<NoteListProps> = ({ onDeleteNote }) => {
     showArchived: boolean,
     showTrashed: boolean
   ) => {
-    if (!notes) return [];
-
     // Если показываем архивные заметки
     if (showArchived) {
       return archivedNotes?.filter((note) => note.is_archived) ?? [];
@@ -224,7 +233,9 @@ const NoteList: React.FC<NoteListProps> = ({ onDeleteNote }) => {
     if (showTrashed) {
       return trashedNotes?.filter((note) => note.is_deleted) ?? [];
     }
-    // Если не показываем ни архивные, ни удалённые
+
+    if (!notes) return [];
+
     return notes?.filter((note) => !note.is_archived && !note.is_deleted) ?? [];
   };
 
@@ -234,11 +245,14 @@ const NoteList: React.FC<NoteListProps> = ({ onDeleteNote }) => {
         await fetchArchiveAllNotes(); // Загружаем архивные заметки
       } else if (showTrashed) {
         await fetchTrashAllNotes(); // Загружаем удалённые заметки
+      } else {
+        const updatedNotes = await fetchNotes(); // Загружаем все заметки
+        setNotes(updatedNotes); // Обновляем состояние заметок
       }
     }
 
     fetchNotess();
-  }, [showArchived, showTrashed]);
+  }, [activeNote, showArchived, showTrashed]);
 
   const filteredNotes = useMemo(() => {
     const filteredByArchivedOrTrashed = filterNotes(
@@ -254,8 +268,8 @@ const NoteList: React.FC<NoteListProps> = ({ onDeleteNote }) => {
     notes,
     showArchived,
     showTrashed,
-    trashedNotes,
     archivedNotes,
+    trashedNotes,
     selectedTags,
     searchQuery,
     sortOrder,
@@ -267,16 +281,17 @@ const NoteList: React.FC<NoteListProps> = ({ onDeleteNote }) => {
       string,
       { id: string; name: string; color: string }
     >();
+
     filteredNotes?.forEach((note) => {
       note.tags?.forEach((tagId) => {
-        const tagObj = tags.flat()?.find((t) => t.id === tagId);
+        const tagObj = tags?.flat()?.find((t) => t.id === tagId);
         if (tagObj && !tagMap.has(tagObj.id)) {
           tagMap.set(tagObj.id, tagObj);
         }
       });
     });
     return Array.from(tagMap.values());
-  }, [filteredNotes, tags]);
+  }, [filteredNotes, archivedNotes, tags]);
 
   const handleNoteClick = async (noteId: string) => {
     const updatedNotes = await fetchNotes();
@@ -286,13 +301,13 @@ const NoteList: React.FC<NoteListProps> = ({ onDeleteNote }) => {
 
     if (selectedNote) {
       setActiveNote(selectedNote);
-      console.log("Активная заметка обновлена:", selectedNote, activeNote);
+      // console.log("Активная заметка обновлена:", selectedNote, activeNote);
     }
   };
 
   const handleNoteSelection = (noteId: string) => {
     setSelectedNotesIds((prevSelectedIds) => {
-      if (prevSelectedIds.includes(noteId)) {
+      if (prevSelectedIds?.includes(noteId)) {
         return prevSelectedIds?.filter((id) => id !== noteId) ?? [];
       } else {
         return [...prevSelectedIds, noteId];
@@ -331,10 +346,10 @@ const NoteList: React.FC<NoteListProps> = ({ onDeleteNote }) => {
           {error && <ErrorMessage>{error}</ErrorMessage>}
           <TagListContainer>
             {uniqueTags?.length > 0 ? (
-              uniqueTags.map((tag) => (
+              uniqueTags?.map((tag) => (
                 <TagButton
                   key={tag.id}
-                  selected={selectedTags.includes(tag.id)} // Проверяем, выбран ли тег
+                  selected={selectedTags?.includes(tag.id)} // Проверяем, выбран ли тег
                   onClick={() => handleTagClick(tag.id)}
                   style={{ backgroundColor: tag.color }}
                 >
@@ -350,9 +365,16 @@ const NoteList: React.FC<NoteListProps> = ({ onDeleteNote }) => {
             {filteredNotes?.length ? (
               <List>
                 <MuiList>
-                  {filteredNotes.map((note) => {
-                    const idx = notes.findIndex((n) => n.id === note.id);
+                  {filteredNotes?.map((note) => {
+                    const allNotes = [
+                      ...(notes || []),
+                      ...(archivedNotes || []),
+                      ...(trashedNotes || []),
+                    ];
+
+                    const idx = allNotes?.findIndex((n) => n.id === note.id);
                     const noteTagObjects = tags[idx] || [];
+                    // console.log("FILTERED NOTES: ", idx, tags, noteTagObjects, filteredNotes);
 
                     return (
                       <NoteListItem

@@ -9,6 +9,7 @@ import { ContainerProps } from "@mui/material";
 import { getTag } from "../../services/tagsApi";
 import { Tag } from "../../types/index";
 import { useNotebooks } from "../../contexts/NotebookContext";
+import { format } from "date-fns";
 
 interface ComponentProps {
   note: Note;
@@ -32,6 +33,17 @@ const NoteListItem = ({ note, tags, onClick, active }: ComponentProps) => {
 
   const { notebooks, activeNotebook } = useNotebooks();
 
+  const notebook = notebooks?.find((nb) => nb.id === note.notebook_id);
+  // console.log("NOTEBOOK in NoteListItem: ", notebook);
+
+  // Функция для получения текущей даты в формате DD.MM.YYYY
+  const getCurrentDate = (): Date => {
+    const today = new Date();
+    return new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  };
+  const currentDate = getCurrentDate(); // Получаем текущую дату
+  const formattedDate = format(currentDate, "dd.MM.yyyy"); // Форматируем текущую дату
+
   const handleClick = () => {
     if (toggleNoteList) toggleNoteList();
     onClick(note.id);
@@ -52,9 +64,6 @@ const NoteListItem = ({ note, tags, onClick, active }: ComponentProps) => {
     }
   };
 
-  const notebook = notebooks?.find((nb) => nb.id === note.notebook_id);
-  console.log("NOTEBOOK in NoteListItem: ", notebook);
-
   return (
     <Container onClick={handleClick} $active={active} $bgColor={note.color}>
       <Title>
@@ -68,16 +77,15 @@ const NoteListItem = ({ note, tags, onClick, active }: ComponentProps) => {
           {note.order >= 2 ? getPriorityLabel(note.order) : ""}
         </OrderNoteField>
       </Title>
-
       <Content>{formatText(note.text)}</Content>
       <Tags>
         {(() => {
-          console.log("note.tags:", note.tags);
-          console.log("tags prop:", tags);
+          // console.log("note.tags: ", note.tags);
+          // console.log("tags prop: ", tags);
 
-          return (note.tags ?? []).map((tagId) => {
+          return note.tags?.map((tagId) => {
             const tagObj = tags?.find((t) => t.id === tagId);
-            console.log("tagId:", tagId, "tagObj:", tagObj);
+            // console.log("tagId: ", tagId, "tagObj: ", tagObj);
             if (!tagObj) return null;
 
             return (
@@ -88,7 +96,7 @@ const NoteListItem = ({ note, tags, onClick, active }: ComponentProps) => {
           });
         })()}
       </Tags>
-      <AutoUpdatingTimeAgo date={new Date(Date.now() - 60000)} />
+      <AutoUpdatingTimeAgo date={currentDate} />
     </Container>
   );
 };
@@ -98,7 +106,7 @@ export default NoteListItem;
 const formatText = (text: string) => {
   if (!text) return null;
 
-  return text.split("\n").map((line, index) => (
+  return text.split("\n")?.map((line, index) => (
     <span key={index}>
       {line}
       <br />
@@ -189,6 +197,7 @@ const Tags = styled.div`
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 8px;
+  margin-bottom: 10px;
 `;
 
 const Tagg = styled.div<{ color: string }>`

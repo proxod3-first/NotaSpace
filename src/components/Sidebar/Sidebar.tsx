@@ -84,7 +84,7 @@ const BaseSidebar = () => {
   }, []);
 
   useEffect(() => {
-    console.log("Active notebook changed:", activeNotebook);
+    // console.log("Active notebook changed:", activeNotebook);
   }, [activeNotebook]);
 
   const fetchArchived = useCallback(async () => {
@@ -119,7 +119,7 @@ const BaseSidebar = () => {
     setActiveNotebook(""); // Reset active notebook when showing trashed notes
     toggleSidebar();
   };
-  
+
   const handleNotebookClick = (notebookId: string) => {
     setActiveNotebook(notebookId);
     setShowArchived(false); // Hide archived notes
@@ -128,7 +128,7 @@ const BaseSidebar = () => {
   };
 
   useEffect(() => {
-    console.log("Active notebook changed:", activeNotebook);
+    // console.log("Active notebook changed:", activeNotebook);
   }, [activeNotebook]);
 
   return (
@@ -168,18 +168,21 @@ const BaseSidebar = () => {
         <NotebooksContainer $isOpen={notebooksOpen}>
           {notebooksOpen &&
             (Array.isArray(notebooks) && notebooks.length > 0 ? (
-              notebooks.map((notebook) => (
-                <NotebookOption
-                  key={notebook.id}
-                  notebook={notebook}
-                  $active={activeNotebook?.id === notebook.id}
-                  onClick={() => handleNotebookClick(notebook.id)} // Use the new click handler
-                />
+              notebooks?.map((notebook) => (
+                <>
+                  <NotebookOption
+                    key={notebook.id}
+                    notebook={notebook}
+                    $active={activeNotebook?.id === notebook.id}
+                    onClick={() => handleNotebookClick(notebook.id)} // Use the new click handler
+                  />
+                </>
               ))
             ) : (
               <EmptyMessage>Создайте первую книгу!</EmptyMessage>
             ))}
         </NotebooksContainer>
+
         {/* Секция для Archived */}
         <Heading>
           <HeadingLeft>

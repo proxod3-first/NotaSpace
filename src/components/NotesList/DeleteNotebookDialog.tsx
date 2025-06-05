@@ -39,7 +39,7 @@ const DeleteNotebookDialog = ({
     setOpen(false);
   };
 
-  const { notes } = useMainContext();
+  const { notes, moveNoteIntoTrash } = useMainContext();
 
   const handleDelete = async () => {
     if (!notebook) return;
@@ -51,7 +51,7 @@ const DeleteNotebookDialog = ({
       );
 
       for (const note of notesToDelete) {
-        await deleteNote(note.id); // <-- твой метод удаления заметки
+        moveNoteIntoTrash(note.id); // <-- твой метод удаления заметки
       }
 
       // потом удаляем сам блокнот
@@ -76,7 +76,8 @@ const DeleteNotebookDialog = ({
       <DialogContent>
         <DialogContentText>
           Вы уверены, что хотите удалить книгу <b>{notebook.name}</b>? Все
-          связанные заметки также будут полностью удалены. Это действие нельзя вернуть.
+          связанные заметки будут перенесены в корзину. Это действие нельзя
+          вернуть.
         </DialogContentText>
         {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
       </DialogContent>

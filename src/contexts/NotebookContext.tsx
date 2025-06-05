@@ -95,7 +95,7 @@ export const NotebookProvider: React.FC<NotebookProviderProps> = ({
     });
     if (updatedNotebook) {
       setNotebooks((prevNotebooks) =>
-        prevNotebooks.map((notebook) =>
+        prevNotebooks?.map((notebook) =>
           notebook.id === id ? updatedNotebook : notebook
         )
       );
@@ -137,7 +137,7 @@ export const NotebookProvider: React.FC<NotebookProviderProps> = ({
 
   const setActiveNotebook = (id: string) => {
     const notebook = notebooks?.find((notebook) => notebook.id === id);
-    console.log("setActiveNotebook =", notebook);
+    // console.log("setActiveNotebook =", notebook);
     setActiveNotebookState(notebook || null); // Если книга найдена, устанавливаем её, иначе null
   };
 

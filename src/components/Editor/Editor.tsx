@@ -121,16 +121,15 @@ const Editor = ({ note }: EditorProps) => {
 
   const { moveNoteToNewNotebook } = useMainContext();
 
-
   useEffect(() => {
     if (!activeNote) return;
 
     // Сбрасываем форму под новую заметку
     setTitle(activeNote.name || "");
     setContent(activeNote.text || "");
-    setColor(activeNote?.color);
-    setOrder(activeNote?.order);
-    setTags(activeNote.tags || []);
+    setColor(activeNote.color);
+    setOrder(activeNote.order);
+    setTags(activeNote.tags);
     setEditTagId(null);
     setNewTag("");
     setIsNoteInTrash(!!activeNote.is_deleted);
@@ -165,18 +164,18 @@ const Editor = ({ note }: EditorProps) => {
       try {
         // Загружаем все теги с сервера
         const fetchedTags = await fetchTags();
-        console.log("Все теги:", fetchedTags);
-        console.log("Теги активной заметки:", activeNote.tags);
+        // console.log("Все теги:", fetchedTags);
+        // console.log("Теги активной заметки:", activeNote.tags);
 
         // Фильтруем только те теги, ID которых есть в activeNote.tags
         const filteredTags = fetchedTags?.filter((tag) =>
-          activeNote.tags.includes(tag.id)
+          activeNote.tags?.includes(tag.id)
         );
 
         // Устанавливаем отфильтрованные теги в состояние
         setTagObjects(filteredTags); // Сохраняем все теги для активной заметки
         setActiveNote(activeNote);
-        console.log("Теги для активной заметки (объекты):", filteredTags);
+        // console.log("Теги для активной заметки (объекты):", filteredTags);
       } catch (error) {
         console.error("Ошибка при загрузке тегов для заметки:", error);
       }
@@ -308,7 +307,7 @@ const Editor = ({ note }: EditorProps) => {
         setNotes(notes);
         setSyncStatus("Сохранено");
 
-        console.log("Заметка успешно обновлена на сервере:", refreshedNote);
+        // console.log("Заметка успешно обновлена на сервере:", refreshedNote);
       }
     }
   };
@@ -322,6 +321,11 @@ const Editor = ({ note }: EditorProps) => {
     if (isNoteInTrash) return;
     // Обновляем текст в локальном состоянии редактора
     setContent(text);
+
+    let updatedName = text.trim();
+    if (updatedName === "") {
+      text = "\u200B"; // zero-width space
+    }
 
     if (activeNote) {
       try {
@@ -338,14 +342,14 @@ const Editor = ({ note }: EditorProps) => {
         if (count > 0) {
           // Здесь можно отправить запрос на сервер для получения обновленных данных заметки
           const refreshedNote = await getNote(activeNote.id);
-          console.log("updatedCount", updatedCount, count, refreshedNote);
+          // console.log("updatedCount", updatedCount, count, refreshedNote);
 
           // Обновляем состояние активной заметки с новыми данными
           setActiveNote(refreshedNote);
           setNotes(notes);
-          console.log("updatedCountaaa", activeNote);
+          // console.log("updatedCountaaa", activeNote);
 
-          console.log("Заметка успешно обновлена на сервере");
+          // console.log("Заметка успешно обновлена на сервере");
         }
       } catch (error) {
         console.error("Ошибка при обновлении заметки на сервере", error);
@@ -363,6 +367,7 @@ const Editor = ({ note }: EditorProps) => {
   // }, [activeNote]);
 
   const handleDeleteNote = async () => {
+    if (!activeNote) return;
     try {
       await deleteNoteApi(activeNote?.id || "");
       const updatedNotes = await fetchNotes(); // Получаем обновленный список заметок
@@ -386,11 +391,18 @@ const Editor = ({ note }: EditorProps) => {
   const handleAddTag = async () => {
     if (!newTag.trim() || newTag?.length > 20) return; // Если новый тег пустой, выходим
 
+    const fetchedTags = await fetchTags();
+    const tagExists = fetchedTags?.some((tag) => tag.name === newTag.trim());
+    if (tagExists) {
+      // console.log("Тег с таким именем уже существует.");
+      return; // Если тег уже существует, выходим
+    }
+
     // Создаем новый тег
     const tagData = { name: newTag.trim(), color: "#ff6347" }; // Цвет по умолчанию
     const newTagObj = await createTag(tagData);
 
-    console.log("Создан новый тег:", newTagObj);
+    // console.log("Создан новый тег:", newTagObj);
 
     // Преобразуем ID тега
     const value = newTagObj || ""; // Берем только ID тега
@@ -422,7 +434,7 @@ const Editor = ({ note }: EditorProps) => {
     // Проверяем, что активная заметка существует
     if (!activeNote?.id) return;
 
-    console.log("Удаляем тег из заметки", activeNote?.id, tagId);
+    // console.log("Удаляем тег из заметки", activeNote?.id, tagId);
 
     // Удаляем тег из заметки
     await removeTagFromNote(activeNote?.id, tagId);
@@ -440,52 +452,59 @@ const Editor = ({ note }: EditorProps) => {
 
   const handleEditTag = async () => {
     // Логируем значения на начальном этапе
-    console.log("Попытка редактирования тега...");
-    console.log("newTag:", newTag);
-    console.log("editTagId:", editTagId);
-    console.log("activeNote:", activeNote);
+    // console.log("Попытка редактирования тега...");
+    // console.log("newTag:", newTag);
+    // console.log("editTagId:", editTagId);
+    // console.log("activeNote:", activeNote);
 
     // Если новое имя тега пустое, нет id для редактирования, или нет активной заметки, выходим
     if (!newTag.trim() || !editTagId || !activeNote?.id) {
-      console.log("Редактирование отменено. Условия не выполнены.");
+      // console.log("Редактирование отменено. Условия не выполнены.");
       return;
+    }
+
+    const fetchedTags = await fetchTags();
+    const tagExists = fetchedTags?.some((tag) => tag.name === newTag.trim());
+    if (tagExists) {
+      // console.log("Тег с таким именем уже существует.");
+      return; // Если тег уже существует, выходим
     }
 
     // Обновляем тег на сервере
     try {
-      console.log("Обновляем тег на сервере...");
+      // console.log("Обновляем тег на сервере...");
       await updateTag(editTagId, {
         name: newTag.trim(),
         color: !activeNote.color ? "#ff6347" : "",
       });
-      console.log("Тег обновлён на сервере:", {
-        id: editTagId,
-        name: newTag.trim(),
-      });
+      // console.log("Тег обновлён на сервере:", {
+      //   id: editTagId,
+      //   name: newTag.trim(),
+      // });
     } catch (error) {
-      console.log("Ошибка при обновлении тега на сервере:", error);
+      // console.log("Ошибка при обновлении тега на сервере:", error);
       return;
     }
 
     // Обновляем список тегов с сервера
     try {
-      console.log("Загружаем актуальные теги с сервера...");
+      // console.log("Загружаем актуальные теги с сервера...");
       const fetchedTags = await fetchTags(); // Запрос на сервер для получения всех тегов
-      console.log("Получены все теги с сервера:", fetchedTags);
+      // console.log("Получены все теги с сервера:", fetchedTags);
 
       // Фильтруем только те теги, ID которых есть в activeNote.tags
       const filteredTags = fetchedTags?.filter((tag) =>
-        activeNote.tags.includes(tag.id)
+        activeNote.tags?.includes(tag.id)
       );
 
       // Обновляем локальное состояние tagObjects с актуальными тегами
       setTagObjects(filteredTags);
-      console.log("Обновлённый список тегов:", filteredTags);
+      // console.log("Обновлённый список тегов:", filteredTags);
 
       // Обновляем теги в activeNote
       const updatedNote = {
         ...activeNote,
-        tags: activeNote.tags.map(
+        tags: activeNote.tags?.map(
           (tagId) => (tagId === editTagId ? editTagId : tagId) // Просто обновляем id, потому что тег уже обновлён в tagObjects
         ),
       };
@@ -493,7 +512,7 @@ const Editor = ({ note }: EditorProps) => {
       setActiveNote(updatedNote); // Обновляем activeNote
 
       // Обновляем список заметок
-      const updatedNotes = notes.map((note) =>
+      const updatedNotes = notes?.map((note) =>
         note.id === activeNote.id ? updatedNote : note
       );
       setNotes(updatedNotes); // Обновляем заметки
@@ -501,13 +520,13 @@ const Editor = ({ note }: EditorProps) => {
       // Сбрасываем поле ввода
       setNewTag("");
       setEditTagId(null); // Сбрасываем режим редактирования
-      console.log("Режим редактирования сброшен.");
+      // console.log("Режим редактирования сброшен.");
     } catch (error) {
-      console.log("Ошибка при загрузке тегов с сервера:", error);
+      // console.log("Ошибка при загрузке тегов с сервера:", error);
     }
   };
 
-  console.log("isNoteListOpen in Editor: ", activeNote, isNoteListOpen);
+  // console.log("isNoteListOpen in Editor: ", activeNote, isNoteListOpen);
 
   ////////////////////////////////////////////
 
@@ -546,7 +565,7 @@ const Editor = ({ note }: EditorProps) => {
         // Обновляем состояние активной заметки с новыми данными
         setActiveNote(refreshedNote);
         setNotes(notes);
-        console.log("Цвет заметки успешно обновлен на сервере:", refreshedNote);
+        // console.log("Цвет заметки успешно обновлен на сервере:", refreshedNote);
       }
     }
   };
@@ -574,10 +593,10 @@ const Editor = ({ note }: EditorProps) => {
         // Обновляем состояние активной заметки с новыми данными
         setActiveNote(refreshedNote);
         setNotes(notes);
-        console.log(
-          "Порядок заметки успешно обновлен на сервере:",
-          refreshedNote
-        );
+        // console.log(
+        //   "Порядок заметки успешно обновлен на сервере:",
+        //   refreshedNote
+        // );
       }
     }
   };
@@ -590,7 +609,7 @@ const Editor = ({ note }: EditorProps) => {
   };
 
   const { setShowArchived, setShowTrashed, showArchived, showTrashed } =
-    useNotesVisibility(); // Using the contexts
+    useNotesVisibility();
 
   const {
     moveNoteIntoTrash,
@@ -616,18 +635,21 @@ const Editor = ({ note }: EditorProps) => {
     fetchTrashAllNotes();
     setActiveNote(null); // Clear active note
   };
+
   const handleMoveToArchive = () => {
     if (!activeNote) return;
     moveNoteIntoArchive(activeNote?.id || "");
     fetchArchiveAllNotes();
     setActiveNote(null); // Clear active note
   };
+
   const handleRestoreFromTrash = () => {
     if (!activeNote) return;
     restoreNoteTrash(activeNote?.id || "");
     fetchTrashAllNotes();
     setActiveNote(null); // Clear active note
   };
+
   const handleRestoreFromArchive = () => {
     if (!activeNote) return;
     restoreNoteArchive(activeNote?.id || "");
@@ -637,6 +659,8 @@ const Editor = ({ note }: EditorProps) => {
 
   const handleDelete = () => {
     deleteNoteApi(activeNote?.id || "");
+    fetchTrashAllNotes();
+    setActiveNote(null);
   };
 
   return (
@@ -710,11 +734,11 @@ const Editor = ({ note }: EditorProps) => {
             />
             <MoveNoteDialog
               note={note}
-              notebookIds={notebooks.map((nb) => nb.id)}
+              notebookIds={notebooks?.map((nb) => nb.id)}
               open={isMoveNoteDialogOpen}
               setOpen={setIsMoveNoteDialogOpen}
               notebooks={Object.fromEntries(
-                notebooks.map((nb) => [nb.id, { name: nb.name }])
+                notebooks?.map((nb) => [nb.id, { name: nb.name }])
               )}
               onMove={handleMoveNote} // Pass the updated handleMoveNote function
             />
@@ -757,7 +781,7 @@ const Editor = ({ note }: EditorProps) => {
               onKeyDown={handleBlockedInteraction}
               tabIndex={0}
               role="button"
-              aria-label="Редактирование заблокировано, заметка в корзине"
+              aria-label="Редактирование заблокировано, заметка в корзине."
             >
               <BlockedMessage>
                 Редактирование заблокировано. Заметка находится в корзине.
@@ -769,7 +793,7 @@ const Editor = ({ note }: EditorProps) => {
         <Footer ref={footerRef} style={{ height: "auto" }}>
           <div style={{ display: "flex", gap: "10px" }}>
             <CopyToClipboard text={content} onCopy={handleCopy}>
-              <IconButton>
+              <IconButton title="Скопировать содержимое">
                 {isCopied ? <DoneIcon /> : <ContentCopyIcon />}
               </IconButton>
             </CopyToClipboard>
@@ -777,16 +801,16 @@ const Editor = ({ note }: EditorProps) => {
             {!isNoteInTrash && !isNoteInArchive && (
               <>
                 <IconButton
-                  onClick={handleMoveToTrash}
-                  title="Переместить в корзину"
-                >
-                  <DeleteIcon />
-                </IconButton>
-                <IconButton
                   onClick={handleMoveToArchive}
                   title="Переместить в архив"
                 >
                   <ArchiveIcon />
+                </IconButton>
+                <IconButton
+                  onClick={handleMoveToTrash}
+                  title="Переместить в корзину"
+                >
+                  <DeleteIcon />
                 </IconButton>
               </>
             )}
@@ -802,17 +826,32 @@ const Editor = ({ note }: EditorProps) => {
                 <IconButton onClick={handleDelete} title="Удалить навсегда">
                   <DeleteForeverIcon />
                 </IconButton>
+                <IconButton
+                  onClick={handleMoveToArchive}
+                  title="Переместить в архив"
+                >
+                  <ArchiveIcon />
+                </IconButton>
               </>
             )}
 
             {isNoteInArchive && (
-              <IconButton
-                onClick={handleRestoreFromArchive}
-                title="Восстановить из архива"
-              >
-                <UnarchiveIcon />
-              </IconButton>
+              <>
+                <IconButton
+                  onClick={handleRestoreFromArchive}
+                  title="Восстановить из архива"
+                >
+                  <UnarchiveIcon />
+                </IconButton>
+                <IconButton
+                  onClick={handleMoveToTrash}
+                  title="Переместить в корзину"
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </>
             )}
+
             {!isNoteInTrash && (
               <>
                 <PrioritySelector
@@ -824,9 +863,9 @@ const Editor = ({ note }: EditorProps) => {
                   {syncStatus && (
                     <>
                       <span>{syncStatus}</span>
-                      {syncStatus.includes("Сохраняется") && <span>🔄</span>}
-                      {syncStatus.includes("Сохранено") && <span>✅</span>}
-                      {syncStatus.includes("Ошибка") && <span>⚠️</span>}
+                      {syncStatus?.includes("Сохраняется") && <span>🔄</span>}
+                      {syncStatus?.includes("Сохранено") && <span>✅</span>}
+                      {syncStatus?.includes("Ошибка") && <span>⚠️</span>}
                     </>
                   )}
                 </SyncStatus>
@@ -836,12 +875,12 @@ const Editor = ({ note }: EditorProps) => {
           {!isNoteInTrash && (
             <>
               <ColorPalette>
-                {colorPalette.map((colorOption, index) => (
+                {colorPalette?.map((colorOption, index) => (
                   <ColorButton
                     key={index}
                     color={colorOption}
                     onClick={() => handleColorChange(colorOption)}
-                    active={color === colorOption}
+                    $active={color === colorOption}
                   />
                 ))}
               </ColorPalette>
@@ -850,7 +889,7 @@ const Editor = ({ note }: EditorProps) => {
                 {activeNote?.tags &&
                 Array.isArray(activeNote?.tags) &&
                 activeNote.tags.length > 0 ? (
-                  activeNote.tags.map((tagId) => {
+                  activeNote.tags?.map((tagId) => {
                     const tag = tagObjects?.find(
                       (tagObj) => String(tagObj.id) === String(tagId)
                     );
@@ -860,7 +899,7 @@ const Editor = ({ note }: EditorProps) => {
                         key={tag.id}
                         style={{ backgroundColor: tag.color }}
                       >
-                        <span style={{ marginBottom: "5px" }}>{tag.name}</span>
+                        <span>{tag.name}</span>
                         <TagButton
                           onClick={() => handleDeleteTagFromNote(tag.id)}
                         >
@@ -1143,7 +1182,7 @@ const ColorPalette = styled.div`
   margin-bottom: 1vh;
 `;
 
-const ColorButton = styled.button<{ color: string; active: boolean }>`
+const ColorButton = styled.button<{ color: string; $active: boolean }>`
   width: 5vw; /* 5% от ширины экрана */
   height: 5vw; /* 5% от ширины экрана */
   max-width: 40px; /* Ограничиваем максимальный размер */
@@ -1153,7 +1192,7 @@ const ColorButton = styled.button<{ color: string; active: boolean }>`
   border-radius: 50%; /* Делаем кнопки круглые */
   cursor: pointer;
   outline: none;
-  box-shadow: ${(props) => (props.active ? "0 0 0 2px #000" : "none")};
+  box-shadow: ${(props) => (props.$active ? "0 0 0 2px #000" : "none")};
   transition: transform 0.2s ease;
 
   &:hover {

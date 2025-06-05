@@ -1,6 +1,7 @@
 import { Tag } from "../types";
 
 const BASE_URL = `${process.env.REACT_APP_BASE_URL}/tags`;
+
 // Получить тэг по ID
 export async function getTag(id: string): Promise<Tag | null> {
   try {

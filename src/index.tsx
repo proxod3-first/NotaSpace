@@ -19,7 +19,7 @@ root.render(
       <MainProvider>
         <TagProvider>
           <NotebookProvider>
-              <App />
+            <App />
           </NotebookProvider>
         </TagProvider>
       </MainProvider>

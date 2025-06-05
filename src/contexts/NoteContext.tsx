@@ -95,7 +95,7 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
 
   const setActiveNoteId = (id: string | null) => {
     const note = notes?.find((note) => note.id === id);
-    console.log("setActiveNote: ", note);
+    // console.log("setActiveNote: ", note);
     setActiveNote(note || null);
   };
 
@@ -173,7 +173,7 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
       setLoading(true);
       const updatedNote = await updateNote(id, note);
       setNotes((prev) =>
-        prev.map((n) => (n.id === id && updatedNote ? updatedNote : n))
+        prev?.map((n) => (n.id === id && updatedNote ? updatedNote : n))
       );
     } catch (error) {
       setError("Ошибка при обновлении заметки");
@@ -187,7 +187,7 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
       setLoading(true);
       const updatedNote = await addTagToNote(noteId, tagId);
       setNotes((prev) =>
-        prev.map((n) => (n.id === noteId && updatedNote ? updatedNote : n))
+        prev?.map((n) => (n.id === noteId && updatedNote ? updatedNote : n))
       );
     } catch (error) {
       setError("Ошибка при добавлении тэга");
@@ -201,7 +201,7 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
       setLoading(true);
       const updatedNote = await removeTagFromNote(noteId, tagId);
       setNotes((prev) =>
-        prev.map((n) => (n.id === noteId && updatedNote ? updatedNote : n))
+        prev?.map((n) => (n.id === noteId && updatedNote ? updatedNote : n))
       );
     } catch (error) {
       setError("Ошибка при удалении тэга");
@@ -219,7 +219,7 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
       if (updatedNote) {
         // Обновляем заметки в контексте, если операция успешна
         setNotes((prevNotes) =>
-          prevNotes.map((note) =>
+          prevNotes?.map((note) =>
             note.id === updatedNote.id
               ? { ...note, notebook_id: notebookId }
               : note
@@ -304,7 +304,7 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
 
       // Обновляем статус заметки в основной коллекции
       setNotes((prev) =>
-        prev.map((note) =>
+        prev?.map((note) =>
           note.id === noteId ? { ...note, is_deleted: false } : note
         )
       );
@@ -343,7 +343,7 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
 
       // Обновляем статус заметки в основной коллекции
       setNotes((prev) =>
-        prev.map((note) =>
+        prev?.map((note) =>
           note.id === noteId ? { ...note, is_archived: true } : note
         )
       );
@@ -373,7 +373,7 @@ export function MainProvider({ children }: { children: React.ReactNode }) {
 
       // Обновляем статус заметки в основной коллекции
       setNotes((prev) =>
-        prev.map((note) =>
+        prev?.map((note) =>
           note.id === noteId
             ? { ...note, is_archived: false, is_deleted: false }
             : note

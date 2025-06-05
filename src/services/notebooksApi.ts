@@ -1,6 +1,7 @@
 import { Notebook } from "../types";
 
 const BASE_URL = `${process.env.REACT_APP_BASE_URL}/notebooks`;
+
 // Получить книгу по ID
 export async function getNotebook(id: string): Promise<Notebook | null> {
   try {

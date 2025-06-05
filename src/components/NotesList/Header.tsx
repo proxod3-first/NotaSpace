@@ -21,6 +21,7 @@ import {
   createNote,
   deleteNote,
   fetchNotes,
+  moveNoteToArchive,
   moveNoteToTrash,
   updateNote,
 } from "../../services/notesApi";
@@ -47,10 +48,13 @@ const Header = () => {
     setActiveNoteId,
     setLoading,
     deleteNoteApi,
+    moveNoteIntoTrash,
+    moveNoteIntoArchive,
     archivedNotes,
     trashedNotes,
     setError,
   } = useMainContext();
+
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const isMenuOpen = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -86,10 +90,10 @@ const Header = () => {
     const refreshActiveNotebook = async () => {
       try {
         const freshNotebook = await getNotebook(activeNotebook.id);
-        console.log("FreshNotebook: ", freshNotebook);
+        // console.log("FreshNotebook: ", freshNotebook);
 
         if (freshNotebook) {
-          const updatedNotebooks = notebooks.map((nb) =>
+          const updatedNotebooks = notebooks?.map((nb) =>
             nb.id === freshNotebook.id ? freshNotebook : nb
           );
           setNotebooks(updatedNotebooks);
@@ -112,7 +116,7 @@ const Header = () => {
         const updatedNotebooks = await fetchNotebooks();
         setNotebooks(updatedNotebooks);
       } catch (error) {
-        console.error("Ошибка при загрузке блокнотов:", error);
+        console.error("Ошибка при загрузке книг:", error);
       }
     };
 
@@ -126,7 +130,7 @@ const Header = () => {
   const refreshNotebooks = async () => {
     try {
       const updatedNotebooks = await fetchNotebooks();
-      console.log("updatedNotebooks: ", updatedNotebooks);
+      // console.log("updatedNotebooks: ", updatedNotebooks);
       setNotebooks(updatedNotebooks);
 
       if (activeNotebook) {
@@ -136,7 +140,7 @@ const Header = () => {
         setActiveNotebook(stillExists ? stillExists.id : "");
       }
     } catch (error) {
-      console.error("Ошибка при обновлении блокнотов с сервера:", error);
+      console.error("Ошибка при обновлении книг с сервера:", error);
     }
   };
 
@@ -204,18 +208,18 @@ const Header = () => {
     try {
       const notebookToUpdate = notebooks.find((nb) => nb.id === id);
       if (!notebookToUpdate) {
-        onError("Блокнот не найден");
+        onError("Книга не найдена");
         return;
       }
 
-      console.log("beforee: ", notebookToUpdate);
+      // console.log("beforee: ", notebookToUpdate);
       const updatedNotebook = {
         ...notebookToUpdate,
         name: newName,
         description: newDesc,
       };
       const updatedActiveNotebook = await updateNotebook(id, updatedNotebook); // предполагаем, что у тебя есть API для этого
-      console.log("afterr: ", updatedNotebook);
+      // console.log("afterr: ", updatedNotebook);
       await refreshNotebooks(); // тянем с сервера свежие данные
 
       const updatedNotes = await fetchNotes();
@@ -230,20 +234,20 @@ const Header = () => {
 
         // Обновляем состояние активной заметки с новыми данными
         setActiveNotebook(refreshedNotebook?.id || "");
-        console.log(
-          "Цвет заметки успешно обновлен на сервере: ",
-          refreshedNotebook
-        );
+        // console.log(
+        //   "Цвет заметки успешно обновлен на сервере: ",
+        //   refreshedNotebook
+        // );
       }
 
       onSuccess();
     } catch (error) {
-      onError("Не удалось переименовать блокнот. Попробуйте снова.");
+      onError("Не удалось переименовать книгу. Попробуйте снова.");
     }
   };
 
   useEffect(() => {
-    console.log("notebooks updated: ", notebooks);
+    // console.log("notebooks updated: ", notebooks);
   }, [notebooks]);
 
   const handleDeactivateNotebook = async (
@@ -253,31 +257,25 @@ const Header = () => {
   ) => {
     try {
       if (!activeNotebook || activeNotebook.id !== id) {
-        onError("Нет активного блокнота для удаления");
+        onError("Нет активной книги для удаления");
         return;
       }
-
-      // Удаляем блокнот
-      await deleteNotebook(id);
 
       // Удаляем все заметки, которые были в этом блокноте
       const notesInNotebook = notes.filter((note) => note.notebook_id === id);
       for (const note of notesInNotebook) {
-        await deleteNote(note.id); // предполагаем, что есть API для полного удаления заметки
+        moveNoteIntoArchive(note.id); // предполагаем, что есть API для полного удаления заметки
       }
 
-      // Обновляем данные с сервера
+      setActiveNote(null);
       await refreshNotebooks();
 
       const updatedNotes = await fetchNotes();
       setNotes(updatedNotes);
 
-      // Сбрасываем активный блокнот
-      setActiveNotebook("");
-
       onSuccess();
     } catch (error) {
-      onError("Ошибка при удалении блокнота и его заметок");
+      onError("Ошибка при удалении книги и ее заметок");
     }
   };
 
@@ -293,7 +291,7 @@ const Header = () => {
   ) => {
     try {
       if (!activeNotebook || activeNotebook.id !== id) {
-        onError("Нет активного блокнота для удаления");
+        onError("Нет активной книги для удаления");
         return;
       }
 
@@ -308,7 +306,7 @@ const Header = () => {
 
       onSuccess();
     } catch (error) {
-      onError("Ошибка при деактивации блокнота");
+      onError("Ошибка при деактивации книги");
     }
   };
 
@@ -418,9 +416,7 @@ const Header = () => {
             open={isDeleteNoteDialogOpen}
             setOpen={setIsDeleteNoteDialogOpen}
             deleteNotebook={handleDeleteNotebook}
-            onSuccess={() => {
-              /* что-то */
-            }}
+            onSuccess={() => {}}
           />
         </>
       )}
