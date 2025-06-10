@@ -1,46 +1,143 @@
-# Getting Started with Create React App
+# NotaSpace - Web-сервис ведения заметок на базе свободно-распространяемого API
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+![icon](./public/favicon.ico)
 
-## Available Scripts
+**NotaSpace** – это удобное веб-приложение для создания и управления заметками с React-интерфейсом с привязкой свободно-распространяемого API ([_NoteVault_](https://github.com/LoL-KeKovich/NoteVault)).
 
-In the project directory, you can run:
+## 🚀 Особенности  
+- 📝 **Создание, управление и редактирование заметок**
+- 🗑️ Наличие функционала удобного **архива и корзины**
+- 🏷️ **Книги и теги** для организации заметок  
+- 🔍 **Поиск** по названию и содержимому
+- 📌 **Фильтрация по приоритету**
+- 🎨 **Присвоение цвета заметкам**
+- 📄 **Поддержка Markdown-формата**
+- 📱 **Полностью адаптивный интерфейс**  
 
-### `yarn start`
+## ⚙️ Технологии  
+- **Frontend:** React, Typescript
+- **API:** Golang, MongoDB
+- **Дополнительно:** Docker, Docker Compose  
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+---
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## 🛠 Быстрый старт  
 
-### `yarn test`
+### Требования:
+- MongoDB (локально как минимум)
+- Docker (не обязательно)
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+1. **Клонируйте репозитории:**  
+   ```bash
+   git clone https://github.com/proxod3-first/NotaSpace.git
+   git clone https://github.com/LoL-KeKovich/NoteVault.git
+   mkdir ProjectFolder
+   mv NotaSpace/ ProjectFolder/
+   mv NotaVault/ ProjectFolder/
+   ```
 
-### `yarn build`
+2. **Создайте docker-compose.yml в ProjectFolder:**
+  ```yaml
+  version: '3.1'
+  
+  services:
+    mongo:
+      image: mongo
+      restart: always
+      environment:
+        MONGO_INITDB_ROOT_USERNAME: root
+        MONGO_INITDB_ROOT_PASSWORD: example
+      ports:
+        - 27017:27017
+  
+    note-api:
+      build:
+        context: "./NoteVault"
+        dockerfile: Dockerfile
+      ports:
+        - 8085:8085
+      depends_on:
+        - mongo
+      environment:
+        CONFIG_PATH: "/app/config/local.yaml"
+  
+    frontend-app:
+      build:
+        context: "./NotaSpace"
+        dockerfile: Dockerfile
+      ports:
+        - 3000:3000
+  ```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Вариант 1: Запуск вручную (разработка)  
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+1. **Установите зависимости:**  
+   ```bash
+   cd NotaSpace && npm install
+   ```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+2. **Настройте переменные окружения:**  
+   - Создайте `.env` на основе `.env.example`  
+   - Пример:
+     ```env
+     REACT_APP_BASE_URL=http://localhost:8085/api/v1
+     ```
+     
+3. **Запустите MongoDB через mongod**
+   
+4. **Запустите API:**  
+   ```bash
+   # В консоли (API)
+   cd NotaVault
+   $env:CONFIG_PATH = "./config/local.yaml"
+   go run cmd/NoteVault/main.go
+   ```
+   
+5. **Запустите клиента:**  
+   ```bash
+   # В консоли (клиент)
+   npm start
+   ```
 
-### `yarn eject`
+6. **Web-сервис будет доступен:**
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+🔹 **Frontend:** [http://localhost:3000](http://localhost:3000)  
+🔹 **API:** [http://localhost:8085/api/v1](http://localhost:8085/api/v1)  
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+---
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+### Вариант 2: Запуск через Docker  
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+1. **Соберите и запустите контейнеры в ProjectFolder:**
+   ```bash
+   docker-compose up --build
+   ```
 
-## Learn More
+2. **Web-сервис будет доступен:**  
+   - **Frontend:** [http://localhost:3000](http://localhost:3000)  
+   - **API:** [http://localhost:8085/api/v1](http://localhost:8085/api/v1)  
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+---
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 📄 Лицензия  
+GPL-3.0 License.
+
+---
+
+## 🤝 Контрибьюция  
+
+1. Форкните репозиторий  
+2. Создайте ветку (`git checkout -b feature/your-feature`)  
+3. Зафиксируйте изменения (`git commit -m 'Add some feature'`)  
+4. Запушьте в форк (`git push origin feature/your-feature`)  
+5. Откройте Pull Request  
+
+---
+
+## 📬 Контакты  
+- Автор клиентской части: [proxod3-first](https://github.com/proxod3-first)
+- Автор API: [LoL-KeKovich](https://github.com/LoL-KeKovich)   
+
+--- 
+
+✨ **Пространство для заметок!** ✨
